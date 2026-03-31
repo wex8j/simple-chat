@@ -13,32 +13,51 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const users = {};
+const users = {}; // { socketId: { username, avatar } }
 
 io.on('connection', (socket) => {
     console.log('مستخدم جديد:', socket.id);
 
-    socket.on('set-username', (username) => {
-        users[socket.id] = username;
-        io.emit('user-joined', `${username} دخل الدردشة`);
-        io.emit('users-list', Object.values(users));
-    });
-
-    socket.on('send-message', (data) => {
-        const username = users[socket.id] || 'زائر';
-        io.emit('receive-message', {
-            username: username,
-            message: data.message,
-            time: new Date().toLocaleTimeString()
+    // تعيين بيانات المستخدم
+    socket.on('set-user', (userData) => {
+        users[socket.id] = {
+            username: userData.username,
+            avatar: userData.avatar
+        };
+        
+        // إرسال قائمة المستخدمين للجميع
+        const userList = Object.values(users);
+        io.emit('users-list', userList);
+        
+        // إعلان دخول المستخدم
+        io.emit('user-joined', {
+            username: userData.username,
+            avatar: userData.avatar
         });
     });
 
+    // استقبال رسالة
+    socket.on('send-message', (data) => {
+        io.emit('receive-message', {
+            username: data.username,
+            avatar: data.avatar,
+            message: data.message,
+            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+        });
+    });
+
+    // قطع الاتصال
     socket.on('disconnect', () => {
-        const username = users[socket.id];
-        if (username) {
-            io.emit('user-left', `${username} غادر`);
+        const user = users[socket.id];
+        if (user) {
+            io.emit('user-left', {
+                username: user.username,
+                avatar: user.avatar
+            });
             delete users[socket.id];
-            io.emit('users-list', Object.values(users));
+            
+            const userList = Object.values(users);
+            io.emit('users-list', userList);
         }
     });
 });
