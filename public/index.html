@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>دردشة العراق</title>
+    <title>دردشة بغداد لايف</title>
     <style>
         * {
             margin: 0;
@@ -12,45 +12,38 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #1a1a2e;
             position: relative;
         }
 
-        /* خلفية علم العراق الشفافة */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        /* خلفية علم العراق */
+        body {
             background: linear-gradient(90deg, 
                 #CE1126 0%, #CE1126 33.33%, 
                 #FFFFFF 33.33%, #FFFFFF 66.66%, 
                 #007A3D 66.66%, #007A3D 100%);
-            opacity: 0.1;
-            z-index: -2;
+            background-attachment: fixed;
         }
 
-        body::after {
-            content: "";
+        /* طبقة شفافة فوق العلم عشان النص يبان */
+        .overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.88);
-            z-index: -1;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 0;
         }
 
         /* حاوية الدردشة */
         .chat-container {
-            background: transparent;
+            position: relative;
+            z-index: 1;
             width: 100%;
             height: 100vh;
             display: flex;
@@ -58,30 +51,83 @@
             overflow: hidden;
         }
 
-        /* الهيدر */
+        /* الهيدر - شعار متحرك */
         .chat-header {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            padding: 18px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            padding: 16px;
             text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            animation: slideDown 0.5s ease;
         }
 
-        .chat-header h3 {
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* الشعار المتحرك */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .logo-flag {
+            font-size: 32px;
+            animation: rotate 3s ease infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(10deg); }
+            20% { transform: rotate(-10deg); }
+            30% { transform: rotate(5deg); }
+            40% { transform: rotate(-5deg); }
+            50% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .logo-text {
+            text-align: center;
+        }
+
+        .logo-text h3 {
             color: white;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo-text p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 10px;
+            margin-top: 4px;
         }
 
         .online-users {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.4);
             display: inline-block;
             padding: 4px 12px;
             border-radius: 50px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 8px;
         }
 
         /* منطقة الرسائل */
@@ -100,27 +146,27 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
         }
 
         /* الرسائل */
         .message {
-            animation: slideIn 0.25s ease;
+            animation: fadeInUp 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             max-width: 85%;
         }
 
-        @keyframes slideIn {
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(15px);
             }
             to {
                 opacity: 1;
@@ -128,26 +174,24 @@
             }
         }
 
-        /* اسم المستخدم */
         .message .display-name {
             font-size: 12px;
             font-weight: 600;
-            color: #ff6b6b;
+            color: #ff8a8a;
             margin-bottom: 4px;
             padding-right: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* اليوزر نيم الصغير */
         .message .username {
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.6);
             margin-bottom: 3px;
             padding-right: 4px;
         }
 
-        /* فقاعة الرسالة */
         .message-bubble {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(10px);
             padding: 10px 14px;
             border-radius: 20px;
@@ -160,12 +204,12 @@
             font-size: 15px;
             line-height: 1.4;
             font-weight: 400;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* الوقت */
         .message .time {
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.5);
             margin-top: 4px;
             padding-right: 8px;
         }
@@ -173,18 +217,23 @@
         /* الرسائل النظامية */
         .system-message {
             text-align: center;
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 11px;
             margin: 8px 0;
             font-style: italic;
+            background: rgba(0, 0, 0, 0.3);
+            display: inline-block;
+            align-self: center;
+            padding: 5px 12px;
+            border-radius: 50px;
         }
 
         /* منطقة الإدخال */
         .input-area {
             padding: 12px 16px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             gap: 10px;
         }
@@ -196,17 +245,17 @@
             border-radius: 30px;
             font-size: 16px;
             outline: none;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
         }
 
         .input-area input:focus {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.22);
         }
 
         .input-area input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
             font-size: 15px;
         }
 
@@ -233,7 +282,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.97);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(20px);
             display: flex;
             justify-content: center;
@@ -242,19 +291,19 @@
         }
 
         .welcome-card {
-            background: rgba(30, 30, 40, 0.95);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(20px);
             border-radius: 40px;
             padding: 40px 28px;
             text-align: center;
             max-width: 340px;
             width: 85%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .welcome-card h1 {
             color: white;
-            font-size: 28px;
+            font-size: 26px;
             margin-bottom: 8px;
             font-weight: 700;
         }
@@ -267,7 +316,7 @@
         }
 
         .welcome-card p {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 28px;
             font-size: 13px;
         }
@@ -283,15 +332,10 @@
             text-align: center;
             outline: none;
             margin-bottom: 14px;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
         }
 
         .welcome-card input:focus {
             border-color: #CE1126;
-        }
-
-        .welcome-card input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
         }
 
         .welcome-card button {
@@ -304,18 +348,24 @@
             font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 5px;
         }
 
         .flag-decoration {
-            font-size: 48px;
+            font-size: 55px;
             margin-bottom: 12px;
+            animation: wave 1.5s ease infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
         }
 
         .saved-info {
             margin-top: 18px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .saved-info button {
@@ -336,11 +386,13 @@
 </head>
 <body>
 
+    <div class="overlay"></div>
+
     <!-- شاشة تسجيل الدخول -->
     <div class="welcome-screen" id="welcome-screen">
         <div class="welcome-card">
             <div class="flag-decoration">🇮🇶</div>
-            <h1>دردشة <span>العراق</span></h1>
+            <h1>دردشة <span>بغداد لايف</span></h1>
             <p>سجل دخولك وابدأ المحادثة</p>
             
             <input type="text" id="login-username" placeholder="يوزر نيم (مثال: ahmed)" maxlength="20" dir="ltr">
@@ -361,11 +413,19 @@
     <!-- الدردشة -->
     <div class="chat-container" id="chat-container" style="display: none;">
         <div class="chat-header">
-            <h3>💬 دردشة العراق</h3>
+            <div class="logo-area">
+                <div class="logo-flag">🇮🇶</div>
+                <div class="logo-text">
+                    <h3>دردشة بغداد لايف</h3>
+                    <p>Baghdad Live Chat</p>
+                </div>
+                <div class="logo-flag">🇮🇶</div>
+            </div>
             <div class="online-users">🟢 <span id="users-count">0</span> متصل</div>
         </div>
         <div class="chat-messages" id="messages">
-            <div class="system-message">✨ مرحباً بك في دردشة العراق</div>
+            <div class="system-message">✨ مرحباً بك في دردشة بغداد لايف</div>
+            <div class="system-message">🇮🇶 تواصل مع الناس من كل العراق 🇮🇶</div>
         </div>
         <div class="input-area">
             <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500">
