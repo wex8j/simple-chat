@@ -11,73 +11,37 @@
             box-sizing: border-box;
         }
 
+        /* خلفية البحر - الصورة اللي اخترتها */
         body {
+            background-image: url('https://i.ibb.co/ymNqjks9/ec86b3a3baac247dab33322fcbc60384.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            background: #1a1a2e;
         }
 
-        /* خلفية علم العراق - 3 أعمدة */
-        .iraq-flag-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 0;
-        }
-
-        .red-stripe {
-            flex: 1;
-            background: #CE1126;
-        }
-
-        .white-stripe {
-            flex: 1;
-            background: #FFFFFF;
-            position: relative;
-        }
-
-        .green-stripe {
-            flex: 1;
-            background: #007A3D;
-        }
-
-        /* نجوم على الشريط الأبيض */
-        .stars {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            transform: translateY(-50%);
-            text-align: center;
-            font-size: 24px;
-            letter-spacing: 20px;
-            color: #CE1126;
-            opacity: 0.3;
-        }
-
-        /* طبقة شفافة فوق العلم عشان النص يبان */
-        .overlay {
+        /* طبقة شفافة عشان النص يبان */
+        body::before {
+            content: "";
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.6);
-            z-index: 1;
+            z-index: 0;
         }
 
         /* حاوية الدردشة */
         .chat-container {
             position: relative;
-            z-index: 2;
+            z-index: 1;
             width: 100%;
             height: 100vh;
             display: flex;
@@ -127,7 +91,7 @@
         }
 
         .online-users {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             display: inline-block;
             padding: 3px 10px;
             border-radius: 50px;
@@ -179,7 +143,7 @@
 
         .message .username {
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.6);
             margin-bottom: 2px;
         }
 
@@ -200,17 +164,17 @@
 
         .message .time {
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
             margin-top: 3px;
         }
 
         /* الرسائل النظامية */
         .system-message {
             text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 11px;
             margin: 6px 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             align-self: center;
             padding: 4px 12px;
             border-radius: 50px;
@@ -233,16 +197,16 @@
             border-radius: 30px;
             font-size: 16px;
             outline: none;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
         }
 
         .input-area input:focus {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.22);
         }
 
         .input-area input::placeholder {
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .input-area button {
@@ -267,7 +231,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(20px);
             display: flex;
             justify-content: center;
@@ -276,7 +240,7 @@
         }
 
         .welcome-card {
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(15px);
             border-radius: 35px;
             padding: 35px 25px;
@@ -361,38 +325,6 @@
 </head>
 <body>
 
-    <!-- خلفية علم العراق -->
-    <div class="iraq-flag-bg">
-        <div class="red-stripe"></div>
-        <div class="white-stripe">
-            <div class="stars">✦ ✦ ✦</div>
-        </div>
-        <div class="green-stripe"></div>
-    </div>
-    <div class="overlay"></div>
-
-    <!-- شاشة تسجيل الدخول -->
-    <div class="welcome-screen" id="welcome-screen">
-        <div class="welcome-card">
-            <div class="flag-decoration">🇮🇶</div>
-            <h1>دردشة <span>بغداد لايف</span></h1>
-            <p>سجل دخولك وابدأ المحادثة</p>
-            
-            <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20" dir="ltr">
-            <input type="text" id="login-displayname" placeholder="الاسم الظاهر" maxlength="20">
-            
-            <button id="login-btn">دخول</button>
-            
-            <div class="error-msg" id="error-msg"></div>
-            
-            <div class="saved-info" id="saved-info" style="display: none;">
-                <div id="saved-text"></div>
-                <button id="use-saved-btn">استخدم الحساب المحفوظ</button>
-                <button id="logout-saved-btn" style="background: rgba(206,17,38,0.5);">تسجيل خروج</button>
-            </div>
-        </div>
-    </div>
-
     <!-- الدردشة -->
     <div class="chat-container" id="chat-container" style="display: none;">
         <div class="chat-header">
@@ -413,6 +345,28 @@
         <div class="input-area">
             <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500">
             <button id="send-btn">إرسال</button>
+        </div>
+    </div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-card">
+            <div class="flag-decoration">🇮🇶</div>
+            <h1>دردشة <span>بغداد لايف</span></h1>
+            <p>سجل دخولك وابدأ المحادثة</p>
+            
+            <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20" dir="ltr">
+            <input type="text" id="login-displayname" placeholder="الاسم الظاهر" maxlength="20">
+            
+            <button id="login-btn">دخول</button>
+            
+            <div class="error-msg" id="error-msg"></div>
+            
+            <div class="saved-info" id="saved-info" style="display: none;">
+                <div id="saved-text"></div>
+                <button id="use-saved-btn">استخدم الحساب المحفوظ</button>
+                <button id="logout-saved-btn" style="background: rgba(206,17,38,0.5);">تسجيل خروج</button>
+            </div>
         </div>
     </div>
 
@@ -584,4 +538,4 @@
         loadSavedUser();
     </script>
 </body>
-                    </html>
+</html>
