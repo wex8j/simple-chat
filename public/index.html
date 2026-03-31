@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
 
-        /* خلفية البحر - الصورة اللي اخترتها */
+        /* خلفية البحر */
         body {
             background-image: url('https://i.ibb.co/ymNqjks9/ec86b3a3baac247dab33322fcbc60384.jpg');
             background-size: cover;
@@ -199,6 +199,11 @@
             outline: none;
             background: rgba(255, 255, 255, 0.15);
             color: white;
+            /* إخفاء الاقتراحات */
+            autocomplete: off;
+            spellcheck: false;
+            autocorrect: off;
+            autocapitalize: none;
         }
 
         .input-area input:focus {
@@ -279,6 +284,9 @@
             text-align: center;
             outline: none;
             margin-bottom: 12px;
+            autocomplete: off;
+            spellcheck: false;
+            autocorrect: off;
         }
 
         .welcome-card input:focus {
@@ -343,7 +351,7 @@
             <div class="system-message">🇮🇶 تواصل مع الناس من كل العراق 🇮🇶</div>
         </div>
         <div class="input-area">
-            <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500">
+            <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
             <button id="send-btn">إرسال</button>
         </div>
     </div>
@@ -355,8 +363,8 @@
             <h1>دردشة <span>بغداد لايف</span></h1>
             <p>سجل دخولك وابدأ المحادثة</p>
             
-            <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20" dir="ltr">
-            <input type="text" id="login-displayname" placeholder="الاسم الظاهر" maxlength="20">
+            <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20" dir="ltr" autocomplete="off" spellcheck="false" autocorrect="off">
+            <input type="text" id="login-displayname" placeholder="الاسم الظاهر" maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
             
             <button id="login-btn">دخول</button>
             
