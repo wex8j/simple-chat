@@ -13,50 +13,66 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const users = {}; // { socketId: { username, avatar } }
+const users = {}; // { username: { socketId, displayName } }
+const socketToUser = {}; // { socketId: username }
 
 io.on('connection', (socket) => {
     console.log('مستخدم جديد:', socket.id);
 
-    // تعيين بيانات المستخدم
     socket.on('set-user', (userData) => {
-        users[socket.id] = {
-            username: userData.username,
-            avatar: userData.avatar
-        };
+        const { username, displayName } = userData;
         
-        // إرسال قائمة المستخدمين للجميع
-        const userList = Object.values(users);
+        // التحقق إذا اليوزر نيم مستخدم
+        if (users[username]) {
+            socket.emit('username-taken');
+            return;
+        }
+        
+        // حفظ المستخدم
+        users[username] = {
+            socketId: socket.id,
+            displayName: displayName
+        };
+        socketToUser[socket.id] = username;
+        
+        // إرسال قائمة المستخدمين
+        const userList = Object.keys(users).map(u => ({
+            username: u,
+            displayName: users[u].displayName
+        }));
         io.emit('users-list', userList);
         
         // إعلان دخول المستخدم
         io.emit('user-joined', {
-            username: userData.username,
-            avatar: userData.avatar
+            username: username,
+            displayName: displayName
         });
     });
 
-    // استقبال رسالة
     socket.on('send-message', (data) => {
         io.emit('receive-message', {
             username: data.username,
-            avatar: data.avatar,
+            displayName: data.displayName,
             message: data.message,
             time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
         });
     });
 
-    // قطع الاتصال
     socket.on('disconnect', () => {
-        const user = users[socket.id];
-        if (user) {
+        const username = socketToUser[socket.id];
+        if (username && users[username]) {
+            const userData = users[username];
             io.emit('user-left', {
-                username: user.username,
-                avatar: user.avatar
+                username: username,
+                displayName: userData.displayName
             });
-            delete users[socket.id];
+            delete users[username];
+            delete socketToUser[socket.id];
             
-            const userList = Object.values(users);
+            const userList = Object.keys(users).map(u => ({
+                username: u,
+                displayName: users[u].displayName
+            }));
             io.emit('users-list', userList);
         }
     });
