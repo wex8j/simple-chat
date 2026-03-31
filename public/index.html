@@ -17,13 +17,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0;
-            margin: 0;
-            position: relative;
             background: #1a1a2e;
+            position: relative;
         }
 
-        /* خلفية علم العراق الشفافة */
         body::before {
             content: "";
             position: fixed;
@@ -72,11 +69,6 @@
             margin-bottom: 4px;
         }
 
-        .chat-header p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 11px;
-        }
-
         .online-users {
             background: rgba(0, 0, 0, 0.3);
             display: inline-block;
@@ -100,20 +92,10 @@
             width: 4px;
         }
 
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #CE1126;
-            border-radius: 10px;
-        }
-
         .message {
             animation: slideIn 0.3s ease;
             display: flex;
-            gap: 12px;
-            align-items: flex-start;
+            flex-direction: column;
         }
 
         @keyframes slideIn {
@@ -127,27 +109,16 @@
             }
         }
 
-        /* صورة البروفايل في الرسالة */
-        .message-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #CE1126;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .message-content {
-            flex: 1;
-        }
-
-        .message .username {
+        .message .display-name {
             font-weight: bold;
             color: #ff6b6b;
             font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .message .username {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
             margin-bottom: 4px;
         }
 
@@ -156,13 +127,10 @@
             padding: 10px 14px;
             border-radius: 18px;
             display: inline-block;
-            max-width: 100%;
+            max-width: 90%;
             word-wrap: break-word;
-            word-break: break-word;
-            white-space: normal;
             color: white;
             font-size: 14px;
-            line-height: 1.4;
         }
 
         .message .time {
@@ -176,7 +144,6 @@
             color: rgba(255, 255, 255, 0.5);
             font-size: 11px;
             margin: 8px 0;
-            font-style: italic;
         }
 
         .input-area {
@@ -202,10 +169,6 @@
             border-color: #CE1126;
         }
 
-        .input-area input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
         .input-area button {
             padding: 12px 22px;
             background: linear-gradient(135deg, #CE1126 0%, #007A3D 100%);
@@ -214,10 +177,6 @@
             border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
-        }
-
-        .input-area button:active {
-            transform: scale(0.97);
         }
 
         /* شاشة تسجيل الدخول */
@@ -233,12 +192,6 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            animation: fadeIn 0.4s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .welcome-card {
@@ -269,38 +222,6 @@
             font-size: 13px;
         }
 
-        .avatar-selection {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-
-        .avatar-option {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .avatar-option.selected {
-            border-color: #CE1126;
-            background: rgba(206, 17, 38, 0.3);
-            transform: scale(1.05);
-        }
-
-        .avatar-option:hover {
-            transform: scale(1.05);
-        }
-
         .welcome-card input {
             width: 100%;
             padding: 14px 18px;
@@ -311,11 +232,15 @@
             font-size: 16px;
             text-align: center;
             outline: none;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .welcome-card input:focus {
             border-color: #CE1126;
+        }
+
+        .welcome-card input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .welcome-card button {
@@ -328,10 +253,7 @@
             font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        .welcome-card button:active {
-            transform: scale(0.98);
+            margin-top: 5px;
         }
 
         .flag-decoration {
@@ -339,18 +261,25 @@
             margin-bottom: 12px;
         }
 
-        .saved-user-info {
+        .saved-info {
             margin-top: 15px;
             font-size: 12px;
             color: rgba(255, 255, 255, 0.4);
         }
 
-        .saved-user-info button {
+        .saved-info button {
             background: transparent;
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 12px;
             width: auto;
             margin-top: 8px;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
@@ -361,25 +290,19 @@
         <div class="welcome-card">
             <div class="flag-decoration">🇮🇶</div>
             <h1>دردشة <span>العراق</span></h1>
-            <p>اختار صورتك واسمك وابدأ المحادثة</p>
+            <p>سجل دخولك وابدأ المحادثة</p>
             
-            <div class="avatar-selection" id="avatar-selection">
-                <div class="avatar-option" data-avatar="😀">😀</div>
-                <div class="avatar-option" data-avatar="😎">😎</div>
-                <div class="avatar-option" data-avatar="🦁">🦁</div>
-                <div class="avatar-option" data-avatar="🐺">🐺</div>
-                <div class="avatar-option" data-avatar="🐉">🐉</div>
-                <div class="avatar-option" data-avatar="⭐">⭐</div>
-                <div class="avatar-option" data-avatar="🎮">🎮</div>
-                <div class="avatar-option" data-avatar="🎵">🎵</div>
-            </div>
+            <input type="text" id="login-username" placeholder="يوزر نيم (مثال: @ahmed)" maxlength="20" dir="ltr">
+            <input type="text" id="login-displayname" placeholder="الاسم الظاهر (مثال: أبو علي)" maxlength="20">
             
-            <input type="text" id="welcome-username" placeholder="اكتب اسم المستخدم..." maxlength="20">
-            <button id="start-chat-btn">دخول</button>
+            <button id="login-btn">دخول</button>
             
-            <div class="saved-user-info" id="saved-user-info" style="display: none;">
-                <div id="saved-info-text"></div>
+            <div class="error-msg" id="error-msg"></div>
+            
+            <div class="saved-info" id="saved-info" style="display: none;">
+                <div id="saved-text"></div>
                 <button id="use-saved-btn">استخدم الحساب المحفوظ</button>
+                <button id="logout-saved-btn" style="background: rgba(206,17,38,0.5); margin-top: 5px;">تسجيل خروج</button>
             </div>
         </div>
     </div>
@@ -388,7 +311,6 @@
     <div class="chat-container" id="chat-container" style="display: none;">
         <div class="chat-header">
             <h3>💬 دردشة العراق</h3>
-            <p>تواصل بكل احترافية</p>
             <div class="online-users">🟢 المتصلون: <span id="users-count">0</span></div>
         </div>
         <div class="chat-messages" id="messages">
@@ -408,32 +330,30 @@
         // العناصر
         const welcomeScreen = document.getElementById('welcome-screen');
         const chatContainer = document.getElementById('chat-container');
-        const welcomeUsername = document.getElementById('welcome-username');
-        const startBtn = document.getElementById('start-chat-btn');
+        const loginUsername = document.getElementById('login-username');
+        const loginDisplayname = document.getElementById('login-displayname');
+        const loginBtn = document.getElementById('login-btn');
         const messageInput = document.getElementById('message');
         const sendBtn = document.getElementById('send-btn');
         const messagesDiv = document.getElementById('messages');
         const usersCountSpan = document.getElementById('users-count');
-        const savedUserInfo = document.getElementById('saved-user-info');
-        const savedInfoText = document.getElementById('saved-info-text');
+        const errorMsg = document.getElementById('error-msg');
+        const savedInfo = document.getElementById('saved-info');
+        const savedText = document.getElementById('saved-text');
         const useSavedBtn = document.getElementById('use-saved-btn');
+        const logoutSavedBtn = document.getElementById('logout-saved-btn');
         
-        let selectedAvatar = '😀';
+        // حفظ المستخدم
+        function saveUser(username, displayName) {
+            localStorage.setItem('chat_user', JSON.stringify({ username, displayName }));
+        }
         
-        // اختيار الصورة
-        document.querySelectorAll('.avatar-option').forEach(option => {
-            option.onclick = function() {
-                document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedAvatar = this.getAttribute('data-avatar');
-            };
-        });
-        document.querySelector('.avatar-option').classList.add('selected');
-        
-        // حفظ المستخدم في LocalStorage
-        function saveUser(username, avatar) {
-            const userData = { username, avatar };
-            localStorage.setItem('chat_user', JSON.stringify(userData));
+        // حذف المستخدم المحفوظ
+        function logoutUser() {
+            localStorage.removeItem('chat_user');
+            savedInfo.style.display = 'none';
+            loginUsername.value = '';
+            loginDisplayname.value = '';
         }
         
         // تحميل المستخدم المحفوظ
@@ -442,9 +362,9 @@
             if (saved) {
                 try {
                     const user = JSON.parse(saved);
-                    if (user.username && user.avatar) {
-                        savedInfoText.innerHTML = `👤 ${user.username} ${user.avatar}`;
-                        savedUserInfo.style.display = 'block';
+                    if (user.username && user.displayName) {
+                        savedText.innerHTML = `👤 مرحباً ${user.displayName} (${user.username})`;
+                        savedInfo.style.display = 'block';
                         return user;
                     }
                 } catch(e) {}
@@ -453,13 +373,16 @@
         }
         
         // بدء الدردشة
-        function startChat(username, avatar) {
-            currentUser = { username, avatar };
-            saveUser(username, avatar);
-            socket.emit('set-user', { username, avatar });
+        function startChat(username, displayName) {
+            currentUser = { username, displayName };
+            saveUser(username, displayName);
+            
+            socket.emit('set-user', { username, displayName });
+            
             welcomeScreen.style.display = 'none';
             chatContainer.style.display = 'flex';
-            addMessage('✨ أهلاً بك ' + username, true);
+            
+            addMessage('✨ أهلاً بك ' + displayName, true);
             messageInput.focus();
         }
         
@@ -472,12 +395,10 @@
             } else {
                 div.className = 'message';
                 div.innerHTML = `
-                    <div class="message-avatar">${data.avatar || '😀'}</div>
-                    <div class="message-content">
-                        <div class="username">${escapeHtml(data.username)}</div>
-                        <div class="text">${escapeHtml(data.message)}</div>
-                        <div class="time">${data.time}</div>
-                    </div>
+                    <div class="display-name">${escapeHtml(data.displayName)}</div>
+                    <div class="username">${escapeHtml(data.username)}</div>
+                    <div class="text">${escapeHtml(data.message)}</div>
+                    <div class="time">${data.time}</div>
                 `;
             }
             messagesDiv.appendChild(div);
@@ -490,22 +411,50 @@
             return div.innerHTML;
         }
         
-        // زر بدء الدردشة
-        startBtn.onclick = function() {
-            const name = welcomeUsername.value.trim();
-            if (name !== '') {
-                startChat(name, selectedAvatar);
-            } else {
-                alert('الرجاء إدخال اسم المستخدم');
+        // التحقق من صحة اليوزر نيم
+        function isValidUsername(username) {
+            return username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
+        }
+        
+        // زر تسجيل الدخول
+        loginBtn.onclick = function() {
+            const username = loginUsername.value.trim();
+            const displayName = loginDisplayname.value.trim();
+            
+            errorMsg.style.display = 'none';
+            
+            if (username === '') {
+                errorMsg.textContent = 'الرجاء إدخال يوزر نيم';
+                errorMsg.style.display = 'block';
+                return;
             }
+            
+            if (!isValidUsername(username)) {
+                errorMsg.textContent = 'اليوزر نيم يجب أن يحتوي على حروف وأرقام فقط (3 أحرف على الأقل)';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            if (displayName === '') {
+                errorMsg.textContent = 'الرجاء إدخال الاسم الظاهر';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            startChat(username, displayName);
         };
         
         // استخدام الحساب المحفوظ
         useSavedBtn.onclick = function() {
             const saved = loadSavedUser();
             if (saved) {
-                startChat(saved.username, saved.avatar);
+                startChat(saved.username, saved.displayName);
             }
+        };
+        
+        // تسجيل خروج
+        logoutSavedBtn.onclick = function() {
+            logoutUser();
         };
         
         // إرسال رسالة
@@ -515,7 +464,7 @@
                 socket.emit('send-message', { 
                     message: msg,
                     username: currentUser.username,
-                    avatar: currentUser.avatar
+                    displayName: currentUser.displayName
                 });
                 messageInput.value = '';
                 messageInput.focus();
@@ -526,29 +475,38 @@
             if (e.key === 'Enter') sendBtn.click();
         };
         
-        welcomeUsername.onkeypress = function(e) {
-            if (e.key === 'Enter') startBtn.click();
+        loginUsername.onkeypress = function(e) {
+            if (e.key === 'Enter') loginBtn.click();
         };
         
-        // استقبال الأحداث
+        loginDisplayname.onkeypress = function(e) {
+            if (e.key === 'Enter') loginBtn.click();
+        };
+        
+        // استقبال الأحداث من السيرفر
         socket.on('receive-message', function(data) {
             addMessage(data);
         });
         
         socket.on('user-joined', function(data) {
-            addMessage(`✨ ${data.username} دخل الدردشة`, true);
+            addMessage(`✨ ${data.displayName} (${data.username}) دخل الدردشة`, true);
         });
         
         socket.on('user-left', function(data) {
-            addMessage(`👋 ${data.username} غادر الدردشة`, true);
+            addMessage(`👋 ${data.displayName} (${data.username}) غادر`, true);
         });
         
         socket.on('users-list', function(users) {
             usersCountSpan.textContent = users.length;
         });
         
+        socket.on('username-taken', function() {
+            errorMsg.textContent = 'هذا اليوزر نيم مستخدم من قبل! اختر يوزر نيم آخر';
+            errorMsg.style.display = 'block';
+        });
+        
         // التحقق من وجود مستخدم محفوظ
         loadSavedUser();
     </script>
 </body>
-    </html>
+            </html>
