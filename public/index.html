@@ -3,139 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دردشة بسيطة</title>
+    <title>دردشة العراق | تواصل بكل احترافية</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
         }
+
+        /* خلفية علم العراق الشفافة */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                #CE1126 0%, #CE1126 33%, 
+                #FFFFFF 33%, #FFFFFF 66%, 
+                #007A3D 66%, #007A3D 100%);
+            opacity: 0.15;
+            z-index: -2;
+        }
+
+        /* خلفية داكنة خفيفة فوق العلم */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: -1;
+        }
+
+        /* حاوية الدردشة */
         .chat-container {
-            background: white;
-            border-radius: 20px;
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
             width: 100%;
-            max-width: 600px;
-            height: 90vh;
+            max-width: 700px;
+            height: 85vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
+        /* الهيدر */
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
+            background: linear-gradient(135deg, #CE1126 0%, #007A3D 100%);
+            padding: 20px;
             text-align: center;
         }
+
         .chat-header h3 {
-            margin-bottom: 5px;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
         }
-        .online-users {
+
+        .chat-header p {
+            color: rgba(255, 255, 255, 0.9);
             font-size: 13px;
-            opacity: 0.9;
         }
+
+        .online-users {
+            background: rgba(0, 0, 0, 0.3);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 50px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: white;
+        }
+
+        /* منطقة الرسائل */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
-            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
+
+        /* تخصيص شريط التمرير */
+        .chat-messages::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #CE1126;
+            border-radius: 10px;
+        }
+
+        /* الرسائل */
         .message {
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .message .username {
             font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
+            color: #CE1126;
             font-size: 13px;
+            margin-bottom: 4px;
         }
+
         .message .text {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 18px;
+            border-radius: 20px;
             display: inline-block;
             max-width: 80%;
             word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
         }
+
         .message .time {
             font-size: 10px;
-            color: #999;
-            margin-top: 3px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 4px;
         }
+
+        /* الرسائل النظامية */
         .system-message {
             text-align: center;
-            color: #999;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 12px;
             margin: 10px 0;
             font-style: italic;
         }
+
+        /* منطقة الإدخال */
         .input-area {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #eee;
+            padding: 20px;
+            background: rgba(20, 20, 30, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
+
         .input-area input {
             flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
+            padding: 14px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
             font-size: 14px;
             outline: none;
             font-family: inherit;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
         }
+
         .input-area input:focus {
-            border-color: #667eea;
+            border-color: #CE1126;
+            background: rgba(255, 255, 255, 0.15);
         }
+
+        .input-area input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         .input-area button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #CE1126 0%, #007A3D 100%);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
+
         .input-area button:hover {
             transform: scale(1.02);
+            filter: brightness(1.05);
         }
+
         .input-area button:active {
             transform: scale(0.98);
+        }
+
+        /* شاشة الترحيب */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-card {
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-card h1 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .welcome-card h1 span {
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-card p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .welcome-card input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            margin-bottom: 20px;
+        }
+
+        .welcome-card input:focus {
+            border-color: #CE1126;
+        }
+
+        .welcome-card button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #CE1126 0%, #007A3D 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .welcome-card button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        .flag-decoration {
+            font-size: 50px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
+
+    <!-- شاشة الترحيب -->
+    <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-card">
+            <div class="flag-decoration">🇮🇶</div>
+            <h1>دردشة <span>العراق</span></h1>
+            <p>تواصل مع الناس بكل احترافية وسهولة</p>
+            <input type="text" id="welcome-username" placeholder="اكتب اسمك هنا..." maxlength="20">
+            <button id="start-chat-btn">ابدأ المحادثة 🚀</button>
+        </div>
+    </div>
+
+    <!-- حاوية الدردشة (مخفية في البداية) -->
+    <div class="chat-container" id="chat-container" style="display: none;">
         <div class="chat-header">
-            <h3>💬 الدردشة العامة</h3>
+            <h3>💬 دردشة العراق</h3>
+            <p>تواصل بكل احترافية</p>
             <div class="online-users">🟢 المتصلون: <span id="users-count">0</span></div>
         </div>
         <div class="chat-messages" id="messages">
-            <div class="system-message">✨ أهلاً بك! ادخل اسمك وابدأ المحادثة</div>
+            <div class="system-message">✨ مرحباً بك في دردشة العراق</div>
         </div>
-        <div class="input-area" id="username-area">
-            <input type="text" id="username" placeholder="✏️ أدخل اسمك هنا..." maxlength="20">
-            <button id="join-btn">✅ دخول</button>
-        </div>
-        <div class="input-area" id="chat-area" style="display:none">
+        <div class="input-area" id="chat-area">
             <input type="text" id="message" placeholder="اكتب رسالتك..." maxlength="200">
             <button id="send-btn">📤 إرسال</button>
         </div>
@@ -143,17 +346,14 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // الاتصال بالسيرفر
         const socket = io();
-
-        // المتغيرات
         let username = '';
 
         // العناصر
-        const joinBtn = document.getElementById('join-btn');
-        const usernameInput = document.getElementById('username');
-        const usernameArea = document.getElementById('username-area');
-        const chatArea = document.getElementById('chat-area');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const chatContainer = document.getElementById('chat-container');
+        const welcomeUsername = document.getElementById('welcome-username');
+        const startBtn = document.getElementById('start-chat-btn');
         const messageInput = document.getElementById('message');
         const sendBtn = document.getElementById('send-btn');
         const messagesDiv = document.getElementById('messages');
@@ -177,21 +377,21 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // دالة حماية من أكواد خبيثة
+        // دالة حماية
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // زر الدخول
-        joinBtn.onclick = function() {
-            const name = usernameInput.value.trim();
+        // بدء الدردشة
+        startBtn.onclick = function() {
+            const name = welcomeUsername.value.trim();
             if (name !== '') {
                 username = name;
                 socket.emit('set-username', username);
-                usernameArea.style.display = 'none';
-                chatArea.style.display = 'flex';
+                welcomeScreen.style.display = 'none';
+                chatContainer.style.display = 'flex';
                 addMessage('✨ أهلاً بك ' + username, true);
                 messageInput.focus();
             } else {
@@ -199,7 +399,7 @@
             }
         };
 
-        // زر الإرسال
+        // إرسال رسالة
         sendBtn.onclick = function() {
             const msg = messageInput.value.trim();
             if (msg !== '') {
@@ -216,13 +416,13 @@
             }
         };
 
-        usernameInput.onkeypress = function(e) {
+        welcomeUsername.onkeypress = function(e) {
             if (e.key === 'Enter') {
-                joinBtn.click();
+                startBtn.click();
             }
         };
 
-        // استقبال رسائل من السيرفر
+        // استقبال الأحداث
         socket.on('receive-message', function(data) {
             addMessage(data);
         });
@@ -240,4 +440,4 @@
         });
     </script>
 </body>
-</html>
+            </html>
