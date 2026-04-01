@@ -30,7 +30,6 @@ io.on('connection', (socket) => {
     socket.on('login', (data) => {
         const { username, password, displayName } = data;
         
-        // تسجيل مستخدم جديد
         if (!users[username]) {
             users[username] = {
                 password: password,
@@ -41,7 +40,6 @@ io.on('connection', (socket) => {
             };
             console.log(`📝 مستخدم جديد: ${username}`);
         }
-        // التحقق من كلمة السر
         else if (users[username].password !== password) {
             socket.emit('login-error', 'كلمة السر غير صحيحة');
             return;
@@ -51,7 +49,6 @@ io.on('connection', (socket) => {
         
         currentUser = username;
         
-        // إرسال بيانات المستخدم
         socket.emit('login-success', {
             username: username,
             displayName: users[username].displayName,
@@ -64,11 +61,9 @@ io.on('connection', (socket) => {
             }))
         });
         
-        // إعلان للمستخدمين الآخرين
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
-    // طلب صداقة
     socket.on('send-friend-request', (toUsername) => {
         if (!currentUser) return;
         if (!users[toUsername]) return;
@@ -77,27 +72,21 @@ io.on('connection', (socket) => {
         const targetUser = users[toUsername];
         if (!targetUser.pendingRequests.includes(currentUser)) {
             targetUser.pendingRequests.push(currentUser);
-            
             io.to(targetUser.socketId).emit('new-friend-request', {
                 from: currentUser,
                 fromName: users[currentUser].displayName
             });
-            
             socket.emit('request-sent', { to: toUsername });
         }
     });
     
-    // قبول طلب صداقة
     socket.on('accept-friend-request', (fromUsername) => {
         if (!currentUser) return;
-        
         const current = users[currentUser];
         const from = users[fromUsername];
-        
         if (!current || !from) return;
         
         current.pendingRequests = current.pendingRequests.filter(u => u !== fromUsername);
-        
         if (!current.friends.includes(fromUsername)) current.friends.push(fromUsername);
         if (!from.friends.includes(currentUser)) from.friends.push(currentUser);
         
@@ -105,20 +94,16 @@ io.on('connection', (socket) => {
         io.to(from.socketId).emit('friend-request-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    // رفض طلب صداقة
     socket.on('reject-friend-request', (fromUsername) => {
         if (!currentUser) return;
         const current = users[currentUser];
         current.pendingRequests = current.pendingRequests.filter(u => u !== fromUsername);
-        socket.emit('friend-request-rejected', { from: fromUsername });
     });
     
-    // إرسال رسالة
     socket.on('send-message', (data) => {
         if (!currentUser) return;
         const { to, message } = data;
         const targetUser = users[to];
-        
         if (targetUser && users[currentUser].friends.includes(to)) {
             io.to(targetUser.socketId).emit('new-message', {
                 from: currentUser,
@@ -126,11 +111,9 @@ io.on('connection', (socket) => {
                 message: message,
                 time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
             });
-            socket.emit('message-sent', { to, message });
         }
     });
     
-    // منشور جديد
     socket.on('new-post', (data) => {
         if (!currentUser) return;
         const newPost = {
@@ -145,7 +128,6 @@ io.on('connection', (socket) => {
         io.emit('post-added', newPost);
     });
     
-    // إعجاب بمنشور
     socket.on('like-post', (postId) => {
         const post = posts.find(p => p.id == postId);
         if (post) {
@@ -154,7 +136,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // حذف منشور
     socket.on('delete-post', (postId) => {
         const index = posts.findIndex(p => p.id == postId);
         if (index !== -1 && posts[index].username === currentUser) {
@@ -166,7 +147,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         if (currentUser && users[currentUser]) {
             console.log(`👋 مستخدم غادر: ${currentUser}`);
-            io.emit('user-offline', { username: currentUser });
         }
     });
 });
