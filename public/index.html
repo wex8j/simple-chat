@@ -65,11 +65,11 @@
                     <h2 id="profile-name">...</h2>
                     <p id="profile-username">@...</p>
                     <div class="profile-section">
-                        <h3>منشوراتي</h3>
+                        <h3>📝 منشوراتي</h3>
                         <div id="my-posts"></div>
                     </div>
                     <div class="profile-section">
-                        <h3>المستخدمون المحظورون</h3>
+                        <h3>🚫 المستخدمون المحظورون</h3>
                         <div id="blocked-list"></div>
                     </div>
                 </div>
@@ -78,8 +78,10 @@
 
         <!-- الشريط الجانبي الأيسر (قائمة المستخدمين) -->
         <aside class="users-sidebar">
-            <h3>👥 المستخدمون</h3>
-            <div class="users-list" id="users-list"></div>
+            <h3>👥 المستخدمون النشطون</h3>
+            <div class="users-list" id="users-list">
+                <div class="loading">جاري التحميل...</div>
+            </div>
         </aside>
     </div>
 
@@ -99,4 +101,4 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/script.js"></script>
 </body>
-</html>
+        </html>
