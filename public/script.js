@@ -3,123 +3,41 @@ let currentUser = null;
 let currentChatWith = null;
 let conversations = JSON.parse(localStorage.getItem('conversations') || '{}');
 let blockedUsers = JSON.parse(localStorage.getItem('blocked_users') || '[]');
+let pendingRequests = {}; // لتتبع الطلبات المرسلة لتجنب التكرار
 
-// تسجيل الدخول
-document.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('social_user');
-    if (savedUser) {
-        try {
-            const user = JSON.parse(savedUser);
-            login(user.username, user.displayName);
-        } catch(e) {}
-    }
-    
-    document.getElementById('login-btn')?.addEventListener('click', () => {
-        const username = document.getElementById('login-username').value.trim().toLowerCase();
-        const displayName = document.getElementById('login-displayname').value.trim();
-        
-        if (!username || !displayName) {
-            showError('الرجاء ملء جميع الحقول');
-            return;
-        }
-        
-        if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
-            showError('يوزر نيم: حروف وأرقام فقط (3-20)');
-            return;
-        }
-        
-        login(username, displayName);
-    });
-    
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-        localStorage.removeItem('social_user');
-        localStorage.removeItem('conversations');
-        location.reload();
-    });
-    
-    // التنقل بين الصفحات
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const page = btn.dataset.page;
-            document.getElementById('home-page').style.display = page === 'home' ? 'block' : 'none';
-            document.getElementById('chat-page').style.display = page === 'chat' ? 'block' : 'none';
-            document.getElementById('profile-page').style.display = page === 'profile' ? 'block' : 'none';
-            
-            if (page === 'chat') loadConversationsList();
-            if (page === 'profile') updateProfilePage();
-        });
-    });
-    
-    // زر النشر
-    document.getElementById('post-btn')?.addEventListener('click', () => {
-        const text = document.getElementById('post-text').value.trim();
-        if (text && socket) {
-            socket.emit('new-post', { text, image: null });
-            document.getElementById('post-text').value = '';
-        }
-    });
-    
-    // العودة من الدردشة
-    document.getElementById('back-chat-btn')?.addEventListener('click', () => {
-        document.getElementById('chat-area').style.display = 'none';
-        document.getElementById('conversations-list').style.display = 'block';
-        currentChatWith = null;
-    });
-    
-    // حظر من الدردشة
-    document.getElementById('block-chat-btn')?.addEventListener('click', () => {
-        if (currentChatWith && socket) {
-            socket.emit('block-user', currentChatWith);
-            document.getElementById('chat-area').style.display = 'none';
-            document.getElementById('conversations-list').style.display = 'block';
-            currentChatWith = null;
-            loadConversationsList();
-        }
-    });
-    
-    // إرسال رسالة
-    document.getElementById('send-chat-btn')?.addEventListener('click', sendChatMessage);
-    document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatMessage();
-    });
-    
-    // التبويبات في الملف الشخصي
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
-        });
-    });
-});
+// ======================= دوال مساعدة =======================
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-function sendChatMessage() {
-    const input = document.getElementById('chat-input');
-    const msg = input.value.trim();
-    if (msg && currentChatWith && socket) {
-        const roomId = [currentUser.username, currentChatWith].sort().join('-');
-        socket.emit('send-chat-message', { roomId, message: msg });
-        
-        // حفظ الرسالة محلياً
-        if (!conversations[roomId]) conversations[roomId] = [];
-        conversations[roomId].push({
-            from: currentUser.username,
-            message: msg,
-            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-        });
-        localStorage.setItem('conversations', JSON.stringify(conversations));
-        
-        addMessageToChat(msg, true);
-        input.value = '';
+function showError(msg) {
+    const errorDiv = document.getElementById('error-msg');
+    if (errorDiv) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = 'block';
+        setTimeout(() => errorDiv.style.display = 'none', 3000);
     }
 }
 
+function addSystemMessage(text, containerId = 'chat-messages') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const div = document.createElement('div');
+    div.style.textAlign = 'center';
+    div.style.color = 'rgba(255,255,255,0.6)';
+    div.style.fontSize = '12px';
+    div.style.padding = '8px';
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// ======================= دوال الدردشة =======================
 function addMessageToChat(message, isOwn, time) {
     const messagesDiv = document.getElementById('chat-messages');
+    if (!messagesDiv) return;
     const div = document.createElement('div');
     div.className = 'chat-message' + (isOwn ? ' own' : '');
     div.innerHTML = `
@@ -130,191 +48,43 @@ function addMessageToChat(message, isOwn, time) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-function login(username, displayName) {
-    socket = io();
-    
-    socket.on('connect', () => {
-        socket.emit('login', { username, displayName });
-    });
-    
-    socket.on('login-success', (data) => {
-        currentUser = { username: data.username, displayName: data.displayName };
-        localStorage.setItem('social_user', JSON.stringify(currentUser));
-        
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('user-name').textContent = data.displayName;
-        document.getElementById('user-username').textContent = `@${data.username}`;
-        
-        updateUsersList(data.users);
-        loadPosts(data.posts);
-        updateProfilePage();
-    });
-    
-    socket.on('login-error', (msg) => showError(msg));
-    socket.on('post-added', (post) => addPostToFeed(post));
-    socket.on('post-deleted', (postId) => removePostFromFeed(postId));
-    socket.on('user-online', (user) => updateUserStatus(user.username, true));
-    socket.on('user-offline', (user) => updateUserStatus(user.username, false));
-    
-    // طلبات المحادثة
-    socket.on('new-request', (data) => {
-        showRequestNotification(data);
-    });
-    
-    socket.on('request-accepted', (data) => {
-        addSystemMessage(`✨ ${data.withName} قبل طلب المحادثة`);
-        loadConversationsList();
-    });
-    
-    socket.on('chat-message', (data) => {
-        const roomId = [currentUser.username, data.from].sort().join('-');
-        if (!conversations[roomId]) conversations[roomId] = [];
-        conversations[roomId].push({
-            from: data.from,
-            message: data.message,
-            time: data.time
-        });
-        localStorage.setItem('conversations', JSON.stringify(conversations));
-        
-        if (currentChatWith === data.from) {
-            addMessageToChat(data.message, false, data.time);
-        } else {
-            updateConversationBadge(data.from);
-        }
-    });
-}
-
-function showRequestNotification(data) {
-    // عرض إشعار في واجهة المستخدم
-    const usersList = document.getElementById('users-list');
-    const userCard = Array.from(usersList.children).find(
-        card => card.dataset?.username === data.from
-    );
-    if (userCard) {
-        const actionsDiv = userCard.querySelector('.user-card-actions');
-        if (actionsDiv) {
-            actionsDiv.innerHTML = `
-                <button class="accept-btn" data-user="${data.from}">قبول</button>
-                <button class="reject-btn" data-user="${data.from}">رفض</button>
-            `;
-            actionsDiv.querySelector('.accept-btn').onclick = () => {
-                socket.emit('accept-request', data.from);
-                actionsDiv.innerHTML = '<span style="color:green;">✓ تم القبول</span>';
-            };
-            actionsDiv.querySelector('.reject-btn').onclick = () => {
-                socket.emit('reject-request', data.from);
-                actionsDiv.innerHTML = '<span style="color:red;">✗ تم الرفض</span>';
-            };
-        }
-    }
-}
-
-function updateUsersList(users) {
-    const container = document.getElementById('users-list');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    users.forEach(user => {
-        if (user.username === currentUser?.username) return;
-        
-        const div = document.createElement('div');
-        div.className = 'user-card';
-        div.dataset.username = user.username;
-        div.innerHTML = `
-            <div class="user-card-info">
-                <div class="user-card-name">
-                    <span class="user-card-status ${user.online ? '' : 'offline'}"></span>
-                    ${escapeHtml(user.displayName)}
-                </div>
-                <div class="user-card-username">@${escapeHtml(user.username)}</div>
-            </div>
-            <div class="user-card-actions">
-                <button class="request-btn" data-user="${user.username}">💬 محادثة</button>
-            </div>
-        `;
-        
-        const requestBtn = div.querySelector('.request-btn');
-        requestBtn.onclick = () => {
-            socket.emit('send-request', user.username);
-            requestBtn.textContent = '✓ تم الإرسال';
-            requestBtn.disabled = true;
-        };
-        
-        container.appendChild(div);
-    });
-}
-
-function updateUserStatus(username, online) {
-    const container = document.getElementById('users-list');
-    if (!container) return;
-    
-    const userCard = Array.from(container.children).find(
-        card => card.dataset.username === username
-    );
-    if (userCard) {
-        const statusSpan = userCard.querySelector('.user-card-status');
-        if (statusSpan) {
-            if (online) statusSpan.classList.remove('offline');
-            else statusSpan.classList.add('offline');
-        }
-    }
-}
-
-function loadPosts(posts) {
-    const container = document.getElementById('posts-feed');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    if (posts.length === 0) {
-        container.innerHTML = '<div class="empty-state">لا توجد منشورات</div>';
+function openChat(username) {
+    if (blockedUsers.includes(username)) {
+        addSystemMessage(`🚫 لا يمكنك الدردشة مع ${username} لأنه محظور`, 'chat-messages');
         return;
     }
+    currentChatWith = username;
+    document.getElementById('conversations-list').style.display = 'none';
+    document.getElementById('chat-area').style.display = 'flex';
+    document.getElementById('chat-partner-name').textContent = username;
+    document.getElementById('chat-messages').innerHTML = '';
     
-    posts.forEach(post => {
-        addPostToFeed(post);
+    const roomId = [currentUser.username, username].sort().join('-');
+    const messages = conversations[roomId] || [];
+    messages.forEach(msg => {
+        addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
     });
+    addSystemMessage(`✨ بدأت المحادثة مع ${username}`, 'chat-messages');
 }
 
-function addPostToFeed(post) {
-    const container = document.getElementById('posts-feed');
-    if (!container) return;
+function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg || !currentChatWith || !socket) return;
     
-    const isOwn = post.username === currentUser?.username;
-    const div = document.createElement('div');
-    div.className = 'post-card';
-    div.dataset.id = post.id;
-    div.innerHTML = `
-        <div class="post-header">
-            <div class="post-avatar">👤</div>
-            <div class="post-user-info">
-                <div class="post-name">${escapeHtml(post.displayName)}</div>
-                <div class="post-username">@${escapeHtml(post.username)}</div>
-            </div>
-            <div class="post-time">${new Date(post.time).toLocaleTimeString('ar-EG')}</div>
-        </div>
-        <div class="post-text">${escapeHtml(post.text)}</div>
-        <div class="post-actions-bar">
-            <button class="like-btn">❤️ ${post.likes || 0}</button>
-            ${isOwn ? '<button class="delete-post-btn">🗑️ حذف</button>' : ''}
-        </div>
-    `;
+    const roomId = [currentUser.username, currentChatWith].sort().join('-');
+    socket.emit('send-chat-message', { roomId, message: msg });
     
-    div.querySelector('.like-btn').onclick = () => {
-        socket.emit('like-post', post.id);
-    };
-    
-    if (isOwn) {
-        div.querySelector('.delete-post-btn').onclick = () => {
-            socket.emit('delete-post', post.id);
-        };
-    }
-    
-    container.prepend(div);
-}
-
-function removePostFromFeed(postId) {
-    const post = document.querySelector(`.post-card[data-id="${postId}"]`);
-    if (post) post.remove();
+    // حفظ مؤقت للرسالة في الواجهة والمحلي
+    if (!conversations[roomId]) conversations[roomId] = [];
+    conversations[roomId].push({
+        from: currentUser.username,
+        message: msg,
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    });
+    localStorage.setItem('conversations', JSON.stringify(conversations));
+    addMessageToChat(msg, true);
+    input.value = '';
 }
 
 function loadConversationsList() {
@@ -337,35 +107,113 @@ function loadConversationsList() {
         div.innerHTML = `
             <div class="conversation-info">
                 <div class="conversation-name">${escapeHtml(otherUser)}</div>
-                <div class="conversation-status">${lastMsg ? lastMsg.message.substring(0, 30) : '...'}</div>
+                <div class="conversation-status">${lastMsg ? lastMsg.message.substring(0, 30) : 'بداية المحادثة'}</div>
             </div>
         `;
-        div.onclick = () => openChat(otherUser, roomId);
+        div.onclick = () => openChat(otherUser);
         container.appendChild(div);
     });
 }
 
-function openChat(username, roomId) {
-    currentChatWith = username;
-    document.getElementById('conversations-list').style.display = 'none';
-    document.getElementById('chat-area').style.display = 'flex';
-    document.getElementById('chat-partner-name').textContent = username;
-    document.getElementById('chat-messages').innerHTML = '';
+// ======================= دوال المنشورات =======================
+function addPostToFeed(post) {
+    const container = document.getElementById('posts-feed');
+    if (!container) return;
     
-    const messages = conversations[roomId] || [];
-    messages.forEach(msg => {
-        addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
+    const isOwn = post.username === currentUser?.username;
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post-card';
+    postDiv.dataset.id = post.id;
+    postDiv.innerHTML = `
+        <div class="post-header">
+            <div class="post-avatar">👤</div>
+            <div class="post-user-info">
+                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-username">@${escapeHtml(post.username)}</div>
+            </div>
+            <div class="post-time">${new Date(post.time).toLocaleString('ar-EG')}</div>
+        </div>
+        <div class="post-text">${escapeHtml(post.text)}</div>
+        <div class="post-actions-bar">
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
+            ${isOwn ? '<button class="delete-post-btn">🗑️ حذف</button>' : ''}
+        </div>
+    `;
+    
+    postDiv.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
+    if (isOwn) {
+        postDiv.querySelector('.delete-post-btn').onclick = () => socket.emit('delete-post', post.id);
+    }
+    
+    container.prepend(postDiv);
+}
+
+function loadPosts(posts) {
+    const container = document.getElementById('posts-feed');
+    if (!container) return;
+    container.innerHTML = '';
+    if (posts.length === 0) {
+        container.innerHTML = '<div class="empty-state">لا توجد منشورات بعد، كن أول من ينشر!</div>';
+        return;
+    }
+    posts.forEach(post => addPostToFeed(post));
+}
+
+// ======================= دوال المستخدمين والطلبات =======================
+function updateUsersList(users) {
+    const container = document.getElementById('users-list');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    users.forEach(user => {
+        if (user.username === currentUser?.username) return;
+        
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.dataset.username = user.username;
+        div.innerHTML = `
+            <div class="user-card-info">
+                <div class="user-card-name">
+                    <span class="user-card-status ${user.online ? '' : 'offline'}"></span>
+                    ${escapeHtml(user.displayName)}
+                </div>
+                <div class="user-card-username">@${escapeHtml(user.username)}</div>
+            </div>
+            <div class="user-card-actions" id="actions-${user.username}">
+                <button class="request-btn" data-user="${user.username}">💬 طلب صداقة</button>
+            </div>
+        `;
+        
+        const requestBtn = div.querySelector('.request-btn');
+        requestBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (pendingRequests[user.username]) {
+                addSystemMessage('طلب صداقة قيد الانتظار', 'chat-messages');
+                return;
+            }
+            socket.emit('send-request', user.username);
+            pendingRequests[user.username] = true;
+            requestBtn.textContent = '⏳ جاري الإرسال';
+            requestBtn.disabled = true;
+        };
+        container.appendChild(div);
     });
 }
 
-function updateConversationBadge(username) {
-    // تحديث قائمة المحادثات
-    loadConversationsList();
+function updateUserStatus(username, online) {
+    const userCard = document.querySelector(`.user-card[data-username="${username}"]`);
+    if (userCard) {
+        const statusSpan = userCard.querySelector('.user-card-status');
+        if (statusSpan) {
+            if (online) statusSpan.classList.remove('offline');
+            else statusSpan.classList.add('offline');
+        }
+    }
 }
 
+// ======================= دوال الملف الشخصي =======================
 function updateProfilePage() {
     if (!currentUser) return;
-    
     document.getElementById('profile-name').textContent = currentUser.displayName;
     document.getElementById('profile-username').textContent = `@${currentUser.username}`;
     
@@ -374,14 +222,11 @@ function updateProfilePage() {
     if (myPostsContainer) {
         const myPosts = Array.from(document.querySelectorAll('.post-card'))
             .filter(post => post.querySelector('.delete-post-btn'));
-        
         if (myPosts.length === 0) {
-            myPostsContainer.innerHTML = '<div class="empty-state">لا توجد منشورات</div>';
+            myPostsContainer.innerHTML = '<div class="empty-state">لا توجد منشورات لك بعد</div>';
         } else {
             myPostsContainer.innerHTML = '';
-            myPosts.forEach(post => {
-                myPostsContainer.appendChild(post.cloneNode(true));
-            });
+            myPosts.forEach(post => myPostsContainer.appendChild(post.cloneNode(true)));
         }
     }
     
@@ -404,6 +249,7 @@ function updateProfilePage() {
                     localStorage.setItem('blocked_users', JSON.stringify(blockedUsers));
                     updateProfilePage();
                     if (socket) socket.emit('unblock-user', user);
+                    addSystemMessage(`✅ تم إلغاء حظر ${user}`, 'chat-messages');
                 };
                 blockedContainer.appendChild(div);
             });
@@ -411,32 +257,149 @@ function updateProfilePage() {
     }
 }
 
-function addSystemMessage(text) {
-    const messagesDiv = document.getElementById('chat-messages');
-    if (!messagesDiv) return;
-    const div = document.createElement('div');
-    div.style.textAlign = 'center';
-    div.style.color = 'rgba(255,255,255,0.6)';
-    div.style.fontSize = '12px';
-    div.style.padding = '8px';
-    div.textContent = text;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+// ======================= دوال التنقل =======================
+function switchToPage(pageId) {
+    document.getElementById('home-page').style.display = pageId === 'home' ? 'block' : 'none';
+    document.getElementById('chat-page').style.display = pageId === 'chat' ? 'block' : 'none';
+    document.getElementById('profile-page').style.display = pageId === 'profile' ? 'block' : 'none';
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-page="${pageId}"]`).classList.add('active');
+    if (pageId === 'chat') loadConversationsList();
+    if (pageId === 'profile') updateProfilePage();
 }
 
-function showError(msg) {
-    const errorDiv = document.getElementById('error-msg');
-    if (errorDiv) {
-        errorDiv.textContent = msg;
-        errorDiv.style.display = 'block';
-        setTimeout(() => {
-            errorDiv.style.display = 'none';
-        }, 3000);
+// ======================= دالة تسجيل الدخول الرئيسية =======================
+function login(username, displayName) {
+    socket = io();
+    
+    socket.on('connect', () => socket.emit('login', { username, displayName }));
+    
+    socket.on('login-success', (data) => {
+        currentUser = { username: data.username, displayName: data.displayName };
+        localStorage.setItem('social_user', JSON.stringify(currentUser));
+        
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('user-name').textContent = data.displayName;
+        document.getElementById('user-username').textContent = `@${data.username}`;
+        
+        updateUsersList(data.users);
+        loadPosts(data.posts);
+        updateProfilePage();
+        switchToPage('home');
+    });
+    
+    socket.on('login-error', (msg) => showError(msg));
+    socket.on('post-added', (post) => addPostToFeed(post));
+    socket.on('post-deleted', (postId) => document.querySelector(`.post-card[data-id="${postId}"]`)?.remove());
+    socket.on('user-online', (user) => updateUserStatus(user.username, true));
+    socket.on('user-offline', (user) => updateUserStatus(user.username, false));
+    
+    // معالجة طلبات الصداقة
+    socket.on('new-request', (data) => {
+        const actionsDiv = document.getElementById(`actions-${data.from}`);
+        if (actionsDiv) {
+            actionsDiv.innerHTML = `
+                <button class="accept-request-btn" data-user="${data.from}">✅ قبول</button>
+                <button class="reject-request-btn" data-user="${data.from}">❌ رفض</button>
+            `;
+            actionsDiv.querySelector('.accept-request-btn').onclick = () => socket.emit('accept-request', data.from);
+            actionsDiv.querySelector('.reject-request-btn').onclick = () => socket.emit('reject-request', data.from);
+        }
+        addSystemMessage(`📩 لديك طلب صداقة جديد من ${data.fromName}`, 'chat-messages');
+    });
+    
+    socket.on('request-accepted', (data) => {
+        addSystemMessage(`🎉 ${data.withName} قبل طلب الصداقة! يمكنك الآن الدردشة معه.`, 'chat-messages');
+        delete pendingRequests[data.with];
+        loadConversationsList();
+    });
+    
+    socket.on('request-rejected', (data) => {
+        addSystemMessage(`😔 تم رفض طلب الصداقة من ${data.by}`, 'chat-messages');
+        delete pendingRequests[data.by];
+        const actionsDiv = document.getElementById(`actions-${data.by}`);
+        if (actionsDiv) actionsDiv.innerHTML = `<button class="request-btn" data-user="${data.by}">💬 طلب صداقة</button>`;
+    });
+    
+    socket.on('chat-message', (data) => {
+        const roomId = [currentUser.username, data.from].sort().join('-');
+        if (!conversations[roomId]) conversations[roomId] = [];
+        conversations[roomId].push({
+            from: data.from,
+            message: data.message,
+            time: data.time
+        });
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
+        else loadConversationsList(); // تحديث قائمة المحادثات لإظهار الرسالة الجديدة
+    });
+    
+    socket.on('user-blocked', () => addSystemMessage('✅ تم حظر المستخدم بنجاح', 'chat-messages'));
+}
+
+// ======================= تهيئة المستمعين عند تحميل الصفحة =======================
+document.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('social_user');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            login(user.username, user.displayName);
+        } catch(e) {}
     }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-                          }
+    
+    document.getElementById('login-btn')?.addEventListener('click', () => {
+        const username = document.getElementById('login-username').value.trim().toLowerCase();
+        const displayName = document.getElementById('login-displayname').value.trim();
+        if (!username || !displayName) return showError('الرجاء ملء جميع الحقول');
+        if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) return showError('يوزر نيم: حروف وأرقام فقط (3-20)');
+        login(username, displayName);
+    });
+    
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+        localStorage.removeItem('social_user');
+        localStorage.removeItem('conversations');
+        location.reload();
+    });
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchToPage(btn.dataset.page));
+    });
+    
+    document.getElementById('post-btn')?.addEventListener('click', () => {
+        const text = document.getElementById('post-text').value.trim();
+        if (text && socket) socket.emit('new-post', { text, image: null });
+        document.getElementById('post-text').value = '';
+    });
+    
+    document.getElementById('back-chat-btn')?.addEventListener('click', () => {
+        document.getElementById('chat-area').style.display = 'none';
+        document.getElementById('conversations-list').style.display = 'block';
+        currentChatWith = null;
+    });
+    
+    document.getElementById('block-chat-btn')?.addEventListener('click', () => {
+        if (currentChatWith && socket && !blockedUsers.includes(currentChatWith)) {
+            blockedUsers.push(currentChatWith);
+            localStorage.setItem('blocked_users', JSON.stringify(blockedUsers));
+            socket.emit('block-user', currentChatWith);
+            document.getElementById('chat-area').style.display = 'none';
+            document.getElementById('conversations-list').style.display = 'block';
+            currentChatWith = null;
+            loadConversationsList();
+        }
+    });
+    
+    document.getElementById('send-chat-btn')?.addEventListener('click', sendChatMessage);
+    document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+        });
+    });
+});
