@@ -310,11 +310,10 @@
     function updateUsersList() {
         const container = document.getElementById('users-list');
         if (!container) return;
-        
         container.innerHTML = '';
+        
         allUsers.forEach(user => {
             if (user.username === currentUser.username) return;
-            
             const isFriend = friends.includes(user.username);
             const hasPending = pendingRequests.includes(user.username);
             
@@ -348,8 +347,8 @@
         });
     }
     
-    function addSystemMessage(text, containerId = 'chat-messages') {
-        const container = document.getElementById(containerId);
+    function addSystemMessage(text) {
+        const container = document.getElementById('chat-messages');
         if (container) {
             const div = document.createElement('div');
             div.className = 'system-message';
@@ -364,14 +363,14 @@
         if (!container) return;
         const div = document.createElement('div');
         div.className = 'message ' + (isOwn ? 'own' : '');
-        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div><div class="time" style="font-size:10px;color:#888;">${time || ''}</div>`;
+        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div><div style="font-size:10px;color:#888;">${time || ''}</div>`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
     
     function openChat(username) {
         if (!friends.includes(username)) {
-            addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة', 'chat-messages');
+            addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة');
             return;
         }
         currentChatWith = username;
@@ -382,9 +381,7 @@
         
         const roomId = [currentUser.username, username].sort().join('-');
         const msgs = conversations[roomId] || [];
-        msgs.forEach(msg => {
-            addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
-        });
+        msgs.forEach(msg => addMessageToChat(msg.message, msg.from === currentUser.username, msg.time));
     }
     
     function sendChatMessage() {
@@ -440,11 +437,8 @@
             ${isOwn ? '<button class="delete-btn" style="background:none;border:none;color:red;margin-left:10px;">🗑️</button>' : ''}
         `;
         div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
-        if (isOwn) {
-            div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
-        }
-        if (container.firstChild) container.insertBefore(div, container.firstChild);
-        else container.appendChild(div);
+        if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
+        container.prepend(div);
     }
     
     function loadPosts(postsData) {
@@ -478,55 +472,36 @@
         loadPosts(posts);
         switchPage('home');
         
-        socket = io();
-        
         socket.on('new-friend-request', (data) => {
             pendingRequests.push(data.from);
             updateUsersList();
-            addSystemMessage(`📩 طلب صداقة جديد من ${data.fromName}`, 'chat-messages');
+            addSystemMessage(`📩 طلب صداقة جديد من ${data.fromName}`);
         });
         
         socket.on('friend-request-accepted', (data) => {
             if (!friends.includes(data.from)) friends.push(data.from);
             pendingRequests = pendingRequests.filter(u => u !== data.from);
             updateUsersList();
-            addSystemMessage(`🎉 ${data.fromName} قبل طلب الصداقة!`, 'chat-messages');
+            addSystemMessage(`🎉 ${data.fromName} قبل طلب الصداقة!`);
             loadConversationsList();
-        });
-        
-        socket.on('friend-request-rejected', (data) => {
-            updateUsersList();
         });
         
         socket.on('new-message', (data) => {
             const roomId = [currentUser.username, data.from].sort().join('-');
             if (!conversations[roomId]) conversations[roomId] = [];
-            conversations[roomId].push({
-                from: data.from,
-                message: data.message,
-                time: data.time
-            });
+            conversations[roomId].push({ from: data.from, message: data.message, time: data.time });
             localStorage.setItem('conversations', JSON.stringify(conversations));
             if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
             else loadConversationsList();
         });
         
-        socket.on('post-added', (post) => {
-            posts.unshift(post);
-            addPostToFeed(post);
-        });
-        
+        socket.on('post-added', (post) => { posts.unshift(post); addPostToFeed(post); });
         socket.on('post-updated', (post) => {
             const existing = document.querySelector(`.post-card[data-id="${post.id}"]`);
-            if (existing) {
-                const likeBtn = existing.querySelector('.like-btn');
-                if (likeBtn) likeBtn.innerHTML = `❤️ ${post.likes}`;
-            }
+            if (existing) existing.querySelector('.like-btn').innerHTML = `❤️ ${post.likes}`;
         });
-        
         socket.on('post-deleted', (postId) => {
-            const post = document.querySelector(`.post-card[data-id="${postId}"]`);
-            if (post) post.remove();
+            document.querySelector(`.post-card[data-id="${postId}"]`)?.remove();
             posts = posts.filter(p => p.id != postId);
         });
     }
@@ -537,52 +512,29 @@
             const password = document.getElementById('login-password').value.trim();
             const displayName = document.getElementById('login-displayname').value.trim();
             const errorDiv = document.getElementById('error-msg');
-            
-            if (!username || !password) {
-                errorDiv.textContent = 'املأ جميع الحقول';
-                return;
-            }
+            if (!username || !password) { errorDiv.textContent = 'املأ جميع الحقول'; return; }
             
             socket = io();
-            socket.on('connect', () => {
-                socket.emit('login', { username, password, displayName: displayName || username });
-            });
-            
-            socket.on('login-success', (data) => {
-                startApp(data);
-            });
-            
-            socket.on('login-error', (msg) => {
-                errorDiv.textContent = msg;
-            });
+            socket.on('connect', () => socket.emit('login', { username, password, displayName: displayName || username }));
+            socket.on('login-success', startApp);
+            socket.on('login-error', (msg) => errorDiv.textContent = msg);
         };
         
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.removeItem('conversations');
-            location.reload();
-        };
-        
+        document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('conversations'); location.reload(); };
         document.getElementById('post-btn').onclick = () => {
             const text = document.getElementById('post-text').value.trim();
             if (text && socket) socket.emit('new-post', { text });
             document.getElementById('post-text').value = '';
         };
-        
         document.getElementById('back-btn').onclick = () => {
             document.getElementById('chat-area').style.display = 'none';
             document.getElementById('conversations-list').style.display = 'block';
             currentChatWith = null;
         };
-        
         document.getElementById('send-chat-btn').onclick = sendChatMessage;
-        document.getElementById('chat-input').onkeypress = (e) => {
-            if (e.key === 'Enter') sendChatMessage();
-        };
-        
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.onclick = () => switchPage(btn.dataset.page);
-        });
+        document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendChatMessage(); };
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => switchPage(btn.dataset.page));
     });
 </script>
 </body>
-                        </html>
+</html>
