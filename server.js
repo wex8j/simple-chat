@@ -9,31 +9,31 @@ const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// تخزين البيانات
-const users = {}; // { username: { displayName, socketId, online } }
-const posts = []; // { id, username, displayName, text, image, time, likes, comments }
-const friendRequests = []; // { from, to, status }
-const blockedUsers = []; // { blocker, blocked }
-const conversations = {}; // { roomId: [messages] }
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-// تحميل منشورات تجريبية
+// تخزين البيانات
+const users = {};
+let posts = [];
+let friendRequests = [];
+let blockedUsers = [];
+
+// منشورات تجريبية
 posts.push({
-    id: 1,
+    id: Date.now(),
     username: '3tx',
     displayName: 'أبو علي',
-    text: 'مرحباً بالجميع في دردشة بغداد لايف! 🎉',
+    text: 'مرحباً بالجميع في بغداد لايف! 🎉 تواصل مع الناس وشارك منشوراتك',
     image: null,
     time: new Date().toISOString(),
-    likes: 5,
-    comments: []
+    likes: 5
 });
 
 io.on('connection', (socket) => {
     console.log('مستخدم جديد:', socket.id);
-    
     let currentUser = null;
     
-    // تسجيل الدخول
     socket.on('login', (data) => {
         const { username, displayName } = data;
         
@@ -53,14 +53,16 @@ io.on('connection', (socket) => {
             username,
             displayName,
             posts: posts.slice(0, 50),
-            users: Object.keys(users).map(u => ({ username: u, displayName: users[u].displayName, online: users[u].online }))
+            users: Object.keys(users).map(u => ({ 
+                username: u, 
+                displayName: users[u].displayName, 
+                online: users[u].online 
+            }))
         });
         
-        // إعلام الجميع بالمستخدم الجديد
-        io.emit('user-online', { username, displayName });
+        socket.broadcast.emit('user-online', { username, displayName });
     });
     
-    // نشر منشور
     socket.on('new-post', (data) => {
         if (!currentUser) return;
         
@@ -68,18 +70,16 @@ io.on('connection', (socket) => {
             id: Date.now(),
             username: currentUser,
             displayName: users[currentUser].displayName,
-            text: data.text || '',
-            image: data.image || null,
+            text: data.text,
+            image: data.image,
             time: new Date().toISOString(),
-            likes: 0,
-            comments: []
+            likes: 0
         };
         
         posts.unshift(newPost);
         io.emit('post-added', newPost);
     });
     
-    // إعجاب بمنشور
     socket.on('like-post', (postId) => {
         const post = posts.find(p => p.id == postId);
         if (post) {
@@ -88,59 +88,39 @@ io.on('connection', (socket) => {
         }
     });
     
-    // حذف منشور
     socket.on('delete-post', (postId) => {
-        const postIndex = posts.findIndex(p => p.id == postId);
-        if (postIndex !== -1 && posts[postIndex].username === currentUser) {
-            posts.splice(postIndex, 1);
+        const index = posts.findIndex(p => p.id == postId);
+        if (index !== -1 && posts[index].username === currentUser) {
+            posts.splice(index, 1);
             io.emit('post-deleted', postId);
         }
     });
     
-    // إرسال طلب محادثة
     socket.on('send-request', (toUsername) => {
         if (!currentUser) return;
         
-        // التحقق من الحظر
-        const isBlocked = blockedUsers.some(b => 
-            (b.blocker === currentUser && b.blocked === toUsername) ||
-            (b.blocker === toUsername && b.blocked === currentUser)
-        );
-        
-        if (isBlocked) {
+        if (blockedUsers.some(b => (b.blocker === currentUser && b.blocked === toUsername))) {
             socket.emit('request-error', 'لا يمكنك إرسال طلب لهذا المستخدم');
             return;
         }
         
-        const existingRequest = friendRequests.find(r => 
+        const existing = friendRequests.find(r => 
             (r.from === currentUser && r.to === toUsername) ||
             (r.from === toUsername && r.to === currentUser)
         );
         
-        if (existingRequest) {
-            socket.emit('request-error', 'يوجد طلب مسبق');
-            return;
+        if (!existing) {
+            friendRequests.push({ from: currentUser, to: toUsername, status: 'pending' });
+            const targetSocket = users[toUsername]?.socketId;
+            if (targetSocket) {
+                io.to(targetSocket).emit('new-request', { 
+                    from: currentUser, 
+                    fromName: users[currentUser].displayName 
+                });
+            }
         }
-        
-        friendRequests.push({
-            from: currentUser,
-            to: toUsername,
-            status: 'pending',
-            time: new Date().toISOString()
-        });
-        
-        const targetSocketId = users[toUsername]?.socketId;
-        if (targetSocketId) {
-            io.to(targetSocketId).emit('new-request', {
-                from: currentUser,
-                fromName: users[currentUser].displayName
-            });
-        }
-        
-        socket.emit('request-sent', { to: toUsername });
     });
     
-    // قبول طلب محادثة
     socket.on('accept-request', (fromUsername) => {
         if (!currentUser) return;
         
@@ -151,90 +131,63 @@ io.on('connection', (socket) => {
         if (request) {
             request.status = 'accepted';
             
-            const roomId = [fromUsername, currentUser].sort().join('-');
-            conversations[roomId] = conversations[roomId] || [];
-            
             const fromSocket = users[fromUsername]?.socketId;
-            const toSocket = users[currentUser]?.socketId;
-            
-            io.to(fromSocket).emit('request-accepted', {
-                with: currentUser,
-                withName: users[currentUser].displayName,
-                roomId
-            });
-            
-            socket.emit('request-accepted', {
-                with: fromUsername,
-                withName: users[fromUsername].displayName,
-                roomId
+            if (fromSocket) {
+                io.to(fromSocket).emit('request-accepted', { 
+                    with: currentUser, 
+                    withName: users[currentUser].displayName 
+                });
+            }
+            socket.emit('request-accepted', { 
+                with: fromUsername, 
+                withName: users[fromUsername].displayName 
             });
         }
     });
     
-    // رفض طلب محادثة
     socket.on('reject-request', (fromUsername) => {
-        if (!currentUser) return;
-        
         const index = friendRequests.findIndex(r => 
             r.from === fromUsername && r.to === currentUser && r.status === 'pending'
         );
-        
-        if (index !== -1) {
-            friendRequests.splice(index, 1);
-            const fromSocket = users[fromUsername]?.socketId;
-            if (fromSocket) {
-                io.to(fromSocket).emit('request-rejected', { by: currentUser });
-            }
-        }
+        if (index !== -1) friendRequests.splice(index, 1);
     });
     
-    // إرسال رسالة في الدردشة
     socket.on('send-chat-message', (data) => {
         if (!currentUser) return;
         
         const { roomId, message } = data;
-        const roomUsers = roomId.split('-');
+        const usersInRoom = roomId.split('-');
         
-        if (!roomUsers.includes(currentUser)) return;
+        if (!usersInRoom.includes(currentUser)) return;
         
-        const messageData = {
-            from: currentUser,
-            fromName: users[currentUser].displayName,
-            message: message,
-            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-        };
+        const otherUser = usersInRoom.find(u => u !== currentUser);
+        const targetSocket = users[otherUser]?.socketId;
         
-        conversations[roomId] = conversations[roomId] || [];
-        conversations[roomId].push(messageData);
-        
-        const otherUser = roomUsers.find(u => u !== currentUser);
-        const otherSocket = users[otherUser]?.socketId;
-        
-        if (otherSocket) {
-            io.to(otherSocket).emit('chat-message', messageData);
+        if (targetSocket) {
+            io.to(targetSocket).emit('chat-message', {
+                from: currentUser,
+                fromName: users[currentUser].displayName,
+                message: message,
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+            });
         }
-        socket.emit('chat-message', messageData);
     });
     
-    // حظر مستخدم
     socket.on('block-user', (blockedUsername) => {
         if (!currentUser) return;
         
         if (!blockedUsers.some(b => b.blocker === currentUser && b.blocked === blockedUsername)) {
             blockedUsers.push({ blocker: currentUser, blocked: blockedUsername });
             
-            // حذف أي طلبات بينهم
-            const requestIndex = friendRequests.findIndex(r => 
+            // حذف الطلبات بينهم
+            const reqIndex = friendRequests.findIndex(r => 
                 (r.from === currentUser && r.to === blockedUsername) ||
                 (r.from === blockedUsername && r.to === currentUser)
             );
-            if (requestIndex !== -1) friendRequests.splice(requestIndex, 1);
-            
-            socket.emit('user-blocked', { blocked: blockedUsername });
+            if (reqIndex !== -1) friendRequests.splice(reqIndex, 1);
         }
     });
     
-    // إزالة حظر
     socket.on('unblock-user', (unblockedUsername) => {
         if (!currentUser) return;
         
@@ -242,15 +195,13 @@ io.on('connection', (socket) => {
             b.blocker === currentUser && b.blocked === unblockedUsername
         );
         if (index !== -1) blockedUsers.splice(index, 1);
-        
-        socket.emit('user-unblocked', { unblocked: unblockedUsername });
     });
     
-    // قطع الاتصال
     socket.on('disconnect', () => {
         if (currentUser && users[currentUser]) {
             users[currentUser].online = false;
             io.emit('user-offline', { username: currentUser });
+            delete users[currentUser];
         }
     });
 });
@@ -258,5 +209,5 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`✅ السيرفر شغال على http://localhost:${PORT}`);
-    console.log(`🎉 تطبيق اجتماعي متكامل - منشورات + دردشة`);
+    console.log(`🎉 تطبيق اجتماعي متكامل - منشورات + محادثات`);
 });
