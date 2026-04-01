@@ -5,7 +5,6 @@ let conversations = JSON.parse(localStorage.getItem('conversations') || '{}');
 let blockedUsers = JSON.parse(localStorage.getItem('blocked_users') || '[]');
 let pendingRequests = {};
 
-// ========== دوال مساعدة ==========
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -31,7 +30,7 @@ function addSystemMessage(text, containerId = 'chat-messages') {
     container.scrollTop = container.scrollHeight;
 }
 
-// ========== دوال الدردشة ==========
+// دوال الدردشة
 function addMessageToChat(message, isOwn, time) {
     const messagesDiv = document.getElementById('chat-messages');
     if (!messagesDiv) return;
@@ -107,7 +106,7 @@ function loadConversationsList() {
     });
 }
 
-// ========== دوال المنشورات ==========
+// دوال المنشورات
 function addPostToFeed(post) {
     const container = document.getElementById('posts-feed');
     if (!container) return;
@@ -146,7 +145,7 @@ function loadPosts(posts) {
     posts.forEach(post => addPostToFeed(post));
 }
 
-// ========== دوال المستخدمين ==========
+// دوال المستخدمين (مع زر طلب الصداقة)
 function updateUsersList(users) {
     const container = document.getElementById('users-list');
     if (!container) return;
@@ -186,19 +185,16 @@ function updateUsersList(users) {
 function updateUserStatus(username, online) {
     const userCard = document.querySelector(`.user-card[data-username="${username}"]`);
     if (userCard) {
-        const statusSpan = userCard.querySelector('.status');
-        if (online) statusSpan?.classList.remove('offline');
-        else statusSpan?.classList.add('offline');
+        // يمكن إضافة علامة للدلالة على الاتصال لاحقاً
     }
 }
 
-// ========== دوال الملف الشخصي ==========
+// دوال الملف الشخصي
 function updateProfilePage() {
     if (!currentUser) return;
     document.getElementById('profile-name').textContent = currentUser.displayName;
     document.getElementById('profile-username').textContent = `@${currentUser.username}`;
     
-    // منشوراتي
     const myPostsContainer = document.getElementById('my-posts');
     if (myPostsContainer) {
         const myPosts = Array.from(document.querySelectorAll('.post-card'))
@@ -211,7 +207,6 @@ function updateProfilePage() {
         }
     }
     
-    // المحظورين
     const blockedContainer = document.getElementById('blocked-list');
     if (blockedContainer) {
         if (blockedUsers.length === 0) {
@@ -237,16 +232,18 @@ function updateProfilePage() {
     }
 }
 
-// ========== التنقل بين الصفحات ==========
+// التنقل بين الصفحات
 function switchToPage(page) {
     document.getElementById('home-page').style.display = page === 'home' ? 'block' : 'none';
     document.getElementById('chat-page').style.display = page === 'chat' ? 'block' : 'none';
     document.getElementById('profile-page').style.display = page === 'profile' ? 'block' : 'none';
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
     if (page === 'chat') loadConversationsList();
     if (page === 'profile') updateProfilePage();
 }
 
-// ========== تسجيل الدخول ==========
+// تسجيل الدخول
 function login(username, displayName) {
     socket = io();
     
@@ -289,13 +286,22 @@ function login(username, displayName) {
         addSystemMessage(`🎉 ${data.withName} قبل طلب الصداقة!`);
         delete pendingRequests[data.with];
         loadConversationsList();
+        // تحديث زر الطلب لهذا المستخدم
+        const actionsDiv = document.getElementById(`actions-${data.with}`);
+        if (actionsDiv) {
+            actionsDiv.innerHTML = `<span style="color:#4caf50;">✓ صديق</span>`;
+        }
     });
     
     socket.on('request-rejected', (data) => {
         addSystemMessage(`😔 تم رفض طلب الصداقة من ${data.by}`);
         delete pendingRequests[data.by];
         const actionsDiv = document.getElementById(`actions-${data.by}`);
-        if (actionsDiv) actionsDiv.innerHTML = `<button class="request-btn">💬 طلب صداقة</button>`;
+        if (actionsDiv) {
+            actionsDiv.innerHTML = `<button class="request-btn">💬 طلب صداقة</button>`;
+            const newBtn = actionsDiv.querySelector('.request-btn');
+            newBtn.onclick = () => socket.emit('send-request', data.by);
+        }
     });
     
     socket.on('chat-message', (data) => {
@@ -310,9 +316,13 @@ function login(username, displayName) {
         if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
         else loadConversationsList();
     });
+    
+    socket.on('request-sent', () => {
+        // تم إرسال الطلب بنجاح
+    });
 }
 
-// ========== تشغيل التطبيق ==========
+// تشغيل التطبيق
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('social_user');
     if (saved) {
