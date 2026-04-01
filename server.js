@@ -17,10 +17,9 @@ posts.push({
     id: 1,
     username: '3tx',
     displayName: 'أبو علي',
-    text: 'إتسمي فأنتي وصية الرسول ❤️ وهذا يكفي... ✨',
+    text: 'مرحباً بالجميع في بغداد لايف! 🎉',
     time: new Date().toISOString(),
-    likes: 139,
-    comments: 25
+    likes: 5
 });
 
 io.on('connection', (socket) => {
@@ -59,11 +58,13 @@ io.on('connection', (socket) => {
         });
     });
     
-    // طلب صداقة
-    socket.on('send-request', (to) => {
+    // إرسال طلب صداقة
+    socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
-        const target = users[to];
-        if (!target || users[currentUser].friends.includes(to)) return;
+        const target = users[toUsername];
+        if (!target) return;
+        if (users[currentUser].friends.includes(toUsername)) return;
+        
         if (!target.requests.includes(currentUser)) {
             target.requests.push(currentUser);
             io.to(target.socketId).emit('new-request', {
@@ -73,22 +74,24 @@ io.on('connection', (socket) => {
         }
     });
     
-    // قبول طلب
-    socket.on('accept-request', (from) => {
+    // قبول طلب صداقة
+    socket.on('accept-friend', (fromUsername) => {
         if (!currentUser) return;
         const current = users[currentUser];
-        const fromUser = users[from];
-        current.requests = current.requests.filter(u => u !== from);
-        if (!current.friends.includes(from)) current.friends.push(from);
-        if (!fromUser.friends.includes(currentUser)) fromUser.friends.push(currentUser);
-        io.to(current.socketId).emit('request-accepted', { from, fromName: fromUser.displayName });
-        io.to(fromUser.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
+        const from = users[fromUsername];
+        
+        current.requests = current.requests.filter(u => u !== fromUsername);
+        if (!current.friends.includes(fromUsername)) current.friends.push(fromUsername);
+        if (!from.friends.includes(currentUser)) from.friends.push(currentUser);
+        
+        io.to(current.socketId).emit('request-accepted', { from: fromUsername, fromName: from.displayName });
+        io.to(from.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    // رفض طلب
-    socket.on('reject-request', (from) => {
+    // رفض طلب صداقة
+    socket.on('reject-friend', (fromUsername) => {
         if (!currentUser) return;
-        users[currentUser].requests = users[currentUser].requests.filter(u => u !== from);
+        users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
     });
     
     // رسالة خاصة
@@ -97,7 +100,7 @@ io.on('connection', (socket) => {
         const { to, message } = data;
         const target = users[to];
         if (target && users[currentUser].friends.includes(to)) {
-            io.to(target.socketId).emit('new-private-message', {
+            io.to(target.socketId).emit('new-message', {
                 from: currentUser,
                 fromName: users[currentUser].displayName,
                 message: message,
@@ -115,8 +118,7 @@ io.on('connection', (socket) => {
             displayName: users[currentUser].displayName,
             text: data.text,
             time: new Date().toISOString(),
-            likes: 0,
-            comments: 0
+            likes: 0
         });
         io.emit('post-added', posts[0]);
     });
