@@ -11,7 +11,6 @@
             background: #1a1a2e;
             color: #fff;
         }
-        /* شاشة تسجيل الدخول */
         .login-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -48,13 +47,10 @@
             cursor: pointer;
         }
         .error-msg { color: #ff6b6b; margin-top: 10px; font-size: 12px; }
-        
-        /* التطبيق الرئيسي */
         .app {
             display: flex;
             min-height: 100vh;
         }
-        /* القائمة الجانبية */
         .sidebar {
             width: 250px;
             background: #0f0f1a;
@@ -94,15 +90,12 @@
         .user-name { font-weight: bold; }
         .user-username { font-size: 11px; color: #888; }
         .logout-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
-        
-        /* المحتوى الرئيسي */
         .main-content {
             flex: 1;
             margin-right: 250px;
             margin-left: 250px;
             padding: 20px;
         }
-        /* قائمة المستخدمين */
         .users-sidebar {
             width: 250px;
             background: #0f0f1a;
@@ -123,8 +116,8 @@
             justify-content: space-between;
             align-items: center;
         }
-        .friend-status { font-size: 11px; color: #4caf50; }
-        .request-btn, .accept-btn, .reject-btn {
+        .friend-badge { font-size: 10px; background: #4caf50; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        .request-btn, .accept-btn, .reject-btn, .chat-btn {
             background: linear-gradient(135deg, #CE1126, #007A3D);
             border: none;
             padding: 5px 10px;
@@ -135,8 +128,7 @@
         }
         .accept-btn { background: #4caf50; }
         .reject-btn { background: #f44336; }
-        
-        /* المنشورات */
+        .chat-btn { background: #2196f3; }
         .create-post {
             background: #1e1e2e;
             padding: 15px;
@@ -170,8 +162,6 @@
         .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .post-text { margin-bottom: 10px; }
         .like-btn { background: none; border: none; color: #888; cursor: pointer; }
-        
-        /* الدردشة */
         .chat-area {
             display: none;
             flex-direction: column;
@@ -234,8 +224,6 @@
         }
         .system-message { text-align: center; color: #888; font-size: 12px; margin: 10px 0; }
         .empty-state { text-align: center; color: #888; padding: 20px; }
-        .friend-badge { font-size: 10px; background: #4caf50; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
-        
         @media (max-width: 800px) {
             .sidebar, .users-sidebar { display: none; }
             .main-content { margin: 0; }
@@ -300,83 +288,64 @@
     </div>
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
 <script>
-    let socket;
     let currentUser = null;
     let currentChatWith = null;
-    let usersData = {}; // تخزين بيانات المستخدمين
-    let friends = []; // قائمة الأصدقاء
-    let pendingRequests = []; // طلبات معلقة
+    let usersData = {};
     let posts = [];
-    let conversations = JSON.parse(localStorage.getItem('conversations_' + (currentUser?.username || '')) || '{}');
+    let conversations = {};
     
-    // دوال مساعدة
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
-    function saveAccounts() {
-        const accounts = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith('account_')) {
-                const username = key.replace('account_', '');
-                accounts[username] = JSON.parse(localStorage.getItem(key));
-            }
-        }
-        localStorage.setItem('all_accounts', JSON.stringify(accounts));
+    function loadAllData() {
+        const savedUsers = localStorage.getItem('all_users');
+        if (savedUsers) usersData = JSON.parse(savedUsers);
+        const savedPosts = localStorage.getItem('all_posts');
+        if (savedPosts) posts = JSON.parse(savedPosts);
     }
     
-    function loadAccounts() {
-        const saved = localStorage.getItem('all_accounts');
-        if (saved) {
-            const accounts = JSON.parse(saved);
-            for (let [username, data] of Object.entries(accounts)) {
-                localStorage.setItem(`account_${username}`, JSON.stringify(data));
-                usersData[username] = data;
-            }
-        }
+    function saveAllData() {
+        localStorage.setItem('all_users', JSON.stringify(usersData));
+        localStorage.setItem('all_posts', JSON.stringify(posts));
     }
     
     function registerUser(username, password, displayName) {
-        if (localStorage.getItem(`account_${username}`)) {
-            return false;
-        }
-        const userData = { username, password, displayName, friends: [], pendingRequests: [] };
-        localStorage.setItem(`account_${username}`, JSON.stringify(userData));
-        usersData[username] = userData;
-        saveAccounts();
+        if (usersData[username]) return false;
+        usersData[username] = {
+            password: password,
+            displayName: displayName,
+            friends: [],
+            pendingRequests: []
+        };
+        saveAllData();
         return true;
     }
     
     function loginUser(username, password) {
-        const userData = localStorage.getItem(`account_${username}`);
-        if (!userData) return null;
-        const data = JSON.parse(userData);
-        if (data.password !== password) return null;
-        return data;
+        const user = usersData[username];
+        if (user && user.password === password) return user;
+        return null;
     }
     
-    function updateFriendsList() {
-        if (!currentUser) return;
-        const userData = usersData[currentUser.username];
-        friends = userData?.friends || [];
-        pendingRequests = userData?.pendingRequests || [];
-        
-        // تحديث الواجهة
+    function updateUsersList() {
         const container = document.getElementById('users-list');
         if (!container) return;
         
-        const allUsers = Object.keys(usersData).filter(u => u !== currentUser.username);
+        const currentUserData = usersData[currentUser.username];
+        const friends = currentUserData?.friends || [];
+        const pending = currentUserData?.pendingRequests || [];
+        
+        const otherUsers = Object.keys(usersData).filter(u => u !== currentUser.username);
         container.innerHTML = '';
         
-        allUsers.forEach(u => {
-            const isFriend = friends.includes(u);
-            const hasPending = pendingRequests.includes(u);
+        otherUsers.forEach(u => {
             const user = usersData[u];
+            const isFriend = friends.includes(u);
+            const hasPending = pending.includes(u);
             
             const div = document.createElement('div');
             div.className = 'user-card';
@@ -384,27 +353,23 @@
                 <div>
                     <strong>${escapeHtml(user.displayName)}</strong><br>
                     <small>@${escapeHtml(u)}</small>
-                    ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
+                    ${isFriend ? '<span class="friend-badge">✓ صديق</span>' : ''}
                 </div>
                 <div>
                     ${!isFriend && !hasPending ? `<button class="request-btn" data-user="${u}">➕ طلب</button>` : ''}
-                    ${hasPending ? `<button class="accept-btn" data-user="${u}">✅ قبول</button><button class="reject-btn" data-user="${u}">❌ رفض</button>` : ''}
-                    ${isFriend ? `<button class="request-btn" data-user="${u}" style="background:#4caf50;">💬 دردشة</button>` : ''}
+                    ${hasPending ? `<button class="accept-btn" data-user="${u}">✅ قبول</button> <button class="reject-btn" data-user="${u}">❌ رفض</button>` : ''}
+                    ${isFriend ? `<button class="chat-btn" data-user="${u}">💬 دردشة</button>` : ''}
                 </div>
             `;
             
-            const btns = div.querySelectorAll('button');
-            btns.forEach(btn => {
-                btn.onclick = () => {
-                    if (btn.classList.contains('request-btn') && btn.textContent.includes('طلب')) {
-                        sendFriendRequest(u);
-                    } else if (btn.classList.contains('accept-btn')) {
-                        acceptFriendRequest(u);
-                    } else if (btn.classList.contains('reject-btn')) {
-                        rejectFriendRequest(u);
-                    } else if (btn.textContent.includes('دردشة')) {
-                        openChat(u);
-                    }
+            div.querySelectorAll('button').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const user = btn.dataset.user;
+                    if (btn.classList.contains('request-btn')) sendFriendRequest(user);
+                    else if (btn.classList.contains('accept-btn')) acceptFriendRequest(user);
+                    else if (btn.classList.contains('reject-btn')) rejectFriendRequest(user);
+                    else if (btn.classList.contains('chat-btn')) openChat(user);
                 };
             });
             container.appendChild(div);
@@ -412,47 +377,33 @@
     }
     
     function sendFriendRequest(toUser) {
-        const userData = usersData[toUser];
-        if (userData) {
-            if (!userData.pendingRequests) userData.pendingRequests = [];
-            if (!userData.pendingRequests.includes(currentUser.username)) {
-                userData.pendingRequests.push(currentUser.username);
-                localStorage.setItem(`account_${toUser}`, JSON.stringify(userData));
-                saveAccounts();
-                addSystemMessage(`✅ تم إرسال طلب صداقة إلى ${toUser}`, 'chat-messages');
-                updateFriendsList();
-                // إشعار للمستخدم الآخر
-                if (socket) socket.emit('friend-request', { from: currentUser.username, to: toUser });
-            }
+        const target = usersData[toUser];
+        if (target && !target.pendingRequests.includes(currentUser.username)) {
+            target.pendingRequests.push(currentUser.username);
+            saveAllData();
+            addSystemMessage(`✅ تم إرسال طلب صداقة إلى ${toUser}`, 'chat-messages');
+            updateUsersList();
         }
     }
     
     function acceptFriendRequest(fromUser) {
-        const userData = usersData[currentUser.username];
-        userData.pendingRequests = userData.pendingRequests.filter(u => u !== fromUser);
-        if (!userData.friends) userData.friends = [];
-        if (!userData.friends.includes(fromUser)) userData.friends.push(fromUser);
-        localStorage.setItem(`account_${currentUser.username}`, JSON.stringify(userData));
+        const current = usersData[currentUser.username];
+        current.pendingRequests = current.pendingRequests.filter(u => u !== fromUser);
+        if (!current.friends.includes(fromUser)) current.friends.push(fromUser);
         
-        const fromData = usersData[fromUser];
-        if (fromData) {
-            if (!fromData.friends) fromData.friends = [];
-            if (!fromData.friends.includes(currentUser.username)) fromData.friends.push(currentUser.username);
-            localStorage.setItem(`account_${fromUser}`, JSON.stringify(fromData));
-        }
-        saveAccounts();
-        updateFriendsList();
+        const from = usersData[fromUser];
+        if (!from.friends.includes(currentUser.username)) from.friends.push(fromUser);
+        
+        saveAllData();
+        updateUsersList();
         addSystemMessage(`🎉 أصبحت صديقًا مع ${fromUser}`, 'chat-messages');
-        if (socket) socket.emit('friend-accepted', { from: currentUser.username, to: fromUser });
     }
     
     function rejectFriendRequest(fromUser) {
-        const userData = usersData[currentUser.username];
-        userData.pendingRequests = userData.pendingRequests.filter(u => u !== fromUser);
-        localStorage.setItem(`account_${currentUser.username}`, JSON.stringify(userData));
-        saveAccounts();
-        updateFriendsList();
-        if (socket) socket.emit('friend-rejected', { from: currentUser.username, to: fromUser });
+        const current = usersData[currentUser.username];
+        current.pendingRequests = current.pendingRequests.filter(u => u !== fromUser);
+        saveAllData();
+        updateUsersList();
     }
     
     function addSystemMessage(text, containerId = 'chat-messages') {
@@ -466,7 +417,7 @@
         }
     }
     
-    function addMessageToChat(message, isOwn, time) {
+    function addMessageToChat(message, isOwn) {
         const container = document.getElementById('chat-messages');
         if (!container) return;
         const div = document.createElement('div');
@@ -477,7 +428,8 @@
     }
     
     function openChat(username) {
-        if (!friends.includes(username)) {
+        const isFriend = usersData[currentUser.username]?.friends?.includes(username);
+        if (!isFriend) {
             addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة', 'chat-messages');
             return;
         }
@@ -488,20 +440,18 @@
         document.getElementById('chat-messages').innerHTML = '';
         
         const roomId = [currentUser.username, username].sort().join('-');
-        const messages = conversations[roomId] || [];
-        messages.forEach(msg => {
-            addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
+        const msgs = conversations[roomId] || [];
+        msgs.forEach(msg => {
+            addMessageToChat(msg.message, msg.from === currentUser.username);
         });
     }
     
     function sendChatMessage() {
         const input = document.getElementById('chat-input');
         const msg = input.value.trim();
-        if (!msg || !currentChatWith || !socket) return;
+        if (!msg || !currentChatWith) return;
         
         const roomId = [currentUser.username, currentChatWith].sort().join('-');
-        socket.emit('send-chat-message', { roomId, message: msg });
-        
         if (!conversations[roomId]) conversations[roomId] = [];
         conversations[roomId].push({
             from: currentUser.username,
@@ -550,6 +500,7 @@
         if (isOwn) {
             div.querySelector('.delete-btn').onclick = () => {
                 posts = posts.filter(p => p.id !== post.id);
+                saveAllData();
                 loadPosts();
             };
         }
@@ -570,53 +521,22 @@
         document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
     }
     
-    function startApp(userData) {
-        currentUser = { username: userData.username, displayName: userData.displayName };
-        friends = userData.friends || [];
-        pendingRequests = userData.pendingRequests || [];
-        conversations = JSON.parse(localStorage.getItem(`conversations_${currentUser.username}`) || '{}');
+    function startApp(userData, username) {
+        currentUser = { username: username, displayName: userData.displayName };
+        conversations = JSON.parse(localStorage.getItem(`conversations_${username}`) || '{}');
         
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         document.getElementById('user-name').textContent = userData.displayName;
-        document.getElementById('user-username').textContent = `@${userData.username}`;
+        document.getElementById('user-username').textContent = `@${username}`;
         
-        updateFriendsList();
+        updateUsersList();
         loadPosts();
         switchPage('home');
-        
-        socket = io();
-        socket.on('connect', () => {
-            socket.emit('user-online', { username: currentUser.username });
-        });
-        socket.on('friend-request', (data) => {
-            if (data.to === currentUser.username) {
-                updateFriendsList();
-                addSystemMessage(`📩 طلب صداقة جديد من ${data.from}`, 'chat-messages');
-            }
-        });
-        socket.on('friend-accepted', (data) => {
-            if (data.to === currentUser.username) {
-                updateFriendsList();
-                addSystemMessage(`🎉 ${data.from} قبل طلب الصداقة!`, 'chat-messages');
-            }
-        });
-        socket.on('chat-message', (data) => {
-            const roomId = [currentUser.username, data.from].sort().join('-');
-            if (!conversations[roomId]) conversations[roomId] = [];
-            conversations[roomId].push({
-                from: data.from,
-                message: data.message,
-                time: data.time
-            });
-            localStorage.setItem(`conversations_${currentUser.username}`, JSON.stringify(conversations));
-            if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
-            else loadConversationsList();
-        });
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-        loadAccounts();
+        loadAllData();
         
         document.getElementById('login-btn').onclick = () => {
             const username = document.getElementById('login-username').value.trim().toLowerCase();
@@ -630,12 +550,12 @@
             
             let userData = loginUser(username, password);
             if (userData) {
-                startApp(userData);
+                startApp(userData, username);
             } else {
                 const displayName = username;
                 if (registerUser(username, password, displayName)) {
                     userData = loginUser(username, password);
-                    startApp(userData);
+                    startApp(userData, username);
                 } else {
                     errorDiv.textContent = 'يوزر نيم موجود مسبقاً';
                 }
@@ -657,6 +577,7 @@
                     time: new Date().toISOString(),
                     likes: 0
                 });
+                saveAllData();
                 loadPosts();
                 document.getElementById('post-text').value = '';
             }
@@ -679,4 +600,4 @@
     });
 </script>
 </body>
-    </html>
+</html>
