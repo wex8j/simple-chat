@@ -3,34 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بغداد لايف</title>
+    <title>بغداد لايف | تواصل اجتماعي</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-card {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 300px;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #2a2a3a;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        .error-msg { color: #ff6b6b; margin-top: 10px; font-size: 12px; }
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #0f0f1a;
+            padding: 20px;
+            position: fixed;
+            right: 0;
+            height: 100vh;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #333; margin-bottom: 20px; }
+        .nav-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: none;
+            border: none;
+            color: white;
+            text-align: right;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .nav-btn.active, .nav-btn:hover { background: linear-gradient(135deg, #CE1126, #007A3D); }
+        .user-info {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .user-details { flex: 1; }
+        .user-name { font-weight: bold; }
+        .user-username { font-size: 11px; color: #888; }
+        .logout-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
+        .main-content {
+            flex: 1;
+            margin-right: 250px;
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .users-sidebar {
+            width: 250px;
+            background: #0f0f1a;
+            padding: 20px;
+            position: fixed;
+            left: 0;
+            height: 100vh;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+        .users-sidebar h3 { margin-bottom: 15px; font-size: 16px; }
+        .user-card {
+            background: #1e1e2e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .friend-badge { font-size: 10px; background: #4caf50; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        .pending-badge { font-size: 10px; background: #ff9800; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        .request-btn, .accept-btn, .reject-btn, .chat-btn {
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .accept-btn { background: #4caf50; }
+        .reject-btn { background: #f44336; }
+        .chat-btn { background: #2196f3; }
+        .create-post {
+            background: #1e1e2e;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .create-post textarea {
+            width: 100%;
+            background: #2a2a3a;
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            resize: none;
+        }
+        .post-btn {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        .post-card {
+            background: #1e1e2e;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .post-text { margin-bottom: 10px; }
+        .like-btn { background: none; border: none; color: #888; cursor: pointer; margin-left: 10px; }
+        .chat-area {
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            background: #1e1e2e;
+            border-radius: 15px;
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .message { margin-bottom: 10px; }
+        .message.own { text-align: left; }
+        .bubble {
+            display: inline-block;
+            background: #2a2a3a;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .message.own .bubble { background: linear-gradient(135deg, #CE1126, #007A3D); }
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            gap: 10px;
+            border-top: 1px solid #333;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            background: #2a2a3a;
+            border: none;
+            border-radius: 20px;
             color: white;
         }
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
+        .chat-input-area button {
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
         }
-        h1 { font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, #CE1126, #007A3D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .status { color: #4caf50; font-size: 18px; margin-top: 20px; }
+        .conversations-list { padding: 15px; }
+        .conversation-item {
+            background: #2a2a3a;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .system-message { text-align: center; color: #888; font-size: 12px; margin: 10px 0; }
+        .empty-state { text-align: center; color: #888; padding: 20px; }
+        @media (max-width: 800px) {
+            .sidebar, .users-sidebar { display: none; }
+            .main-content { margin: 0; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🇮🇶 بغداد لايف</h1>
-        <p>منصة تواصل اجتماعي عراقية</p>
-        <div class="status">✅ السيرفر يعمل بشكل صحيح</div>
+
+<div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+        <h2>🇮🇶 بغداد لايف</h2>
+        <p>سجل دخولك</p>
+        <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20">
+        <input type="password" id="login-password" placeholder="كلمة السر" maxlength="20">
+        <input type="text" id="login-displayname" placeholder="الاسم الظاهر (للتسجيل الجديد)" maxlength="20">
+        <button id="login-btn">دخول / تسجيل</button>
+        <div class="error-msg" id="error-msg"></div>
     </div>
+</div>
+
+<div class="app" id="app" style="display: none;">
+    <div class="sidebar">
+        <div class="logo"><h2>🇮🇶 بغداد لايف</h2></div>
+        <button class="nav-btn active" data-page="home">🏠 الرئيسية</button>
+        <button class="nav-btn" data-page="chat">💬 المحادثات</button>
+        <div class="user-info">
+            <div class="user-avatar">👤</div>
+            <div class="user-details">
+                <div class="user-name" id="user-name">...</div>
+                <div class="user-username" id="user-username">@...</div>
+            </div>
+            <button class="logout-btn" id="logout-btn">🚪</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="home-page">
+            <div class="create-post">
+                <textarea id="post-text" placeholder="شارك شي مع الجميع..." rows="3"></textarea>
+                <button class="post-btn" id="post-btn">نشر</button>
+            </div>
+            <div id="posts-feed"></div>
+        </div>
+        <div id="chat-page" style="display: none;">
+            <div id="conversations-list"></div>
+            <div class="chat-area" id="chat-area">
+                <div class="chat-header">
+                    <button class="back-btn" id="back-btn">←</button>
+                    <span id="chat-partner-name"></span>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="اكتب رسالة...">
+                    <button id="send-chat-btn">إرسال</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="users-sidebar">
+        <h3>👥 المستخدمون</h3>
+        <div id="users-list"></div>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    let socket;
+    let currentUser = null;
+    let currentChatWith = null;
+    let friends = [];
+    let pendingRequests = [];
+    let allUsers = [];
+    let posts = [];
+    let conversations = JSON.parse(localStorage.getItem('conversations') || '{}');
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function updateUsersList() {
+        const container = document.getElementById('users-list');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        allUsers.forEach(user => {
+            if (user.username === currentUser.username) return;
+            const isFriend = friends.includes(user.username);
+            const hasPending = pendingRequests.includes(user.username);
+            
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.innerHTML = `
+                <div>
+                    <strong>${escapeHtml(user.displayName)}</strong><br>
+                    <small>@${escapeHtml(user.username)}</small>
+                    ${isFriend ? '<span class="friend-badge">✓ صديق</span>' : ''}
+                    ${hasPending ? '<span class="pending-badge">⏳ طلب وارد</span>' : ''}
+                </div>
+                <div>
+                    ${!isFriend && !hasPending ? `<button class="request-btn" data-user="${user.username}">➕ طلب</button>` : ''}
+                    ${hasPending ? `<button class="accept-btn" data-user="${user.username}">✅ قبول</button> <button class="reject-btn" data-user="${user.username}">❌ رفض</button>` : ''}
+                    ${isFriend ? `<button class="chat-btn" data-user="${user.username}">💬 دردشة</button>` : ''}
+                </div>
+            `;
+            
+            div.querySelectorAll('button').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const user = btn.dataset.user;
+                    if (btn.classList.contains('request-btn')) socket.emit('send-friend-request', user);
+                    else if (btn.classList.contains('accept-btn')) socket.emit('accept-friend-request', user);
+                    else if (btn.classList.contains('reject-btn')) socket.emit('reject-friend-request', user);
+                    else if (btn.classList.contains('chat-btn')) openChat(user);
+                };
+            });
+            container.appendChild(div);
+        });
+    }
+    
+    function addSystemMessage(text) {
+        const container = document.getElementById('chat-messages');
+        if (container) {
+            const div = document.createElement('div');
+            div.className = 'system-message';
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+    
+    function addMessageToChat(message, isOwn, time) {
+        const container = document.getElementById('chat-messages');
+        if (!container) return;
+        const div = document.createElement('div');
+        div.className = 'message ' + (isOwn ? 'own' : '');
+        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div><div style="font-size:10px;color:#888;">${time || ''}</div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function openChat(username) {
+        if (!friends.includes(username)) {
+            addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة');
+            return;
+        }
+        currentChatWith = username;
+        document.getElementById('conversations-list').style.display = 'none';
+        document.getElementById('chat-area').style.display = 'flex';
+        document.getElementById('chat-partner-name').textContent = username;
+        document.getElementById('chat-messages').innerHTML = '';
+        
+        const roomId = [currentUser.username, username].sort().join('-');
+        const msgs = conversations[roomId] || [];
+        msgs.forEach(msg => addMessageToChat(msg.message, msg.from === currentUser.username, msg.time));
+    }
+    
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg || !currentChatWith) return;
+        
+        socket.emit('send-message', { to: currentChatWith, message: msg });
+        const roomId = [currentUser.username, currentChatWith].sort().join('-');
+        if (!conversations[roomId]) conversations[roomId] = [];
+        conversations[roomId].push({
+            from: currentUser.username,
+            message: msg,
+            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+        });
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        addMessageToChat(msg, true, new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
+        input.value = '';
+    }
+    
+    function loadConversationsList() {
+        const container = document.getElementById('conversations-list');
+        const roomIds = Object.keys(conversations);
+        if (roomIds.length === 0) {
+            container.innerHTML = '<div class="empty-state">لا توجد محادثات بعد</div>';
+            return;
+        }
+        container.innerHTML = '';
+        roomIds.forEach(roomId => {
+            const otherUser = roomId.split('-').find(u => u !== currentUser.username);
+            const lastMsg = conversations[roomId][conversations[roomId].length - 1];
+            const div = document.createElement('div');
+            div.className = 'conversation-item';
+            div.innerHTML = `<div><strong>${escapeHtml(otherUser)}</strong></div><div style="font-size:11px;color:#888;">${lastMsg ? lastMsg.message.substring(0, 30) : 'ابدأ المحادثة'}</div>`;
+            div.onclick = () => openChat(otherUser);
+            container.appendChild(div);
+        });
+    }
+    
+    function addPostToFeed(post) {
+        const container = document.getElementById('posts-feed');
+        const isOwn = post.username === currentUser?.username;
+        const div = document.createElement('div');
+        div.className = 'post-card';
+        div.dataset.id = post.id;
+        div.innerHTML = `
+            <div class="post-header">
+                <div><strong>${escapeHtml(post.displayName)}</strong> @${escapeHtml(post.username)}</div>
+                <div>${new Date(post.time).toLocaleTimeString()}</div>
+            </div>
+            <div class="post-text">${escapeHtml(post.text)}</div>
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
+            ${isOwn ? '<button class="delete-btn" style="background:none;border:none;color:red;margin-left:10px;">🗑️</button>' : ''}
+        `;
+        div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
+        if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
+        container.prepend(div);
+    }
+    
+    function loadPosts(postsData) {
+        const container = document.getElementById('posts-feed');
+        container.innerHTML = '';
+        posts = postsData || [];
+        [...posts].reverse().forEach(post => addPostToFeed(post));
+    }
+    
+    function switchPage(page) {
+        document.getElementById('home-page').style.display = page === 'home' ? 'block' : 'none';
+        document.getElementById('chat-page').style.display = page === 'chat' ? 'block' : 'none';
+        if (page === 'chat') loadConversationsList();
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
+    }
+    
+    function startApp(data) {
+        currentUser = { username: data.username, displayName: data.displayName };
+        friends = data.friends || [];
+        pendingRequests = data.pendingRequests || [];
+        allUsers = data.users || [];
+        posts = data.posts || [];
+        
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('user-name').textContent = data.displayName;
+        document.getElementById('user-username').textContent = `@${data.username}`;
+        
+        updateUsersList();
+        loadPosts(posts);
+        switchPage('home');
+        
+        socket.on('new-friend-request', (data) => {
+            pendingRequests.push(data.from);
+            updateUsersList();
+            addSystemMessage(`📩 طلب صداقة جديد من ${data.fromName}`);
+        });
+        
+        socket.on('friend-request-accepted', (data) => {
+            if (!friends.includes(data.from)) friends.push(data.from);
+            pendingRequests = pendingRequests.filter(u => u !== data.from);
+            updateUsersList();
+            addSystemMessage(`🎉 ${data.fromName} قبل طلب الصداقة!`);
+            loadConversationsList();
+        });
+        
+        socket.on('new-message', (data) => {
+            const roomId = [currentUser.username, data.from].sort().join('-');
+            if (!conversations[roomId]) conversations[roomId] = [];
+            conversations[roomId].push({ from: data.from, message: data.message, time: data.time });
+            localStorage.setItem('conversations', JSON.stringify(conversations));
+            if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
+            else loadConversationsList();
+        });
+        
+        socket.on('post-added', (post) => { posts.unshift(post); addPostToFeed(post); });
+        socket.on('post-updated', (post) => {
+            const existing = document.querySelector(`.post-card[data-id="${post.id}"]`);
+            if (existing) existing.querySelector('.like-btn').innerHTML = `❤️ ${post.likes}`;
+        });
+        socket.on('post-deleted', (postId) => {
+            document.querySelector(`.post-card[data-id="${postId}"]`)?.remove();
+            posts = posts.filter(p => p.id != postId);
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('login-btn').onclick = () => {
+            const username = document.getElementById('login-username').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value.trim();
+            const displayName = document.getElementById('login-displayname').value.trim();
+            const errorDiv = document.getElementById('error-msg');
+            if (!username || !password) { errorDiv.textContent = 'املأ جميع الحقول'; return; }
+            
+            socket = io();
+            socket.on('connect', () => socket.emit('login', { username, password, displayName: displayName || username }));
+            socket.on('login-success', startApp);
+            socket.on('login-error', (msg) => errorDiv.textContent = msg);
+        };
+        
+        document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('conversations'); location.reload(); };
+        document.getElementById('post-btn').onclick = () => {
+            const text = document.getElementById('post-text').value.trim();
+            if (text && socket) socket.emit('new-post', { text });
+            document.getElementById('post-text').value = '';
+        };
+        document.getElementById('back-btn').onclick = () => {
+            document.getElementById('chat-area').style.display = 'none';
+            document.getElementById('conversations-list').style.display = 'block';
+            currentChatWith = null;
+        };
+        document.getElementById('send-chat-btn').onclick = sendChatMessage;
+        document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendChatMessage(); };
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.onclick = () => switchPage(btn.dataset.page));
+    });
+</script>
 </body>
-</html>
+    </html>
