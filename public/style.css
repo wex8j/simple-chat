@@ -1,0 +1,633 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* الشريط الجانبي */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    height: 100vh;
+}
+
+.logo {
+    padding: 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo h2 {
+    color: white;
+    font-size: 20px;
+}
+
+.nav-menu {
+    flex: 1;
+    padding: 20px;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: right;
+}
+
+.nav-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.nav-btn.active {
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+    color: white;
+}
+
+.user-info {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-username {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+}
+
+.logout-btn {
+    background: rgba(255,100,100,0.2);
+    border: none;
+    color: #ff6b6b;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+}
+
+/* المحتوى الرئيسي */
+.main-content {
+    flex: 1;
+    margin-right: 280px;
+    margin-left: 280px;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* قائمة المستخدمين */
+.users-sidebar {
+    width: 280px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    position: fixed;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.users-sidebar h3 {
+    color: white;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.user-card-info {
+    flex: 1;
+}
+
+.user-card-name {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-card-username {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+}
+
+.user-card-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+.user-card-status.offline {
+    background: #666;
+}
+
+.user-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.request-btn {
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+/* إنشاء منشور */
+.create-post {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.create-post textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 16px;
+    padding: 12px;
+    color: white;
+    font-size: 14px;
+    resize: none;
+    font-family: inherit;
+}
+
+.create-post textarea::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.post-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.post-btn {
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* المنشورات */
+.posts-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.post-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.post-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.post-user-info {
+    flex: 1;
+}
+
+.post-name {
+    color: white;
+    font-weight: 600;
+}
+
+.post-username {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+}
+
+.post-time {
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+}
+
+.post-text {
+    color: white;
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.post-actions-bar {
+    display: flex;
+    gap: 20px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.like-btn, .delete-post-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.like-btn:hover {
+    color: #ff6b6b;
+}
+
+/* الدردشة */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.conversations-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.conversation-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.conversation-info {
+    flex: 1;
+}
+
+.conversation-name {
+    color: white;
+    font-weight: 600;
+}
+
+.conversation-status {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-header {
+    padding: 16px;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-chat-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.block-chat-btn {
+    background: rgba(100,100,100,0.3);
+    border: none;
+    color: #ff6b6b;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-right: auto;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 80%;
+}
+
+.chat-message.own {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.message-bubble {
+    background: rgba(255,255,255,0.1);
+    padding: 10px 14px;
+    border-radius: 18px;
+    color: white;
+}
+
+.chat-message.own .message-bubble {
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+}
+
+.message-time {
+    font-size: 9px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+}
+
+.chat-input-area {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    background: rgba(0,0,0,0.3);
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    outline: none;
+}
+
+.chat-input-area button {
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    color: white;
+    cursor: pointer;
+}
+
+/* الملف الشخصي */
+.profile-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+}
+
+.profile-info h2 {
+    color: white;
+    font-size: 24px;
+}
+
+.profile-info p {
+    color: rgba(255,255,255,0.5);
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.tab-btn.active {
+    color: #ff6b6b;
+    border-bottom: 2px solid #ff6b6b;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.my-posts, .blocked-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.blocked-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.unblock-btn {
+    background: #ff6b6b;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+/* شاشة تسجيل الدخول */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.login-card {
+    background: rgba(0,0,0,0.7);
+    border-radius: 40px;
+    padding: 40px;
+    text-align: center;
+    width: 320px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.login-card h2 {
+    color: white;
+    margin-bottom: 8px;
+}
+
+.login-card p {
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 24px;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 30px;
+    color: white;
+    text-align: center;
+    outline: none;
+}
+
+.login-card button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #CE1126, #007A3D);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.error-msg {
+    color: #ff6b6b;
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+.empty-state, .loading {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    padding: 40px;
+}
+
+.flag-decoration {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* موبايل */
+@media (max-width: 900px) {
+    .sidebar, .users-sidebar {
+        display: none;
+    }
+    .main-content {
+        margin: 0;
+        padding: 16px;
+    }
+  }
