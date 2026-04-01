@@ -5,7 +5,15 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+// إعدادات مهمة لـ Railway و WebSockets
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
+    transports: ['websocket', 'polling']
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,6 +36,7 @@ io.on('connection', (socket) => {
     let currentUser = null;
     
     socket.on('login', (data) => {
+        console.log('محاولة تسجيل:', data.username);
         const { username, password, displayName } = data;
         
         if (!users[username]) {
@@ -154,4 +163,5 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 السيرفر شغال على http://localhost:${PORT}`);
+    console.log(`📡 WebSocket جاهز للاستقبال`);
 });
