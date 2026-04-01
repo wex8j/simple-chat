@@ -19,9 +19,6 @@
             background-attachment: fixed;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
         }
 
@@ -36,52 +33,107 @@
             z-index: 0;
         }
 
-        /* الحاوية الرئيسية - شات + قائمة الأعضاء */
-        .main-container {
+        /* حاوية الدردشة */
+        .chat-container {
             position: relative;
             z-index: 1;
             width: 100%;
             height: 100vh;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* الدردشة */
-        .chat-container {
+        /* الهيدر مع زر القائمة */
+        .chat-header {
+            background: linear-gradient(135deg, rgba(206,17,38,0.9) 0%, rgba(0,122,61,0.9) 100%);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .menu-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-area {
+            text-align: center;
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
 
-        /* قائمة الأعضاء */
+        .logo-area h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logo-area p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 10px;
+        }
+
+        .online-users {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            color: white;
+        }
+
+        /* قائمة الأعضاء الجانبية */
         .members-sidebar {
-            width: 220px;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(15px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: right 0.3s ease;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .members-sidebar.open {
+            right: 0;
         }
 
         .members-header {
-            padding: 16px 12px;
-            background: rgba(206, 17, 38, 0.8);
-            text-align: center;
+            padding: 20px 16px;
+            background: linear-gradient(135deg, #CE1126, #007A3D);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .members-header h4 {
             color: white;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 18px;
         }
 
-        .members-header p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 11px;
-            margin-top: 4px;
+        .close-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
         }
 
         .members-list {
@@ -94,16 +146,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
+            padding: 12px;
             margin-bottom: 8px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 12px;
-            transition: all 0.2s;
         }
 
         .member-info {
-            display: flex;
-            flex-direction: column;
             flex: 1;
         }
 
@@ -118,105 +167,70 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
-        .member-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 8px;
-        }
-
-        .member-status.offline {
-            background: #666;
-        }
-
         .admin-badge {
             background: linear-gradient(135deg, #CE1126, #007A3D);
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: white;
+            margin-left: 6px;
+        }
+
+        .muted-badge {
+            background: #ff9800;
             font-size: 9px;
             padding: 2px 6px;
             border-radius: 20px;
             color: white;
-            margin-top: 3px;
-            display: inline-block;
+            margin-left: 6px;
         }
 
         .member-actions {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .admin-btn {
-            background: rgba(206, 17, 38, 0.7);
+            background: rgba(100, 100, 100, 0.6);
             border: none;
             color: white;
-            font-size: 11px;
+            font-size: 10px;
             padding: 4px 8px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .admin-btn:hover {
-            background: rgba(206, 17, 38, 1);
         }
 
         .admin-btn.kick {
-            background: rgba(255, 100, 100, 0.6);
+            background: rgba(255, 100, 100, 0.7);
         }
 
         .admin-btn.ban {
-            background: rgba(100, 100, 100, 0.6);
+            background: rgba(50, 50, 50, 0.8);
+        }
+
+        .admin-btn.mute {
+            background: rgba(255, 150, 0, 0.7);
+        }
+
+        /* الخلفية المظلمة عند فتح القائمة */
+        .overlay-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay-menu.active {
+            display: block;
         }
 
         /* باقي الدردشة */
-        .chat-header {
-            background: linear-gradient(135deg, rgba(206,17,38,0.9) 0%, rgba(0,122,61,0.9) 100%);
-            backdrop-filter: blur(10px);
-            padding: 16px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .logo-flag {
-            font-size: 28px;
-            animation: wave 2s ease infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(5deg); }
-            75% { transform: rotate(-5deg); }
-        }
-
-        .logo-text h3 {
-            color: white;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .logo-text p {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 10px;
-        }
-
-        .online-users {
-            background: rgba(0, 0, 0, 0.5);
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-size: 10px;
-            color: white;
-            margin-top: 8px;
-        }
-
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -224,10 +238,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 3px;
         }
 
         .message {
@@ -270,10 +280,14 @@
             border-bottom-right-radius: 4px;
             max-width: 100%;
             word-wrap: break-word;
-            word-break: break-word;
             color: white;
             font-size: 15px;
             line-height: 1.4;
+        }
+
+        .message-bubble.muted {
+            opacity: 0.5;
+            font-style: italic;
         }
 
         .message .time {
@@ -311,9 +325,6 @@
             outline: none;
             background: rgba(255, 255, 255, 0.15);
             color: white;
-            autocomplete: off;
-            spellcheck: false;
-            autocorrect: off;
         }
 
         .input-area input:focus {
@@ -332,11 +343,6 @@
             border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
-        }
-
-        .input-area button:active {
-            transform: scale(0.96);
         }
 
         /* شاشة تسجيل الدخول */
@@ -351,7 +357,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 10000;
         }
 
         .welcome-card {
@@ -377,12 +383,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .welcome-card p {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 25px;
-            font-size: 13px;
-        }
-
         .welcome-card input {
             width: 100%;
             padding: 12px 16px;
@@ -394,10 +394,6 @@
             text-align: center;
             outline: none;
             margin-bottom: 12px;
-        }
-
-        .welcome-card input:focus {
-            border-color: #CE1126;
         }
 
         .welcome-card button {
@@ -436,55 +432,37 @@
             margin-top: 8px;
             display: none;
         }
-
-        @media (max-width: 600px) {
-            .members-sidebar {
-                width: 150px;
-            }
-            .member-display {
-                font-size: 11px;
-            }
-            .admin-btn {
-                font-size: 9px;
-                padding: 3px 6px;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <!-- الدردشة -->
-        <div class="chat-container" id="chat-container" style="display: none;">
-            <div class="chat-header">
-                <div class="logo-area">
-                    <div class="logo-flag">🇮🇶</div>
-                    <div class="logo-text">
-                        <h3>دردشة بغداد لايف</h3>
-                        <p>Baghdad Live Chat</p>
-                    </div>
-                    <div class="logo-flag">🇮🇶</div>
-                </div>
-                <div class="online-users">🟢 <span id="users-count">0</span> متصل</div>
+    <div class="chat-container" id="chat-container" style="display: none;">
+        <div class="chat-header">
+            <button class="menu-btn" id="menu-btn">☰</button>
+            <div class="logo-area">
+                <h3>دردشة بغداد لايف</h3>
+                <p>Baghdad Live Chat</p>
             </div>
-            <div class="chat-messages" id="messages">
-                <div class="system-message">✨ مرحباً بك في دردشة بغداد لايف</div>
-            </div>
-            <div class="input-area">
-                <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off">
-                <button id="send-btn">إرسال</button>
-            </div>
+            <div class="online-users">🟢 <span id="users-count">0</span></div>
         </div>
+        <div class="chat-messages" id="messages">
+            <div class="system-message">✨ مرحباً بك في دردشة بغداد لايف</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="message" placeholder="اكتب رسالة..." maxlength="500" autocomplete="off">
+            <button id="send-btn">إرسال</button>
+        </div>
+    </div>
 
-        <!-- قائمة الأعضاء -->
-        <div class="members-sidebar" id="members-sidebar" style="display: none;">
-            <div class="members-header">
-                <h4>👥 الأعضاء النشطين</h4>
-                <p id="members-count">0 متصل</p>
-            </div>
-            <div class="members-list" id="members-list">
-                <div class="system-message" style="background: none;">جاري التحميل...</div>
-            </div>
+    <!-- قائمة الأعضاء -->
+    <div class="overlay-menu" id="overlay-menu"></div>
+    <div class="members-sidebar" id="members-sidebar">
+        <div class="members-header">
+            <h4>👥 الأعضاء</h4>
+            <button class="close-menu" id="close-menu">✕</button>
+        </div>
+        <div class="members-list" id="members-list">
+            <div class="system-message">جاري التحميل...</div>
         </div>
     </div>
 
@@ -515,15 +493,18 @@
         const socket = io();
         let currentUser = null;
         let bannedUsers = JSON.parse(localStorage.getItem('banned_users') || '[]');
+        let mutedUsers = []; // قائمة المكتمين
         
-        // المشرف
-        const ADMIN_USERNAME = "3tx";  // <--- هذا اليوزر نيم حق المشرف
+        const ADMIN_USERNAME = "3tx";
         
+        // العناصر
         const welcomeScreen = document.getElementById('welcome-screen');
         const chatContainer = document.getElementById('chat-container');
         const membersSidebar = document.getElementById('members-sidebar');
         const membersList = document.getElementById('members-list');
-        const membersCountSpan = document.getElementById('members-count');
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenu = document.getElementById('close-menu');
+        const overlayMenu = document.getElementById('overlay-menu');
         const loginUsername = document.getElementById('login-username');
         const loginDisplayname = document.getElementById('login-displayname');
         const loginBtn = document.getElementById('login-btn');
@@ -537,6 +518,21 @@
         const useSavedBtn = document.getElementById('use-saved-btn');
         const logoutSavedBtn = document.getElementById('logout-saved-btn');
         
+        // فتح/إغلاق القائمة
+        function openMenu() {
+            membersSidebar.classList.add('open');
+            overlayMenu.classList.add('active');
+        }
+        
+        function closeMenuFunc() {
+            membersSidebar.classList.remove('open');
+            overlayMenu.classList.remove('active');
+        }
+        
+        menuBtn.onclick = openMenu;
+        closeMenu.onclick = closeMenuFunc;
+        overlayMenu.onclick = closeMenuFunc;
+        
         function saveUser(username, displayName) {
             localStorage.setItem('chat_user', JSON.stringify({ username, displayName }));
         }
@@ -544,8 +540,6 @@
         function logoutUser() {
             localStorage.removeItem('chat_user');
             savedInfo.style.display = 'none';
-            loginUsername.value = '';
-            loginDisplayname.value = '';
         }
         
         function loadSavedUser() {
@@ -553,8 +547,8 @@
             if (saved) {
                 try {
                     const user = JSON.parse(saved);
-                    if (user.username && user.displayName) {
-                        savedText.innerHTML = `👤 مرحباً ${user.displayName} (${user.username})`;
+                    if (user.username && user.displayName && !bannedUsers.includes(user.username)) {
+                        savedText.innerHTML = `👤 ${user.displayName} (@${user.username})`;
                         savedInfo.style.display = 'block';
                         return user;
                     }
@@ -568,15 +562,13 @@
             
             membersList.innerHTML = '';
             if (users.length === 0) {
-                membersList.innerHTML = '<div class="system-message" style="background: none;">لا يوجد أعضاء</div>';
-                membersCountSpan.innerText = '0 متصل';
+                membersList.innerHTML = '<div class="system-message">لا يوجد أعضاء</div>';
                 return;
             }
             
-            membersCountSpan.innerText = users.length + ' متصل';
-            
             users.forEach(user => {
                 const isAdmin = (user.username === ADMIN_USERNAME);
+                const isMuted = mutedUsers.includes(user.username);
                 const isCurrentUser = (currentUser && user.username === currentUser.username);
                 const canModerate = currentUser && currentUser.username === ADMIN_USERNAME && !isCurrentUser;
                 
@@ -585,15 +577,16 @@
                 memberDiv.innerHTML = `
                     <div class="member-info">
                         <div class="member-display">
-                            <span class="member-status"></span>
                             ${escapeHtml(user.displayName)}
-                            ${isAdmin ? '<span class="admin-badge">👑 مشرف</span>' : ''}
+                            ${isAdmin ? '<span class="admin-badge">👑</span>' : ''}
+                            ${isMuted ? '<span class="muted-badge">🔇 مكتوم</span>' : ''}
                         </div>
                         <div class="member-username">@${escapeHtml(user.username)}</div>
                     </div>
                     ${canModerate ? `
                         <div class="member-actions">
                             <button class="admin-btn kick" data-username="${user.username}" data-display="${user.displayName}">طرد</button>
+                            <button class="admin-btn mute" data-username="${user.username}" data-display="${user.displayName}">${isMuted ? 'فك كتم' : 'كتم'}</button>
                             <button class="admin-btn ban" data-username="${user.username}" data-display="${user.displayName}">حظر</button>
                         </div>
                     ` : ''}
@@ -601,10 +594,15 @@
                 membersList.appendChild(memberDiv);
             });
             
-            // إضافة أحداث الأزرار
+            // أزرار الطرد
             document.querySelectorAll('.admin-btn.kick').forEach(btn => {
                 btn.onclick = () => kickUser(btn.dataset.username, btn.dataset.display);
             });
+            // أزرار الكتم
+            document.querySelectorAll('.admin-btn.mute').forEach(btn => {
+                btn.onclick = () => toggleMute(btn.dataset.username, btn.dataset.display);
+            });
+            // أزرار الحظر
             document.querySelectorAll('.admin-btn.ban').forEach(btn => {
                 btn.onclick = () => banUser(btn.dataset.username, btn.dataset.display);
             });
@@ -613,7 +611,20 @@
         function kickUser(username, displayName) {
             if (currentUser && currentUser.username === ADMIN_USERNAME) {
                 socket.emit('kick-user', { username, displayName });
-                addSystemMessage(`⚠️ ${displayName} (@${username}) تم طرده من الدردشة بواسطة المشرف`);
+                addSystemMessage(`⚠️ ${displayName} (@${username}) تم طرده بواسطة المشرف`);
+            }
+        }
+        
+        function toggleMute(username, displayName) {
+            if (currentUser && currentUser.username === ADMIN_USERNAME) {
+                if (mutedUsers.includes(username)) {
+                    mutedUsers = mutedUsers.filter(u => u !== username);
+                    addSystemMessage(`🔊 تم فك الكتم عن ${displayName} (@${username})`);
+                } else {
+                    mutedUsers.push(username);
+                    addSystemMessage(`🔇 ${displayName} (@${username}) تم كتمه بواسطة المشرف`);
+                }
+                socket.emit('mute-user', { username, muted: mutedUsers.includes(username) });
             }
         }
         
@@ -623,13 +634,12 @@
                     bannedUsers.push(username);
                     localStorage.setItem('banned_users', JSON.stringify(bannedUsers));
                     socket.emit('ban-user', { username, displayName });
-                    addSystemMessage(`🚫 ${displayName} (@${username}) تم حظره من الدردشة بواسطة المشرف`);
+                    addSystemMessage(`🚫 ${displayName} (@${username}) تم حظره من الدردشة`);
                 }
             }
         }
         
         function startChat(username, displayName) {
-            // التحقق من الحظر
             if (bannedUsers.includes(username)) {
                 errorMsg.textContent = '⛔ حسابك محظور من الدردشة!';
                 errorMsg.style.display = 'block';
@@ -641,7 +651,6 @@
             socket.emit('set-user', { username, displayName, isAdmin: username === ADMIN_USERNAME });
             welcomeScreen.style.display = 'none';
             chatContainer.style.display = 'flex';
-            membersSidebar.style.display = 'flex';
             addSystemMessage('✨ أهلاً بك ' + displayName + (username === ADMIN_USERNAME ? ' (المشرف)' : ''));
             messageInput.focus();
         }
@@ -655,12 +664,13 @@
         }
         
         function addChatMessage(data) {
+            const isMuted = mutedUsers.includes(data.username);
             const div = document.createElement('div');
             div.className = 'message';
             div.innerHTML = `
                 <div class="display-name">${escapeHtml(data.displayName)}${data.isAdmin ? ' 👑' : ''}</div>
                 <div class="username">@${escapeHtml(data.username)}</div>
-                <div class="message-bubble">${escapeHtml(data.message)}</div>
+                <div class="message-bubble ${isMuted ? 'muted' : ''}">${isMuted ? '[مكتوم] ' : ''}${escapeHtml(data.message)}</div>
                 <div class="time">${data.time}</div>
             `;
             messagesDiv.appendChild(div);
@@ -682,7 +692,7 @@
             const displayName = loginDisplayname.value.trim();
             errorMsg.style.display = 'none';
             
-            if (username === '') {
+            if (!username) {
                 errorMsg.textContent = 'الرجاء إدخال يوزر نيم';
                 errorMsg.style.display = 'block';
                 return;
@@ -692,7 +702,7 @@
                 errorMsg.style.display = 'block';
                 return;
             }
-            if (displayName === '') {
+            if (!displayName) {
                 errorMsg.textContent = 'الرجاء إدخال الاسم الظاهر';
                 errorMsg.style.display = 'block';
                 return;
@@ -711,7 +721,11 @@
         
         sendBtn.onclick = function() {
             const msg = messageInput.value.trim();
-            if (msg !== '' && currentUser) {
+            if (msg && currentUser) {
+                if (mutedUsers.includes(currentUser.username)) {
+                    addSystemMessage('🔇 لا يمكنك إرسال رسالة لأنك مكتوم!');
+                    return;
+                }
                 socket.emit('send-message', { 
                     message: msg,
                     username: currentUser.username,
@@ -735,7 +749,7 @@
             if (e.key === 'Enter') loginBtn.click();
         };
         
-        // استقبال الأحداث من السيرفر
+        // Socket events
         socket.on('receive-message', function(data) {
             addChatMessage(data);
         });
@@ -756,9 +770,7 @@
         socket.on('kicked', function(data) {
             if (currentUser && currentUser.username === data.username) {
                 addSystemMessage(`⚠️ لقد تم طردك من الدردشة بواسطة المشرف`);
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                setTimeout(() => location.reload(), 2000);
             }
         });
         
@@ -767,9 +779,18 @@
                 addSystemMessage(`🚫 لقد تم حظرك من الدردشة`);
                 bannedUsers.push(currentUser.username);
                 localStorage.setItem('banned_users', JSON.stringify(bannedUsers));
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                setTimeout(() => location.reload(), 2000);
+            }
+        });
+        
+        socket.on('mute-update', function(data) {
+            if (data.muted) {
+                if (!mutedUsers.includes(data.username)) mutedUsers.push(data.username);
+            } else {
+                mutedUsers = mutedUsers.filter(u => u !== data.username);
+            }
+            if (currentUser && currentUser.username === data.username && data.muted) {
+                addSystemMessage(`🔇 لقد تم كتمك من قبل المشرف`);
             }
         });
         
