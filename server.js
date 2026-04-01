@@ -9,7 +9,6 @@ const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// قاعدة بيانات بسيطة
 const users = {};
 let posts = [];
 
@@ -18,13 +17,12 @@ posts.push({
     id: 1,
     username: '3tx',
     displayName: 'أبو علي',
-    text: 'مرحباً بالجميع في بغداد لايف! 🎉',
+    text: 'مرحباً بالجميع في بغداد لايف! 🎉 منصة التواصل العراقية',
     time: new Date().toISOString(),
     likes: 5
 });
 
 io.on('connection', (socket) => {
-    console.log('✅ مستخدم جديد:', socket.id);
     let currentUser = null;
 
     socket.on('login', (data) => {
@@ -38,9 +36,8 @@ io.on('connection', (socket) => {
                 requests: [],
                 socketId: socket.id
             };
-            console.log(`📝 مستخدم جديد: ${username}`);
         } else if (users[username].password !== password) {
-            socket.emit('login-error', 'كلمة السر خطأ');
+            socket.emit('login-error', 'كلمة السر غير صحيحة');
             return;
         } else {
             users[username].socketId = socket.id;
@@ -61,49 +58,45 @@ io.on('connection', (socket) => {
         });
     });
     
-    // إرسال طلب صداقة
-    socket.on('add-friend', (toUsername) => {
+    // طلب صداقة
+    socket.on('send-request', (to) => {
         if (!currentUser) return;
-        const target = users[toUsername];
-        if (!target || users[currentUser].friends.includes(toUsername)) return;
-        
+        const target = users[to];
+        if (!target || users[currentUser].friends.includes(to)) return;
         if (!target.requests.includes(currentUser)) {
             target.requests.push(currentUser);
             io.to(target.socketId).emit('new-request', {
                 from: currentUser,
                 fromName: users[currentUser].displayName
             });
-            socket.emit('request-sent');
         }
     });
     
-    // قبول طلب صداقة
-    socket.on('accept-friend', (fromUsername) => {
+    // قبول طلب
+    socket.on('accept-request', (from) => {
         if (!currentUser) return;
         const current = users[currentUser];
-        const from = users[fromUsername];
-        
-        current.requests = current.requests.filter(u => u !== fromUsername);
-        if (!current.friends.includes(fromUsername)) current.friends.push(fromUsername);
-        if (!from.friends.includes(currentUser)) from.friends.push(currentUser);
-        
-        io.to(current.socketId).emit('friend-accepted', { from: fromUsername, fromName: from.displayName });
-        io.to(from.socketId).emit('friend-accepted', { from: currentUser, fromName: current.displayName });
+        const fromUser = users[from];
+        current.requests = current.requests.filter(u => u !== from);
+        if (!current.friends.includes(from)) current.friends.push(from);
+        if (!fromUser.friends.includes(currentUser)) fromUser.friends.push(currentUser);
+        io.to(current.socketId).emit('request-accepted', { from, fromName: fromUser.displayName });
+        io.to(fromUser.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    // رفض طلب صداقة
-    socket.on('reject-friend', (fromUsername) => {
+    // رفض طلب
+    socket.on('reject-request', (from) => {
         if (!currentUser) return;
-        users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
+        users[currentUser].requests = users[currentUser].requests.filter(u => u !== from);
     });
     
-    // إرسال رسالة
-    socket.on('send-message', (data) => {
+    // رسالة خاصة
+    socket.on('private-message', (data) => {
         if (!currentUser) return;
         const { to, message } = data;
         const target = users[to];
         if (target && users[currentUser].friends.includes(to)) {
-            io.to(target.socketId).emit('new-message', {
+            io.to(target.socketId).emit('new-private-message', {
                 from: currentUser,
                 fromName: users[currentUser].displayName,
                 message: message,
@@ -126,27 +119,21 @@ io.on('connection', (socket) => {
         io.emit('post-added', posts[0]);
     });
     
-    socket.on('like-post', (postId) => {
-        const post = posts.find(p => p.id == postId);
+    socket.on('like-post', (id) => {
+        let post = posts.find(p => p.id == id);
         if (post) { post.likes++; io.emit('post-updated', post); }
     });
     
-    socket.on('delete-post', (postId) => {
-        const index = posts.findIndex(p => p.id == postId);
+    socket.on('delete-post', (id) => {
+        let index = posts.findIndex(p => p.id == id);
         if (index !== -1 && posts[index].username === currentUser) {
             posts.splice(index, 1);
-            io.emit('post-deleted', postId);
+            io.emit('post-deleted', id);
         }
     });
     
-    socket.on('disconnect', () => {
-        if (currentUser && users[currentUser]) {
-            console.log(`👋 ${currentUser} غادر`);
-        }
-    });
+    socket.on('disconnect', () => {});
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 السيرفر شغال على http://localhost:${PORT}`);
-});
+server.listen(PORT, () => console.log(`✅ سيرفر بغداد لايف شغال`));
