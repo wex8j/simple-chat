@@ -17,9 +17,10 @@ posts.push({
     id: 1,
     username: '3tx',
     displayName: 'أبو علي',
-    text: 'مرحباً بالجميع في بغداد لايف! 🎉 منصة التواصل العراقية',
+    text: 'إتسمي فأنتي وصية الرسول ❤️ وهذا يكفي... ✨',
     time: new Date().toISOString(),
-    likes: 5
+    likes: 139,
+    comments: 25
 });
 
 io.on('connection', (socket) => {
@@ -114,7 +115,8 @@ io.on('connection', (socket) => {
             displayName: users[currentUser].displayName,
             text: data.text,
             time: new Date().toISOString(),
-            likes: 0
+            likes: 0,
+            comments: 0
         });
         io.emit('post-added', posts[0]);
     });
@@ -136,4 +138,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`✅ سيرفر بغداد لايف شغال`));
+server.listen(PORT, () => console.log(`✅ بغداد لايف شغال`));
