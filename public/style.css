@@ -7,7 +7,7 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #1a1a2e;
-    color: white;
+    color: #ffffff; /* النص الرئيسي أبيض */
 }
 
 .app {
@@ -27,7 +27,8 @@ body {
     height: 100vh;
 }
 
-.logo {
+.logo h2 {
+    color: white;
     padding: 20px;
     text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -44,7 +45,7 @@ body {
     padding: 12px;
     background: none;
     border: none;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.8); /* لون فاتح */
     text-align: right;
     font-size: 16px;
     cursor: pointer;
@@ -63,12 +64,13 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    color: white;
 }
 
 .user-avatar {
     width: 40px;
     height: 40px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -82,11 +84,12 @@ body {
 
 .user-name {
     font-weight: 600;
+    color: white;
 }
 
 .user-username {
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
 }
 
 .logout-btn {
@@ -94,6 +97,7 @@ body {
     border: none;
     font-size: 20px;
     cursor: pointer;
+    color: #ff6b6b;
 }
 
 /* المحتوى الرئيسي */
@@ -104,10 +108,10 @@ body {
     padding: 20px;
 }
 
-/* قائمة المستخدمين */
+/* قائمة المستخدمين الجانبية */
 .users-sidebar {
     width: 260px;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     backdrop-filter: blur(10px);
     border-right: 1px solid rgba(255,255,255,0.1);
     position: fixed;
@@ -118,23 +122,29 @@ body {
 }
 
 .users-sidebar h3 {
+    color: white;
     margin-bottom: 16px;
     font-size: 16px;
 }
 
 .user-card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     padding: 12px;
     border-radius: 12px;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: white;
+}
+
+.user-card strong {
+    color: white;
 }
 
 .user-card .username {
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
 }
 
 .request-btn, .accept-btn, .reject-btn {
@@ -145,6 +155,7 @@ body {
     color: white;
     cursor: pointer;
     font-size: 11px;
+    font-weight: bold;
 }
 
 .accept-btn { background: #4caf50; }
@@ -152,7 +163,7 @@ body {
 
 /* المنشورات */
 .create-post {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 20px;
@@ -169,6 +180,10 @@ body {
     font-family: inherit;
 }
 
+.create-post textarea::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
 .post-btn {
     margin-top: 12px;
     background: linear-gradient(135deg, #CE1126, #007A3D);
@@ -177,13 +192,15 @@ body {
     border-radius: 30px;
     color: white;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .post-card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 16px;
+    color: white;
 }
 
 .post-header {
@@ -193,19 +210,24 @@ body {
     font-size: 14px;
 }
 
+.post-header strong {
+    color: white;
+}
+
 .post-header .username {
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     font-size: 11px;
 }
 
 .post-time {
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.5);
     font-size: 11px;
 }
 
 .post-text {
     margin-bottom: 12px;
     line-height: 1.5;
+    color: white;
 }
 
 .post-actions {
@@ -218,13 +240,17 @@ body {
 .like-btn, .delete-btn {
     background: none;
     border: none;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.7);
     cursor: pointer;
+    font-size: 14px;
 }
+
+.like-btn:hover { color: #ff6b6b; }
+.delete-btn:hover { color: #ff6b6b; }
 
 /* الدردشة */
 .chat-container {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     border-radius: 20px;
     height: calc(100vh - 40px);
     display: flex;
@@ -239,16 +265,21 @@ body {
 }
 
 .conversation-item {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     padding: 12px;
     border-radius: 12px;
     margin-bottom: 8px;
     cursor: pointer;
+    color: white;
+}
+
+.conversation-item strong {
+    color: white;
 }
 
 .last-msg {
     font-size: 12px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     margin-top: 4px;
 }
 
@@ -260,10 +291,11 @@ body {
 
 .chat-header {
     padding: 12px;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
     display: flex;
     align-items: center;
     gap: 12px;
+    color: white;
 }
 
 .back-btn, .block-btn {
@@ -271,6 +303,7 @@ body {
     border: none;
     color: white;
     cursor: pointer;
+    font-size: 18px;
 }
 
 .block-btn {
@@ -300,9 +333,10 @@ body {
 }
 
 .bubble {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
     padding: 10px 14px;
     border-radius: 18px;
+    color: white;
 }
 
 .message.own .bubble {
@@ -317,14 +351,14 @@ body {
 
 .system-message {
     text-align: center;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     font-size: 12px;
     margin: 8px 0;
 }
 
 .chat-input-area {
     padding: 12px;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
     display: flex;
     gap: 10px;
 }
@@ -338,6 +372,10 @@ body {
     color: white;
 }
 
+.chat-input-area input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
 .chat-input-area button {
     background: linear-gradient(135deg, #CE1126, #007A3D);
     border: none;
@@ -345,19 +383,29 @@ body {
     border-radius: 30px;
     color: white;
     cursor: pointer;
+    font-weight: bold;
 }
 
 /* الملف الشخصي */
 .profile-card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     border-radius: 20px;
     padding: 24px;
     text-align: center;
+    color: white;
 }
 
 .profile-avatar {
     font-size: 60px;
     margin-bottom: 12px;
+}
+
+.profile-card h2 {
+    color: white;
+}
+
+.profile-card p {
+    color: rgba(255,255,255,0.7);
 }
 
 .profile-section {
@@ -370,16 +418,18 @@ body {
 .profile-section h3 {
     margin-bottom: 12px;
     font-size: 16px;
+    color: white;
 }
 
 .blocked-item {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.08);
     padding: 10px;
     border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    color: white;
 }
 
 .unblock-btn {
@@ -406,11 +456,21 @@ body {
 }
 
 .login-card {
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.8);
     border-radius: 40px;
     padding: 40px;
     text-align: center;
     width: 320px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login-card h2 {
+    color: white;
+}
+
+.login-card p {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 20px;
 }
 
 .login-card input {
@@ -422,6 +482,10 @@ body {
     border-radius: 30px;
     color: white;
     text-align: center;
+}
+
+.login-card input::placeholder {
+    color: rgba(255,255,255,0.5);
 }
 
 .login-card button {
@@ -447,9 +511,9 @@ body {
     font-size: 12px;
 }
 
-.empty-state {
+.empty-state, .loading {
     text-align: center;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     padding: 40px;
 }
 
