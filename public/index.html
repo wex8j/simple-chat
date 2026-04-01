@@ -2,935 +2,234 @@
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>بغداد لايف | منصة التواصل العراقية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بغداد لايف | تواصل اجتماعي</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
             color: #fff;
-        }
-
-        /* شاشة تسجيل الدخول الاحترافية */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border-radius: 40px;
-            padding: 40px 35px;
-            text-align: center;
-            width: 380px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .login-card .flag-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-            animation: wave 2s ease infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(5deg); }
-            75% { transform: rotate(-5deg); }
-        }
-
-        .login-card h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .login-card p {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .login-card input {
-            width: 100%;
-            padding: 14px 18px;
-            margin: 12px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            color: white;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-
-        .login-card input:focus {
-            outline: none;
-            border-color: #CE1126;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .login-card input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .login-card button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
-
-        .login-card button:hover {
-            transform: scale(1.02);
-        }
-
-        .error-msg {
-            color: #ff6b6b;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        /* التطبيق الرئيسي */
-        .app {
-            display: flex;
             min-height: 100vh;
         }
-
-        /* الشريط الجانبي الأيمن */
+        .login-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
+            border-radius: 40px; padding: 40px; text-align: center; width: 350px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .login-card .flag { font-size: 60px; margin-bottom: 15px; }
+        .login-card h1 { font-size: 28px; margin-bottom: 8px; background: linear-gradient(135deg, #CE1126, #007A3D); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-card p { color: rgba(255,255,255,0.6); margin-bottom: 30px; }
+        .login-card input {
+            width: 100%; padding: 14px; margin: 10px 0; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; color: white;
+        }
+        .login-card button {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer;
+        }
+        .error-msg { color: #ff6b6b; margin-top: 15px; }
+        .app { display: flex; min-height: 100vh; }
         .sidebar {
-            width: 280px;
-            background: rgba(15, 15, 26, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 25px 20px;
-            position: fixed;
-            right: 0;
-            height: 100vh;
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            flex-direction: column;
+            width: 260px; background: rgba(15,15,26,0.95); padding: 20px; position: fixed; right: 0;
+            height: 100vh; border-left: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
         }
-
-        .logo h2 {
-            font-size: 22px;
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 25px;
-        }
-
+        .logo { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .nav-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.2s;
+            display: block; width: 100%; padding: 12px; margin-bottom: 8px; background: none; border: none;
+            color: white; text-align: right; font-size: 16px; cursor: pointer; border-radius: 12px;
         }
-
-        .nav-btn:hover, .nav-btn.active {
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            color: white;
-        }
-
+        .nav-btn.active, .nav-btn:hover { background: linear-gradient(135deg, #CE1126, #007A3D); }
         .user-info {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px;
         }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .user-details {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .user-username {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .logout-btn {
-            background: rgba(255, 100, 100, 0.2);
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 100, 100, 0.4);
-        }
-
-        /* المحتوى الرئيسي */
-        .main-content {
-            flex: 1;
-            margin-right: 280px;
-            margin-left: 280px;
-            padding: 25px;
-        }
-
-        /* قائمة المستخدمين اليسرى */
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #CE1126, #007A3D); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .user-details { flex: 1; }
+        .user-name { font-weight: bold; }
+        .user-username { font-size: 11px; color: #888; }
+        .logout-btn { background: rgba(255,100,100,0.2); border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; width: 36px; height: 36px; }
+        .main-content { flex: 1; margin-right: 260px; margin-left: 260px; padding: 25px; }
         .users-sidebar {
-            width: 280px;
-            background: rgba(15, 15, 26, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            position: fixed;
-            left: 0;
-            height: 100vh;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            overflow-y: auto;
+            width: 260px; background: rgba(15,15,26,0.95); padding: 20px; position: fixed; left: 0;
+            height: 100vh; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto;
         }
-
-        .users-sidebar h3 {
-            font-size: 16px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
+        .users-sidebar h3 { margin-bottom: 20px; font-size: 16px; }
         .user-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
+            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 16px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .user-card:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .user-info-card h4 {
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .user-info-card small {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .friend-badge {
-            font-size: 10px;
-            background: #4caf50;
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-left: 8px;
-        }
-
-        .pending-badge {
-            font-size: 10px;
-            background: #ff9800;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-
+        .friend-badge { font-size: 10px; background: #4caf50; padding: 2px 8px; border-radius: 20px; }
+        .pending-badge { font-size: 10px; background: #ff9800; padding: 2px 8px; border-radius: 20px; }
         .action-btn {
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 25px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: transform 0.1s;
+            background: linear-gradient(135deg, #CE1126, #007A3D); border: none; padding: 6px 12px;
+            border-radius: 25px; color: white; cursor: pointer; font-size: 12px;
         }
-
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .accept-btn {
-            background: #4caf50;
-        }
-
-        .reject-btn {
-            background: #f44336;
-        }
-
-        .chat-btn {
-            background: #2196f3;
-        }
-
-        /* المنشورات */
+        .accept-btn { background: #4caf50; }
+        .reject-btn { background: #f44336; }
+        .chat-btn { background: #2196f3; }
         .create-post {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 25px;
+            background: rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 25px;
         }
-
         .create-post textarea {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 20px;
-            padding: 14px;
-            color: white;
-            font-size: 14px;
-            resize: none;
-            font-family: inherit;
+            width: 100%; background: rgba(255,255,255,0.1); border: none; border-radius: 20px;
+            padding: 14px; color: white; resize: none; font-family: inherit;
         }
-
-        .create-post textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
         .post-btn {
-            margin-top: 12px;
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            border: none;
-            padding: 10px 28px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
+            margin-top: 12px; background: linear-gradient(135deg, #CE1126, #007A3D);
+            border: none; padding: 10px 28px; border-radius: 30px; color: white; cursor: pointer;
         }
-
         .post-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 18px;
-            transition: all 0.2s;
+            background: rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; margin-bottom: 18px;
         }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .post-author {
-            font-weight: bold;
-        }
-
-        .post-author small {
-            font-weight: normal;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 11px;
-        }
-
-        .post-time {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        .post-text {
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .post-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .like-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .like-btn:hover {
-            color: #ff6b6b;
-        }
-
-        /* الدردشة */
+        .post-header { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .post-author { font-weight: bold; }
+        .post-author small { font-weight: normal; color: rgba(255,255,255,0.5); font-size: 11px; }
+        .post-time { font-size: 11px; color: rgba(255,255,255,0.4); }
+        .like-btn { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; margin-left: 10px; }
         .chat-area {
-            display: none;
-            flex-direction: column;
-            height: calc(100vh - 120px);
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            overflow: hidden;
+            display: none; flex-direction: column; height: calc(100vh - 120px);
+            background: rgba(255,255,255,0.08); border-radius: 24px; overflow: hidden;
         }
-
-        .chat-header {
-            padding: 18px;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            max-width: 75%;
-        }
-
-        .message.own {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
-
-        .bubble {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-
-        .message.own .bubble {
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            gap: 12px;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            padding: 12px 18px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 30px;
-            color: white;
-        }
-
-        .chat-input-area button {
-            background: linear-gradient(135deg, #CE1126, #007A3D);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .conversations-list {
-            padding: 15px;
-        }
-
-        .conversation-item {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 14px;
-            border-radius: 16px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .conversation-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .system-message {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            margin: 10px 0;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            padding: 40px;
-        }
-
-        @media (max-width: 900px) {
-            .sidebar, .users-sidebar {
-                display: none;
-            }
-            .main-content {
-                margin: 0;
-            }
-        }
+        .chat-header { padding: 15px; background: rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; }
+        .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .message { display: flex; flex-direction: column; align-items: flex-start; max-width: 75%; }
+        .message.own { align-self: flex-end; align-items: flex-end; }
+        .bubble { background: rgba(255,255,255,0.15); padding: 10px 16px; border-radius: 20px; }
+        .message.own .bubble { background: linear-gradient(135deg, #CE1126, #007A3D); }
+        .chat-input-area { padding: 15px; background: rgba(0,0,0,0.3); display: flex; gap: 12px; }
+        .chat-input-area input { flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: none; border-radius: 30px; color: white; }
+        .chat-input-area button { background: linear-gradient(135deg, #CE1126, #007A3D); border: none; padding: 12px 24px; border-radius: 30px; color: white; cursor: pointer; }
+        .conversations-list { padding: 15px; }
+        .conversation-item { background: rgba(255,255,255,0.08); padding: 14px; border-radius: 16px; margin-bottom: 10px; cursor: pointer; }
+        .system-message { text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; margin: 10px 0; }
+        .empty-state { text-align: center; color: rgba(255,255,255,0.5); padding: 40px; }
+        @media (max-width: 800px) { .sidebar, .users-sidebar { display: none; } .main-content { margin: 0; } }
     </style>
 </head>
 <body>
-
 <div class="login-overlay" id="login-overlay">
     <div class="login-card">
-        <div class="flag-icon">🇮🇶</div>
+        <div class="flag">🇮🇶</div>
         <h1>بغداد لايف</h1>
-        <p>منصة التواصل العراقية الأولى</p>
-        <input type="text" id="login-username" placeholder="اسم المستخدم" maxlength="20">
-        <input type="password" id="login-password" placeholder="كلمة المرور" maxlength="20">
-        <input type="text" id="login-displayname" placeholder="الاسم الظاهر (للتسجيل الجديد)" maxlength="20">
-        <button id="login-btn">دخول / تسجيل جديد</button>
+        <p>منصة التواصل العراقية</p>
+        <input type="text" id="login-username" placeholder="اسم المستخدم">
+        <input type="password" id="login-password" placeholder="كلمة المرور">
+        <input type="text" id="login-displayname" placeholder="الاسم الظاهر (للتسجيل الجديد)">
+        <button id="login-btn">دخول / تسجيل</button>
         <div class="error-msg" id="error-msg"></div>
     </div>
 </div>
-
 <div class="app" id="app" style="display: none;">
     <div class="sidebar">
-        <div class="logo">
-            <h2>🇮🇶 بغداد لايف</h2>
-        </div>
+        <div class="logo"><h2>🇮🇶 بغداد لايف</h2></div>
         <button class="nav-btn active" data-page="home">🏠 الرئيسية</button>
         <button class="nav-btn" data-page="chat">💬 المحادثات</button>
         <div class="user-info">
             <div class="user-avatar">👤</div>
-            <div class="user-details">
-                <div class="user-name" id="user-name">...</div>
-                <div class="user-username" id="user-username">@...</div>
-            </div>
+            <div class="user-details"><div class="user-name" id="user-name">...</div><div class="user-username" id="user-username">@...</div></div>
             <button class="logout-btn" id="logout-btn">🚪</button>
         </div>
     </div>
-
     <div class="main-content">
-        <div id="home-page">
-            <div class="create-post">
-                <textarea id="post-text" placeholder="شارك ما يجول في خاطرك..." rows="3"></textarea>
-                <button class="post-btn" id="post-btn">نشر منشور</button>
-            </div>
-            <div id="posts-feed"></div>
-        </div>
-        <div id="chat-page" style="display: none;">
-            <div id="conversations-list"></div>
-            <div class="chat-area" id="chat-area">
-                <div class="chat-header">
-                    <button class="back-btn" id="back-btn">←</button>
-                    <span id="chat-partner-name"></span>
-                </div>
-                <div class="chat-messages" id="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالة...">
-                    <button id="send-chat-btn">إرسال</button>
-                </div>
-            </div>
-        </div>
+        <div id="home-page"><div class="create-post"><textarea id="post-text" placeholder="شارك ما يجول في خاطرك..." rows="3"></textarea><button class="post-btn" id="post-btn">نشر</button></div><div id="posts-feed"></div></div>
+        <div id="chat-page" style="display: none;"><div id="conversations-list"></div><div class="chat-area" id="chat-area"><div class="chat-header"><button class="back-btn" id="back-btn">←</button><span id="chat-partner-name"></span></div><div class="chat-messages" id="chat-messages"></div><div class="chat-input-area"><input type="text" id="chat-input" placeholder="اكتب رسالة..."><button id="send-chat-btn">إرسال</button></div></div></div>
     </div>
-
-    <div class="users-sidebar">
-        <h3>👥 المستخدمون</h3>
-        <div id="users-list"></div>
-    </div>
+    <div class="users-sidebar"><h3>👥 المستخدمون</h3><div id="users-list"></div></div>
 </div>
-
+<script src="/socket.io/socket.io.js"></script>
 <script>
-    let currentUser = null;
-    let currentChatWith = null;
-    let allUsers = JSON.parse(localStorage.getItem('allUsers_baghdad') || '{}');
-    let posts = JSON.parse(localStorage.getItem('allPosts_baghdad') || '[]');
-    let conversations = JSON.parse(localStorage.getItem('conversations_baghdad') || '{}');
+let socket, currentUser, currentChatWith;
+let conversations = JSON.parse(localStorage.getItem('conversations') || '{}');
 
-    const channel = new BroadcastChannel('baghdad_live');
-    channel.onmessage = (event) => {
-        if (event.data.type === 'update' && currentUser) {
-            allUsers = JSON.parse(localStorage.getItem('allUsers_baghdad') || '{}');
-            posts = JSON.parse(localStorage.getItem('allPosts_baghdad') || '[]');
-            conversations = JSON.parse(localStorage.getItem('conversations_baghdad') || '{}');
-            updateUsersList();
-            loadPosts();
-            if (document.getElementById('chat-page').style.display !== 'none') loadConversationsList();
-        }
-    };
-
-    function broadcastUpdate() {
-        channel.postMessage({ type: 'update' });
-    }
-
-    if (posts.length === 0) {
-        posts.push({
-            id: Date.now(),
-            username: '3tx',
-            displayName: 'أبو علي',
-            text: 'مرحباً بالجميع في بغداد لايف! 🎉 منصة التواصل العراقية الأولى',
-            time: new Date().toISOString(),
-            likes: 5
-        });
-        localStorage.setItem('allPosts_baghdad', JSON.stringify(posts));
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function saveAllData() {
-        localStorage.setItem('allUsers_baghdad', JSON.stringify(allUsers));
-        localStorage.setItem('allPosts_baghdad', JSON.stringify(posts));
-        localStorage.setItem('conversations_baghdad', JSON.stringify(conversations));
-        broadcastUpdate();
-    }
-
-    function loginUser(username, password, displayName) {
-        if (!allUsers[username]) {
-            allUsers[username] = {
-                password: password,
-                displayName: displayName || username,
-                friends: [],
-                pendingRequests: []
-            };
-            saveAllData();
-            return allUsers[username];
-        } else if (allUsers[username].password === password) {
-            return allUsers[username];
-        }
-        return null;
-    }
-
-    function updateUsersList() {
-        const container = document.getElementById('users-list');
-        if (!container || !currentUser) return;
-        container.innerHTML = '';
-
-        Object.keys(allUsers).forEach(username => {
-            if (username === currentUser.username) return;
-            const user = allUsers[username];
-            const isFriend = currentUser.friends.includes(username);
-            const hasPending = currentUser.pendingRequests.includes(username);
-
-            const div = document.createElement('div');
-            div.className = 'user-card';
-            div.innerHTML = `
-                <div class="user-info-card">
-                    <h4>${escapeHtml(user.displayName)} ${isFriend ? '<span class="friend-badge">صديق</span>' : ''} ${hasPending ? '<span class="pending-badge">طلب وارد</span>' : ''}</h4>
-                    <small>@${escapeHtml(username)}</small>
-                </div>
-                <div>
-                    ${!isFriend && !hasPending ? `<button class="action-btn request-btn" data-user="${username}">➕ طلب</button>` : ''}
-                    ${hasPending ? `<button class="action-btn accept-btn" data-user="${username}">✅ قبول</button> <button class="action-btn reject-btn" data-user="${username}">❌ رفض</button>` : ''}
-                    ${isFriend ? `<button class="action-btn chat-btn" data-user="${username}">💬 دردشة</button>` : ''}
-                </div>
-            `;
-
-            div.querySelectorAll('button').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const user = btn.dataset.user;
-                    if (btn.classList.contains('request-btn')) sendFriendRequest(user);
-                    else if (btn.classList.contains('accept-btn')) acceptFriendRequest(user);
-                    else if (btn.classList.contains('reject-btn')) rejectFriendRequest(user);
-                    else if (btn.classList.contains('chat-btn')) openChat(user);
-                };
-            });
-            container.appendChild(div);
-        });
-    }
-
-    function sendFriendRequest(toUser) {
-        const target = allUsers[toUser];
-        if (target && !target.pendingRequests.includes(currentUser.username)) {
-            target.pendingRequests.push(currentUser.username);
-            saveAllData();
-            addSystemMessage(`✅ تم إرسال طلب صداقة إلى ${toUser}`, 'chat-messages');
-            updateUsersList();
-        }
-    }
-
-    function acceptFriendRequest(fromUser) {
-        currentUser.pendingRequests = currentUser.pendingRequests.filter(u => u !== fromUser);
-        if (!currentUser.friends.includes(fromUser)) currentUser.friends.push(fromUser);
-
-        const from = allUsers[fromUser];
-        if (from && !from.friends.includes(currentUser.username)) from.friends.push(currentUser.username);
-
-        saveAllData();
-        updateUsersList();
-        addSystemMessage(`🎉 أصبحت صديقًا مع ${fromUser}`, 'chat-messages');
-        loadConversationsList();
-    }
-
-    function rejectFriendRequest(fromUser) {
-        currentUser.pendingRequests = currentUser.pendingRequests.filter(u => u !== fromUser);
-        saveAllData();
-        updateUsersList();
-    }
-
-    function addSystemMessage(text, containerId = 'chat-messages') {
-        const container = document.getElementById(containerId);
-        if (container) {
-            const div = document.createElement('div');
-            div.className = 'system-message';
-            div.textContent = text;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-    }
-
-    function addMessageToChat(message, isOwn, time) {
-        const container = document.getElementById('chat-messages');
-        if (!container) return;
-        const div = document.createElement('div');
-        div.className = 'message ' + (isOwn ? 'own' : '');
-        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div><div style="font-size:10px;color:#888;margin-top:4px;">${time || ''}</div>`;
+function escapeHtml(t){let d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function addSystemMessage(t){let c=document.getElementById('chat-messages');if(c){let d=document.createElement('div');d.className='system-message';d.textContent=t;c.appendChild(d);c.scrollTop=c.scrollHeight;}}
+function addMessageToChat(m,isOwn,t){let c=document.getElementById('chat-messages');if(!c)return;let d=document.createElement('div');d.className='message '+(isOwn?'own':'');d.innerHTML=`<div class="bubble">${escapeHtml(m)}</div><div style="font-size:10px;color:#888;margin-top:4px;">${t||''}</div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function updateUsersList(users){
+    let container=document.getElementById('users-list');if(!container||!currentUser)return;container.innerHTML='';
+    users.forEach(user=>{
+        if(user.username===currentUser.username)return;
+        let isFriend=currentUser.friends.includes(user.username);
+        let hasPending=currentUser.pendingRequests.includes(user.username);
+        let div=document.createElement('div');div.className='user-card';
+        div.innerHTML=`<div><strong>${escapeHtml(user.displayName)}</strong><br><small>@${escapeHtml(user.username)}</small>${isFriend?' <span class="friend-badge">صديق</span>':''}${hasPending?' <span class="pending-badge">طلب وارد</span>':''}</div><div>${!isFriend&&!hasPending?`<button class="action-btn request-btn" data-user="${user.username}">➕ طلب</button>`:''}${hasPending?`<button class="action-btn accept-btn" data-user="${user.username}">✅ قبول</button> <button class="action-btn reject-btn" data-user="${user.username}">❌ رفض</button>`:''}${isFriend?`<button class="action-btn chat-btn" data-user="${user.username}">💬 دردشة</button>`:''}</div>`;
+        div.querySelectorAll('button').forEach(btn=>{btn.onclick=(e)=>{e.stopPropagation();let u=btn.dataset.user;if(btn.classList.contains('request-btn'))socket.emit('send-friend-request',u);else if(btn.classList.contains('accept-btn'))socket.emit('accept-friend-request',u);else if(btn.classList.contains('reject-btn'))socket.emit('reject-friend-request',u);else if(btn.classList.contains('chat-btn'))openChat(u);};});
         container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function openChat(username) {
-        if (!currentUser.friends.includes(username)) {
-            addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة', 'chat-messages');
-            return;
-        }
-        currentChatWith = username;
-        document.getElementById('conversations-list').style.display = 'none';
-        document.getElementById('chat-area').style.display = 'flex';
-        document.getElementById('chat-partner-name').textContent = username;
-        document.getElementById('chat-messages').innerHTML = '';
-
-        const roomId = [currentUser.username, username].sort().join('-');
-        const msgs = conversations[roomId] || [];
-        msgs.forEach(msg => {
-            addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
-        });
-    }
-
-    function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        const msg = input.value.trim();
-        if (!msg || !currentChatWith) return;
-
-        const roomId = [currentUser.username, currentChatWith].sort().join('-');
-        if (!conversations[roomId]) conversations[roomId] = [];
-        conversations[roomId].push({
-            from: currentUser.username,
-            message: msg,
-            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-        });
-        saveAllData();
-        addMessageToChat(msg, true, new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
-        input.value = '';
-    }
-
-    function loadConversationsList() {
-        const container = document.getElementById('conversations-list');
-        const roomIds = Object.keys(conversations);
-        if (roomIds.length === 0) {
-            container.innerHTML = '<div class="empty-state">لا توجد محادثات بعد</div>';
-            return;
-        }
-        container.innerHTML = '';
-        roomIds.forEach(roomId => {
-            const otherUser = roomId.split('-').find(u => u !== currentUser.username);
-            const lastMsg = conversations[roomId][conversations[roomId].length - 1];
-            const div = document.createElement('div');
-            div.className = 'conversation-item';
-            div.innerHTML = `<div><strong>${escapeHtml(otherUser)}</strong></div><div style="font-size:12px;color:#888;">${lastMsg ? lastMsg.message.substring(0, 35) : 'ابدأ المحادثة'}</div>`;
-            div.onclick = () => openChat(otherUser);
-            container.appendChild(div);
-        });
-    }
-
-    function addPostToFeed(post) {
-        const container = document.getElementById('posts-feed');
-        const isOwn = post.username === currentUser?.username;
-        const div = document.createElement('div');
-        div.className = 'post-card';
-        div.dataset.id = post.id;
-        div.innerHTML = `
-            <div class="post-header">
-                <div class="post-author">
-                    ${escapeHtml(post.displayName)} <small>@${escapeHtml(post.username)}</small>
-                </div>
-                <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
-            </div>
-            <div class="post-text">${escapeHtml(post.text)}</div>
-            <div class="post-actions">
-                <button class="like-btn">❤️ ${post.likes || 0}</button>
-                ${isOwn ? '<button class="delete-btn" style="background:none;border:none;color:#ff6b6b;cursor:pointer;">🗑️ حذف</button>' : ''}
-            </div>
-        `;
-        div.querySelector('.like-btn').onclick = () => {
-            post.likes++;
-            saveAllData();
-            loadPosts();
-        };
-        if (isOwn) {
-            div.querySelector('.delete-btn').onclick = () => {
-                posts = posts.filter(p => p.id !== post.id);
-                saveAllData();
-                loadPosts();
-            };
-        }
-        if (container.firstChild) container.insertBefore(div, container.firstChild);
-        else container.appendChild(div);
-    }
-
-    function loadPosts() {
-        const container = document.getElementById('posts-feed');
-        container.innerHTML = '';
-        [...posts].reverse().forEach(post => addPostToFeed(post));
-    }
-
-    function switchPage(page) {
-        document.getElementById('home-page').style.display = page === 'home' ? 'block' : 'none';
-        document.getElementById('chat-page').style.display = page === 'chat' ? 'block' : 'none';
-        if (page === 'chat') loadConversationsList();
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
-    }
-
-    function startApp(username, userData) {
-        currentUser = {
-            username: username,
-            displayName: userData.displayName,
-            friends: userData.friends || [],
-            pendingRequests: userData.pendingRequests || []
-        };
-
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        document.getElementById('user-name').textContent = userData.displayName;
-        document.getElementById('user-username').textContent = `@${username}`;
-
-        updateUsersList();
-        loadPosts();
-        switchPage('home');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('login-btn').onclick = () => {
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value.trim();
-            const displayName = document.getElementById('login-displayname').value.trim();
-            const errorDiv = document.getElementById('error-msg');
-
-            if (!username || !password) {
-                errorDiv.textContent = 'املأ جميع الحقول';
-                return;
-            }
-
-            const userData = loginUser(username, password, displayName);
-            if (userData) {
-                startApp(username, userData);
-            } else {
-                errorDiv.textContent = 'اسم المستخدم أو كلمة السر غير صحيحة';
-            }
-        };
-
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.removeItem('conversations_baghdad');
-            location.reload();
-        };
-
-        document.getElementById('post-btn').onclick = () => {
-            const text = document.getElementById('post-text').value.trim();
-            if (text && currentUser) {
-                posts.unshift({
-                    id: Date.now(),
-                    username: currentUser.username,
-                    displayName: currentUser.displayName,
-                    text: text,
-                    time: new Date().toISOString(),
-                    likes: 0
-                });
-                saveAllData();
-                loadPosts();
-                document.getElementById('post-text').value = '';
-            }
-        };
-
-        document.getElementById('back-btn').onclick = () => {
-            document.getElementById('chat-area').style.display = 'none';
-            document.getElementById('conversations-list').style.display = 'block';
-            currentChatWith = null;
-        };
-
-        document.getElementById('send-chat-btn').onclick = sendChatMessage;
-        document.getElementById('chat-input').onkeypress = (e) => {
-            if (e.key === 'Enter') sendChatMessage();
-        };
-
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.onclick = () => switchPage(btn.dataset.page);
-        });
     });
+}
+function openChat(username){
+    if(!currentUser.friends.includes(username)){addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة');return;}
+    currentChatWith=username;document.getElementById('conversations-list').style.display='none';document.getElementById('chat-area').style.display='flex';document.getElementById('chat-partner-name').textContent=username;document.getElementById('chat-messages').innerHTML='';
+    let roomId=[currentUser.username,username].sort().join('-');let msgs=conversations[roomId]||[];
+    msgs.forEach(msg=>addMessageToChat(msg.message,msg.from===currentUser.username,msg.time));
+}
+function sendChatMessage(){
+    let input=document.getElementById('chat-input'),msg=input.value.trim();if(!msg||!currentChatWith)return;
+    socket.emit('send-message',{to:currentChatWith,message:msg});
+    let roomId=[currentUser.username,currentChatWith].sort().join('-');
+    if(!conversations[roomId])conversations[roomId]=[];
+    conversations[roomId].push({from:currentUser.username,message:msg,time:new Date().toLocaleTimeString('ar-EG')});
+    localStorage.setItem('conversations',JSON.stringify(conversations));
+    addMessageToChat(msg,true,new Date().toLocaleTimeString('ar-EG'));
+    input.value='';
+}
+function loadConversationsList(){
+    let container=document.getElementById('conversations-list');let roomIds=Object.keys(conversations);
+    if(roomIds.length===0){container.innerHTML='<div class="empty-state">لا توجد محادثات بعد</div>';return;}
+    container.innerHTML='';roomIds.forEach(roomId=>{let otherUser=roomId.split('-').find(u=>u!==currentUser.username);let lastMsg=conversations[roomId][conversations[roomId].length-1];let div=document.createElement('div');div.className='conversation-item';div.innerHTML=`<div><strong>${escapeHtml(otherUser)}</strong></div><div style="font-size:12px;color:#888;">${lastMsg?lastMsg.message.substring(0,35):'ابدأ المحادثة'}</div>`;div.onclick=()=>openChat(otherUser);container.appendChild(div);});
+}
+function addPostToFeed(post){
+    let container=document.getElementById('posts-feed');let isOwn=post.username===currentUser?.username;
+    let div=document.createElement('div');div.className='post-card';div.dataset.id=post.id;
+    div.innerHTML=`<div class="post-header"><div class="post-author">${escapeHtml(post.displayName)} <small>@${escapeHtml(post.username)}</small></div><div class="post-time">${new Date(post.time).toLocaleTimeString()}</div></div><div class="post-text">${escapeHtml(post.text)}</div><div class="post-actions"><button class="like-btn">❤️ ${post.likes||0}</button>${isOwn?'<button class="delete-btn" style="background:none;border:none;color:#ff6b6b;cursor:pointer;">🗑️ حذف</button>':''}</div>`;
+    div.querySelector('.like-btn').onclick=()=>socket.emit('like-post',post.id);
+    if(isOwn)div.querySelector('.delete-btn').onclick=()=>socket.emit('delete-post',post.id);
+    container.prepend(div);
+}
+function loadPosts(posts){let c=document.getElementById('posts-feed');c.innerHTML='';[...posts].reverse().forEach(p=>addPostToFeed(p));}
+function switchPage(page){
+    document.getElementById('home-page').style.display=page==='home'?'block':'none';
+    document.getElementById('chat-page').style.display=page==='chat'?'block':'none';
+    if(page==='chat')loadConversationsList();
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
+}
+function startApp(data){
+    currentUser={username:data.username,displayName:data.displayName,friends:data.friends||[],pendingRequests:data.pendingRequests||[]};
+    document.getElementById('login-overlay').style.display='none';document.getElementById('app').style.display='flex';
+    document.getElementById('user-name').textContent=data.displayName;document.getElementById('user-username').textContent=`@${data.username}`;
+    updateUsersList(data.users);loadPosts(data.posts);switchPage('home');
+    socket.on('new-friend-request',(d)=>{currentUser.pendingRequests.push(d.from);updateUsersList(data.users);addSystemMessage(`📩 طلب صداقة جديد من ${d.fromName}`);});
+    socket.on('friend-request-accepted',(d)=>{if(!currentUser.friends.includes(d.from))currentUser.friends.push(d.from);currentUser.pendingRequests=currentUser.pendingRequests.filter(u=>u!==d.from);updateUsersList(data.users);addSystemMessage(`🎉 ${d.fromName} قبل طلب الصداقة!`);loadConversationsList();});
+    socket.on('new-message',(d)=>{let roomId=[currentUser.username,d.from].sort().join('-');if(!conversations[roomId])conversations[roomId]=[];conversations[roomId].push({from:d.from,message:d.message,time:d.time});localStorage.setItem('conversations',JSON.stringify(conversations));if(currentChatWith===d.from)addMessageToChat(d.message,false,d.time);else loadConversationsList();});
+    socket.on('post-added',(p)=>{loadPosts([p,...posts]);});
+    socket.on('post-updated',(p)=>{let el=document.querySelector(`.post-card[data-id="${p.id}"]`);if(el)el.querySelector('.like-btn').innerHTML=`❤️ ${p.likes}`;});
+    socket.on('post-deleted',(id)=>{document.querySelector(`.post-card[data-id="${id}"]`)?.remove();});
+}
+document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('login-btn').onclick=()=>{
+        let username=document.getElementById('login-username').value.trim().toLowerCase();
+        let password=document.getElementById('login-password').value.trim();
+        let displayName=document.getElementById('login-displayname').value.trim();
+        let err=document.getElementById('error-msg');
+        if(!username||!password){err.textContent='املأ جميع الحقول';return;}
+        socket=io();socket.on('connect',()=>socket.emit('login',{username,password,displayName:displayName||username}));
+        socket.on('login-success',startApp);
+        socket.on('login-error',(m)=>err.textContent=m);
+    };
+    document.getElementById('logout-btn').onclick=()=>{localStorage.removeItem('conversations');location.reload();};
+    document.getElementById('post-btn').onclick=()=>{let t=document.getElementById('post-text').value.trim();if(t&&socket)socket.emit('new-post',{text:t});document.getElementById('post-text').value='';};
+    document.getElementById('back-btn').onclick=()=>{document.getElementById('chat-area').style.display='none';document.getElementById('conversations-list').style.display='block';currentChatWith=null;};
+    document.getElementById('send-chat-btn').onclick=sendChatMessage;
+    document.getElementById('chat-input').onkeypress=(e)=>{if(e.key==='Enter')sendChatMessage();};
+    document.querySelectorAll('.nav-btn').forEach(btn=>btn.onclick=()=>switchPage(btn.dataset.page));
+});
 </script>
 </body>
-            </html>
+</html>
