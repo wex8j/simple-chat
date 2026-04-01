@@ -5,23 +5,20 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: { origin: "*" },
-    transports: ['websocket', 'polling']
-});
+const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// قاعدة بيانات مؤقتة (ستُفقد عند إعادة التشغيل)
+// قاعدة بيانات بسيطة
 const users = {};
 let posts = [];
 
 // منشور تجريبي
 posts.push({
-    id: Date.now(),
+    id: 1,
     username: '3tx',
     displayName: 'أبو علي',
-    text: 'مرحباً بالجميع في بغداد لايف! منصة التواصل العراقية الأولى 🎉',
+    text: 'مرحباً بالجميع في بغداد لايف! 🎉',
     time: new Date().toISOString(),
     likes: 5
 });
@@ -38,12 +35,12 @@ io.on('connection', (socket) => {
                 password: password,
                 displayName: displayName || username,
                 friends: [],
-                pendingRequests: [],
+                requests: [],
                 socketId: socket.id
             };
             console.log(`📝 مستخدم جديد: ${username}`);
         } else if (users[username].password !== password) {
-            socket.emit('login-error', 'كلمة السر غير صحيحة');
+            socket.emit('login-error', 'كلمة السر خطأ');
             return;
         } else {
             users[username].socketId = socket.id;
@@ -55,50 +52,52 @@ io.on('connection', (socket) => {
             username: username,
             displayName: users[username].displayName,
             friends: users[username].friends,
-            pendingRequests: users[username].pendingRequests,
+            requests: users[username].requests,
             posts: posts,
             users: Object.keys(users).map(u => ({
                 username: u,
                 displayName: users[u].displayName
             }))
         });
-        
-        socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
-    socket.on('send-friend-request', (toUsername) => {
+    // إرسال طلب صداقة
+    socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
         const target = users[toUsername];
         if (!target || users[currentUser].friends.includes(toUsername)) return;
         
-        if (!target.pendingRequests.includes(currentUser)) {
-            target.pendingRequests.push(currentUser);
-            io.to(target.socketId).emit('new-friend-request', {
+        if (!target.requests.includes(currentUser)) {
+            target.requests.push(currentUser);
+            io.to(target.socketId).emit('new-request', {
                 from: currentUser,
                 fromName: users[currentUser].displayName
             });
-            socket.emit('request-sent', { to: toUsername });
+            socket.emit('request-sent');
         }
     });
     
-    socket.on('accept-friend-request', (fromUsername) => {
+    // قبول طلب صداقة
+    socket.on('accept-friend', (fromUsername) => {
         if (!currentUser) return;
         const current = users[currentUser];
         const from = users[fromUsername];
         
-        current.pendingRequests = current.pendingRequests.filter(u => u !== fromUsername);
+        current.requests = current.requests.filter(u => u !== fromUsername);
         if (!current.friends.includes(fromUsername)) current.friends.push(fromUsername);
         if (!from.friends.includes(currentUser)) from.friends.push(currentUser);
         
-        io.to(current.socketId).emit('friend-request-accepted', { from: fromUsername, fromName: from.displayName });
-        io.to(from.socketId).emit('friend-request-accepted', { from: currentUser, fromName: current.displayName });
+        io.to(current.socketId).emit('friend-accepted', { from: fromUsername, fromName: from.displayName });
+        io.to(from.socketId).emit('friend-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    socket.on('reject-friend-request', (fromUsername) => {
+    // رفض طلب صداقة
+    socket.on('reject-friend', (fromUsername) => {
         if (!currentUser) return;
-        users[currentUser].pendingRequests = users[currentUser].pendingRequests.filter(u => u !== fromUsername);
+        users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
     });
     
+    // إرسال رسالة
     socket.on('send-message', (data) => {
         if (!currentUser) return;
         const { to, message } = data;
@@ -110,22 +109,21 @@ io.on('connection', (socket) => {
                 message: message,
                 time: new Date().toLocaleTimeString('ar-EG')
             });
-            socket.emit('message-sent', { to, message });
         }
     });
     
+    // منشور جديد
     socket.on('new-post', (data) => {
         if (!currentUser) return;
-        const newPost = {
+        posts.unshift({
             id: Date.now(),
             username: currentUser,
             displayName: users[currentUser].displayName,
             text: data.text,
             time: new Date().toISOString(),
             likes: 0
-        };
-        posts.unshift(newPost);
-        io.emit('post-added', newPost);
+        });
+        io.emit('post-added', posts[0]);
     });
     
     socket.on('like-post', (postId) => {
@@ -143,7 +141,7 @@ io.on('connection', (socket) => {
     
     socket.on('disconnect', () => {
         if (currentUser && users[currentUser]) {
-            console.log(`👋 مستخدم غادر: ${currentUser}`);
+            console.log(`👋 ${currentUser} غادر`);
         }
     });
 });
