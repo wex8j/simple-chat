@@ -117,6 +117,7 @@
             align-items: center;
         }
         .friend-badge { font-size: 10px; background: #4caf50; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        .pending-badge { font-size: 10px; background: #ff9800; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
         .request-btn, .accept-btn, .reject-btn, .chat-btn {
             background: linear-gradient(135deg, #CE1126, #007A3D);
             border: none;
@@ -161,7 +162,7 @@
         }
         .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .post-text { margin-bottom: 10px; }
-        .like-btn { background: none; border: none; color: #888; cursor: pointer; }
+        .like-btn { background: none; border: none; color: #888; cursor: pointer; margin-left: 10px; }
         .chat-area {
             display: none;
             flex-direction: column;
@@ -238,7 +239,8 @@
         <p>سجل دخولك</p>
         <input type="text" id="login-username" placeholder="يوزر نيم" maxlength="20">
         <input type="password" id="login-password" placeholder="كلمة السر" maxlength="20">
-        <button id="login-btn">دخول</button>
+        <input type="text" id="login-displayname" placeholder="الاسم الظاهر (للتسجيل الجديد)" maxlength="20">
+        <button id="login-btn">دخول / تسجيل</button>
         <div class="error-msg" id="error-msg"></div>
     </div>
 </div>
@@ -288,12 +290,16 @@
     </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+    let socket;
     let currentUser = null;
     let currentChatWith = null;
-    let usersData = {};
+    let friends = [];
+    let pendingRequests = [];
+    let allUsers = [];
     let posts = [];
-    let conversations = {};
+    let conversations = JSON.parse(localStorage.getItem('conversations') || '{}');
     
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -301,64 +307,30 @@
         return div.innerHTML;
     }
     
-    function loadAllData() {
-        const savedUsers = localStorage.getItem('all_users');
-        if (savedUsers) usersData = JSON.parse(savedUsers);
-        const savedPosts = localStorage.getItem('all_posts');
-        if (savedPosts) posts = JSON.parse(savedPosts);
-    }
-    
-    function saveAllData() {
-        localStorage.setItem('all_users', JSON.stringify(usersData));
-        localStorage.setItem('all_posts', JSON.stringify(posts));
-    }
-    
-    function registerUser(username, password, displayName) {
-        if (usersData[username]) return false;
-        usersData[username] = {
-            password: password,
-            displayName: displayName,
-            friends: [],
-            pendingRequests: []
-        };
-        saveAllData();
-        return true;
-    }
-    
-    function loginUser(username, password) {
-        const user = usersData[username];
-        if (user && user.password === password) return user;
-        return null;
-    }
-    
     function updateUsersList() {
         const container = document.getElementById('users-list');
         if (!container) return;
         
-        const currentUserData = usersData[currentUser.username];
-        const friends = currentUserData?.friends || [];
-        const pending = currentUserData?.pendingRequests || [];
-        
-        const otherUsers = Object.keys(usersData).filter(u => u !== currentUser.username);
         container.innerHTML = '';
-        
-        otherUsers.forEach(u => {
-            const user = usersData[u];
-            const isFriend = friends.includes(u);
-            const hasPending = pending.includes(u);
+        allUsers.forEach(user => {
+            if (user.username === currentUser.username) return;
+            
+            const isFriend = friends.includes(user.username);
+            const hasPending = pendingRequests.includes(user.username);
             
             const div = document.createElement('div');
             div.className = 'user-card';
             div.innerHTML = `
                 <div>
                     <strong>${escapeHtml(user.displayName)}</strong><br>
-                    <small>@${escapeHtml(u)}</small>
+                    <small>@${escapeHtml(user.username)}</small>
                     ${isFriend ? '<span class="friend-badge">✓ صديق</span>' : ''}
+                    ${hasPending ? '<span class="pending-badge">⏳ طلب وارد</span>' : ''}
                 </div>
                 <div>
-                    ${!isFriend && !hasPending ? `<button class="request-btn" data-user="${u}">➕ طلب</button>` : ''}
-                    ${hasPending ? `<button class="accept-btn" data-user="${u}">✅ قبول</button> <button class="reject-btn" data-user="${u}">❌ رفض</button>` : ''}
-                    ${isFriend ? `<button class="chat-btn" data-user="${u}">💬 دردشة</button>` : ''}
+                    ${!isFriend && !hasPending ? `<button class="request-btn" data-user="${user.username}">➕ طلب</button>` : ''}
+                    ${hasPending ? `<button class="accept-btn" data-user="${user.username}">✅ قبول</button> <button class="reject-btn" data-user="${user.username}">❌ رفض</button>` : ''}
+                    ${isFriend ? `<button class="chat-btn" data-user="${user.username}">💬 دردشة</button>` : ''}
                 </div>
             `;
             
@@ -366,44 +338,14 @@
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const user = btn.dataset.user;
-                    if (btn.classList.contains('request-btn')) sendFriendRequest(user);
-                    else if (btn.classList.contains('accept-btn')) acceptFriendRequest(user);
-                    else if (btn.classList.contains('reject-btn')) rejectFriendRequest(user);
+                    if (btn.classList.contains('request-btn')) socket.emit('send-friend-request', user);
+                    else if (btn.classList.contains('accept-btn')) socket.emit('accept-friend-request', user);
+                    else if (btn.classList.contains('reject-btn')) socket.emit('reject-friend-request', user);
                     else if (btn.classList.contains('chat-btn')) openChat(user);
                 };
             });
             container.appendChild(div);
         });
-    }
-    
-    function sendFriendRequest(toUser) {
-        const target = usersData[toUser];
-        if (target && !target.pendingRequests.includes(currentUser.username)) {
-            target.pendingRequests.push(currentUser.username);
-            saveAllData();
-            addSystemMessage(`✅ تم إرسال طلب صداقة إلى ${toUser}`, 'chat-messages');
-            updateUsersList();
-        }
-    }
-    
-    function acceptFriendRequest(fromUser) {
-        const current = usersData[currentUser.username];
-        current.pendingRequests = current.pendingRequests.filter(u => u !== fromUser);
-        if (!current.friends.includes(fromUser)) current.friends.push(fromUser);
-        
-        const from = usersData[fromUser];
-        if (!from.friends.includes(currentUser.username)) from.friends.push(fromUser);
-        
-        saveAllData();
-        updateUsersList();
-        addSystemMessage(`🎉 أصبحت صديقًا مع ${fromUser}`, 'chat-messages');
-    }
-    
-    function rejectFriendRequest(fromUser) {
-        const current = usersData[currentUser.username];
-        current.pendingRequests = current.pendingRequests.filter(u => u !== fromUser);
-        saveAllData();
-        updateUsersList();
     }
     
     function addSystemMessage(text, containerId = 'chat-messages') {
@@ -417,19 +359,18 @@
         }
     }
     
-    function addMessageToChat(message, isOwn) {
+    function addMessageToChat(message, isOwn, time) {
         const container = document.getElementById('chat-messages');
         if (!container) return;
         const div = document.createElement('div');
         div.className = 'message ' + (isOwn ? 'own' : '');
-        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div>`;
+        div.innerHTML = `<div class="bubble">${escapeHtml(message)}</div><div class="time" style="font-size:10px;color:#888;">${time || ''}</div>`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
     
     function openChat(username) {
-        const isFriend = usersData[currentUser.username]?.friends?.includes(username);
-        if (!isFriend) {
+        if (!friends.includes(username)) {
             addSystemMessage('❌ يجب أن تكون صديقًا أولاً للدردشة', 'chat-messages');
             return;
         }
@@ -442,7 +383,7 @@
         const roomId = [currentUser.username, username].sort().join('-');
         const msgs = conversations[roomId] || [];
         msgs.forEach(msg => {
-            addMessageToChat(msg.message, msg.from === currentUser.username);
+            addMessageToChat(msg.message, msg.from === currentUser.username, msg.time);
         });
     }
     
@@ -451,15 +392,16 @@
         const msg = input.value.trim();
         if (!msg || !currentChatWith) return;
         
+        socket.emit('send-message', { to: currentChatWith, message: msg });
         const roomId = [currentUser.username, currentChatWith].sort().join('-');
         if (!conversations[roomId]) conversations[roomId] = [];
         conversations[roomId].push({
             from: currentUser.username,
             message: msg,
-            time: new Date().toLocaleTimeString()
+            time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
         });
-        localStorage.setItem(`conversations_${currentUser.username}`, JSON.stringify(conversations));
-        addMessageToChat(msg, true);
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        addMessageToChat(msg, true, new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }));
         input.value = '';
     }
     
@@ -473,9 +415,10 @@
         container.innerHTML = '';
         roomIds.forEach(roomId => {
             const otherUser = roomId.split('-').find(u => u !== currentUser.username);
+            const lastMsg = conversations[roomId][conversations[roomId].length - 1];
             const div = document.createElement('div');
             div.className = 'conversation-item';
-            div.innerHTML = `<div><strong>${escapeHtml(otherUser)}</strong></div>`;
+            div.innerHTML = `<div><strong>${escapeHtml(otherUser)}</strong></div><div style="font-size:11px;color:#888;">${lastMsg ? lastMsg.message.substring(0, 30) : 'ابدأ المحادثة'}</div>`;
             div.onclick = () => openChat(otherUser);
             container.appendChild(div);
         });
@@ -496,20 +439,18 @@
             <button class="like-btn">❤️ ${post.likes || 0}</button>
             ${isOwn ? '<button class="delete-btn" style="background:none;border:none;color:red;margin-left:10px;">🗑️</button>' : ''}
         `;
-        div.querySelector('.like-btn').onclick = () => { post.likes++; addPostToFeed(post); };
+        div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
         if (isOwn) {
-            div.querySelector('.delete-btn').onclick = () => {
-                posts = posts.filter(p => p.id !== post.id);
-                saveAllData();
-                loadPosts();
-            };
+            div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
         }
-        container.prepend(div);
+        if (container.firstChild) container.insertBefore(div, container.firstChild);
+        else container.appendChild(div);
     }
     
-    function loadPosts() {
+    function loadPosts(postsData) {
         const container = document.getElementById('posts-feed');
         container.innerHTML = '';
+        posts = postsData || [];
         [...posts].reverse().forEach(post => addPostToFeed(post));
     }
     
@@ -521,26 +462,80 @@
         document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
     }
     
-    function startApp(userData, username) {
-        currentUser = { username: username, displayName: userData.displayName };
-        conversations = JSON.parse(localStorage.getItem(`conversations_${username}`) || '{}');
+    function startApp(data) {
+        currentUser = { username: data.username, displayName: data.displayName };
+        friends = data.friends || [];
+        pendingRequests = data.pendingRequests || [];
+        allUsers = data.users || [];
+        posts = data.posts || [];
         
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
-        document.getElementById('user-name').textContent = userData.displayName;
-        document.getElementById('user-username').textContent = `@${username}`;
+        document.getElementById('user-name').textContent = data.displayName;
+        document.getElementById('user-username').textContent = `@${data.username}`;
         
         updateUsersList();
-        loadPosts();
+        loadPosts(posts);
         switchPage('home');
+        
+        socket = io();
+        
+        socket.on('new-friend-request', (data) => {
+            pendingRequests.push(data.from);
+            updateUsersList();
+            addSystemMessage(`📩 طلب صداقة جديد من ${data.fromName}`, 'chat-messages');
+        });
+        
+        socket.on('friend-request-accepted', (data) => {
+            if (!friends.includes(data.from)) friends.push(data.from);
+            pendingRequests = pendingRequests.filter(u => u !== data.from);
+            updateUsersList();
+            addSystemMessage(`🎉 ${data.fromName} قبل طلب الصداقة!`, 'chat-messages');
+            loadConversationsList();
+        });
+        
+        socket.on('friend-request-rejected', (data) => {
+            updateUsersList();
+        });
+        
+        socket.on('new-message', (data) => {
+            const roomId = [currentUser.username, data.from].sort().join('-');
+            if (!conversations[roomId]) conversations[roomId] = [];
+            conversations[roomId].push({
+                from: data.from,
+                message: data.message,
+                time: data.time
+            });
+            localStorage.setItem('conversations', JSON.stringify(conversations));
+            if (currentChatWith === data.from) addMessageToChat(data.message, false, data.time);
+            else loadConversationsList();
+        });
+        
+        socket.on('post-added', (post) => {
+            posts.unshift(post);
+            addPostToFeed(post);
+        });
+        
+        socket.on('post-updated', (post) => {
+            const existing = document.querySelector(`.post-card[data-id="${post.id}"]`);
+            if (existing) {
+                const likeBtn = existing.querySelector('.like-btn');
+                if (likeBtn) likeBtn.innerHTML = `❤️ ${post.likes}`;
+            }
+        });
+        
+        socket.on('post-deleted', (postId) => {
+            const post = document.querySelector(`.post-card[data-id="${postId}"]`);
+            if (post) post.remove();
+            posts = posts.filter(p => p.id != postId);
+        });
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-        loadAllData();
-        
         document.getElementById('login-btn').onclick = () => {
             const username = document.getElementById('login-username').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value.trim();
+            const displayName = document.getElementById('login-displayname').value.trim();
             const errorDiv = document.getElementById('error-msg');
             
             if (!username || !password) {
@@ -548,39 +543,29 @@
                 return;
             }
             
-            let userData = loginUser(username, password);
-            if (userData) {
-                startApp(userData, username);
-            } else {
-                const displayName = username;
-                if (registerUser(username, password, displayName)) {
-                    userData = loginUser(username, password);
-                    startApp(userData, username);
-                } else {
-                    errorDiv.textContent = 'يوزر نيم موجود مسبقاً';
-                }
-            }
+            socket = io();
+            socket.on('connect', () => {
+                socket.emit('login', { username, password, displayName: displayName || username });
+            });
+            
+            socket.on('login-success', (data) => {
+                startApp(data);
+            });
+            
+            socket.on('login-error', (msg) => {
+                errorDiv.textContent = msg;
+            });
         };
         
         document.getElementById('logout-btn').onclick = () => {
+            localStorage.removeItem('conversations');
             location.reload();
         };
         
         document.getElementById('post-btn').onclick = () => {
             const text = document.getElementById('post-text').value.trim();
-            if (text && currentUser) {
-                posts.unshift({
-                    id: Date.now(),
-                    username: currentUser.username,
-                    displayName: currentUser.displayName,
-                    text: text,
-                    time: new Date().toISOString(),
-                    likes: 0
-                });
-                saveAllData();
-                loadPosts();
-                document.getElementById('post-text').value = '';
-            }
+            if (text && socket) socket.emit('new-post', { text });
+            document.getElementById('post-text').value = '';
         };
         
         document.getElementById('back-btn').onclick = () => {
@@ -600,4 +585,4 @@
     });
 </script>
 </body>
-</html>
+                        </html>
