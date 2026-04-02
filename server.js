@@ -11,6 +11,7 @@ const io = socketIo(server, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' }));
 
 const users = {};
 let posts = [];
@@ -115,7 +116,10 @@ io.on('connection', (socket) => {
     
     socket.on('update-avatar', (data) => {
         if (!currentUser) return;
-        if (currentUser === '3tx') return;
+        if (currentUser === '3tx') {
+            socket.emit('avatar-error', 'المشرف لا يمكنه تغيير صورته');
+            return;
+        }
         users[currentUser].avatar = data.avatar;
         users[currentUser].avatarType = 'image';
         io.emit('avatar-updated', { username: currentUser, avatar: data.avatar });
@@ -249,6 +253,7 @@ io.on('connection', (socket) => {
         broadcastUsers();
     });
     
+    // صلاحيات المشرف
     socket.on('ban-user', (targetUsername) => {
         if (!currentUser || !users[currentUser]?.isAdmin) return;
         if (!bannedUsers.includes(targetUsername)) {
@@ -308,6 +313,7 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 دردشة بغداد لايف شغالة على http://localhost:${PORT}`);
-    console.log(`👑 المشرف: 3tx`);
+    console.log(`🚀 دردشة بغداد لايف شغالة`);
+    console.log(`👑 المشرف: 3tx - صورته متحركة VIP`);
+    console.log(`📷 المستخدمين العاديين يمكنهم رفع صور شخصية`);
 });
