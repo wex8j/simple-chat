@@ -2,18 +2,17 @@
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>دردشة بغداد لايف</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #1a1a2e;
+            background: #121212;
             color: #fff;
             height: 100vh;
             overflow: hidden;
         }
-        /* شاشة الدخول */
         .login-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -21,8 +20,8 @@
             z-index: 1000; padding: 20px;
         }
         .login-card {
-            background: rgba(30, 0, 60, 0.8); backdrop-filter: blur(15px);
-            padding: 35px 25px; border-radius: 35px; width: 100%; max-width: 340px;
+            background: rgba(30,0,60,0.8); backdrop-filter: blur(15px);
+            padding: 35px; border-radius: 35px; width: 100%; max-width: 340px;
             text-align: center; border: 1px solid rgba(156,39,176,0.5);
         }
         .login-card h1 {
@@ -41,10 +40,7 @@
             border: none; border-radius: 40px; color: white;
             cursor: pointer; font-weight: bold;
         }
-        .error { color: #ff6b6b; margin-top: 10px; font-size: 13px; }
-        .success { color: #4caf50; margin-top: 10px; font-size: 13px; }
-
-        /* التطبيق */
+        .error { color: #ff6b6b; margin-top: 10px; }
         .app { display: none; flex-direction: column; height: 100vh; }
         .header {
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -60,8 +56,7 @@
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border-radius: 50%;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
             font-size: 18px;
         }
         .user-name { font-size: 14px; font-weight: bold; }
@@ -70,8 +65,6 @@
             background: #f44336; border: none; padding: 6px 15px;
             border-radius: 20px; color: white; cursor: pointer;
         }
-
-        /* التبويبات */
         .tabs {
             display: flex;
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -83,13 +76,9 @@
             font-size: 14px; font-weight: bold; cursor: pointer;
         }
         .tab.active { background: linear-gradient(135deg, #CE1126, #9c27b0); color: white; }
-
-        /* المحتوى */
         .main-content { flex: 1; overflow-y: auto; padding: 15px; }
         .page { display: none; }
         .page.active { display: block; }
-
-        /* المنشورات */
         .new-post {
             background: #1e1e2e; border-radius: 20px; padding: 15px;
             margin-bottom: 20px; border: 1px solid #9c27b0;
@@ -117,8 +106,6 @@
         }
         .like-btn { color: #888; }
         .delete-btn { color: #ff6b6b; margin-left: 10px; }
-
-        /* المستخدمون */
         .user-card {
             background: #1e1e2e; border-radius: 18px; padding: 12px;
             margin-bottom: 12px; display: flex; justify-content: space-between;
@@ -134,8 +121,6 @@
         .accept { background: #4caf50; }
         .reject { background: #f44336; }
         .chat-btn { background: #2196f3; }
-
-        /* الدردشة */
         .chat-window {
             display: none; flex-direction: column; height: 100%;
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -155,6 +140,7 @@
             border-radius: 18px; border: 1px solid #9c27b0;
         }
         .msg.own .bubble { background: linear-gradient(135deg, #CE1126, #9c27b0); border: none; }
+        .msg-time { font-size: 9px; color: #9c27b0; margin-top: 4px; }
         .chat-input {
             padding: 12px; background: #2a004a; display: flex; gap: 10px;
             border-top: 1px solid #9c27b0;
@@ -182,7 +168,6 @@
         <input type="text" id="displayname" placeholder="الاسم الظاهر (للتسجيل)">
         <button id="login-btn">دخول / تسجيل</button>
         <div class="error" id="error-msg"></div>
-        <div class="success" id="success-msg"></div>
     </div>
 </div>
 
@@ -206,32 +191,18 @@
     </div>
 
     <div class="main-content">
-        <!-- صفحة المنشورات -->
         <div class="page active" id="posts-page">
             <div class="new-post">
                 <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
                 <button class="post-btn" id="post-btn">نشر</button>
             </div>
-            <div id="posts-feed"></div>
+            <div id="posts-list"></div>
         </div>
-
-        <!-- صفحة المستخدمين -->
-        <div class="page" id="users-page">
-            <div id="users-list"></div>
-        </div>
-
-        <!-- صفحة الطلبات -->
-        <div class="page" id="requests-page">
-            <div id="requests-list"></div>
-        </div>
-
-        <!-- صفحة الدردشات -->
-        <div class="page" id="chats-page">
-            <div id="chats-list"></div>
-        </div>
+        <div class="page" id="users-page"><div id="users-list"></div></div>
+        <div class="page" id="requests-page"><div id="requests-list"></div></div>
+        <div class="page" id="chats-page"><div id="chats-list"></div></div>
     </div>
 
-    <!-- نافذة الدردشة -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
             <button class="back" id="chat-back">←</button>
@@ -245,329 +216,259 @@
     </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
-    let users = JSON.parse(localStorage.getItem('baghdad_users') || '{}');
-    let posts = JSON.parse(localStorage.getItem('baghdad_posts') || '[]');
-    let currentUser = null;
-    let currentChatWith = null;
-    let conversations = JSON.parse(localStorage.getItem('baghdad_conversations') || '{}');
+let socket, currentUser, currentChatWith;
+let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
 
-    function escapeHtml(text) {
+function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+function addMessageToChat(msg, isOwn, time) {
+    let div = document.createElement('div');
+    div.className = 'msg ' + (isOwn ? 'own' : '');
+    div.innerHTML = `<div class="bubble">${escapeHtml(msg)}</div><div class="msg-time">${time || ''}</div>`;
+    document.getElementById('chat-messages').appendChild(div);
+    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`${tab}-page`).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+}
+
+function startApp(data) {
+    currentUser = {
+        username: data.username,
+        displayName: data.displayName,
+        friends: data.friends || [],
+        requests: data.requests || []
+    };
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('user-name').textContent = data.displayName;
+    document.getElementById('user-username').textContent = `@${data.username}`;
+    
+    // عرض المنشورات
+    const postsContainer = document.getElementById('posts-list');
+    postsContainer.innerHTML = '';
+    [...data.posts].reverse().forEach(post => {
+        const isOwn = post.username === currentUser.username;
         const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function saveAll() {
-        localStorage.setItem('baghdad_users', JSON.stringify(users));
-        localStorage.setItem('baghdad_posts', JSON.stringify(posts));
-        localStorage.setItem('baghdad_conversations', JSON.stringify(conversations));
-    }
-
-    // ========== المنشورات ==========
-    function loadPosts() {
-        const container = document.getElementById('posts-feed');
-        if (!container) return;
-        container.innerHTML = '';
-        if (posts.length === 0) {
-            container.innerHTML = '<div class="empty">لا توجد منشورات</div>';
-            return;
-        }
-        [...posts].reverse().forEach(post => {
-            const div = document.createElement('div');
-            div.className = 'post-card';
-            div.innerHTML = `
-                <div class="post-header">
-                    <div class="post-name">${escapeHtml(post.displayName)}</div>
-                    <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
-                </div>
-                <div class="post-text">${escapeHtml(post.text)}</div>
-                <button class="like-btn" data-id="${post.id}">❤️ ${post.likes || 0}</button>
-                ${post.username === currentUser?.username ? '<button class="delete-btn" data-id="${post.id}">🗑️ حذف</button>' : ''}
-            `;
-            div.querySelector('.like-btn').onclick = () => {
-                post.likes = (post.likes || 0) + 1;
-                saveAll();
-                loadPosts();
-            };
-            if (post.username === currentUser?.username) {
-                div.querySelector('.delete-btn').onclick = () => {
-                    posts = posts.filter(p => p.id !== post.id);
-                    saveAll();
-                    loadPosts();
-                };
-            }
-            container.appendChild(div);
-        });
-    }
-
-    // ========== المستخدمون ==========
-    function loadUsers() {
-        const container = document.getElementById('users-list');
-        if (!container) return;
-        container.innerHTML = '';
-        const otherUsers = Object.keys(users).filter(u => u !== currentUser.username);
-        if (otherUsers.length === 0) {
-            container.innerHTML = '<div class="empty">لا يوجد مستخدمون آخرون</div>';
-            return;
-        }
-        otherUsers.forEach(username => {
-            const user = users[username];
-            const isFriend = currentUser.friends?.includes(username);
-            const hasRequest = currentUser.requests?.includes(username);
+        div.className = 'post-card';
+        div.dataset.id = post.id;
+        div.innerHTML = `
+            <div class="post-header">
+                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
+            </div>
+            <div class="post-text">${escapeHtml(post.text)}</div>
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
+            ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+        `;
+        div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
+        if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
+        postsContainer.appendChild(div);
+    });
+    
+    // عرض المستخدمين
+    const usersContainer = document.getElementById('users-list');
+    usersContainer.innerHTML = '';
+    data.users.forEach(u => {
+        if (u.username === currentUser.username) return;
+        const isFriend = currentUser.friends.includes(u.username);
+        const hasRequest = currentUser.requests.includes(u.username);
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+            <div>
+                <strong>${escapeHtml(u.displayName)}</strong>
+                ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
+                ${hasRequest ? '<span class="request-badge">طلب وارد</span>' : ''}
+                <br><small>@${escapeHtml(u.username)}</small>
+            </div>
+            <div>
+                ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${u.username}">➕ إضافة</button>` : ''}
+                ${hasRequest ? `<button class="accept" data-user="${u.username}">✅ قبول</button> <button class="reject" data-user="${u.username}">❌ رفض</button>` : ''}
+                ${isFriend ? `<button class="chat-btn" data-user="${u.username}">💬 دردشة</button>` : ''}
+            </div>
+        `;
+        div.querySelector('.add-friend')?.addEventListener('click', () => socket.emit('add-friend', u.username));
+        div.querySelector('.accept')?.addEventListener('click', () => socket.emit('accept-friend', u.username));
+        div.querySelector('.reject')?.addEventListener('click', () => socket.emit('reject-friend', u.username));
+        div.querySelector('.chat-btn')?.addEventListener('click', () => openChat(u.username));
+        usersContainer.appendChild(div);
+    });
+    
+    // عرض الطلبات
+    const requestsContainer = document.getElementById('requests-list');
+    requestsContainer.innerHTML = '';
+    if (currentUser.requests.length === 0) {
+        requestsContainer.innerHTML = '<div class="empty">لا توجد طلبات</div>';
+    } else {
+        currentUser.requests.forEach(req => {
             const div = document.createElement('div');
             div.className = 'user-card';
             div.innerHTML = `
-                <div>
-                    <strong>${escapeHtml(user.displayName)}</strong>
-                    ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
-                    ${hasRequest ? '<span class="request-badge">طلب وارد</span>' : ''}
-                    <br><small>@${escapeHtml(username)}</small>
-                </div>
-                <div>
-                    ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${username}">➕ إضافة</button>` : ''}
-                    ${hasRequest ? `<button class="accept" data-user="${username}">✅ قبول</button> <button class="reject" data-user="${username}">❌ رفض</button>` : ''}
-                    ${isFriend ? `<button class="chat-btn" data-user="${username}">💬 دردشة</button>` : ''}
-                </div>
-            `;
-            div.querySelector('.add-friend')?.addEventListener('click', () => addFriend(username));
-            div.querySelector('.accept')?.addEventListener('click', () => acceptFriend(username));
-            div.querySelector('.reject')?.addEventListener('click', () => rejectFriend(username));
-            div.querySelector('.chat-btn')?.addEventListener('click', () => openChat(username));
-            container.appendChild(div);
-        });
-    }
-
-    function addFriend(toUser) {
-        if (!users[toUser]) return;
-        if (!users[toUser].requests) users[toUser].requests = [];
-        if (!users[toUser].requests.includes(currentUser.username)) {
-            users[toUser].requests.push(currentUser.username);
-            saveAll();
-            loadUsers();
-            if (document.getElementById('requests-page').classList.contains('active')) loadRequests();
-        }
-    }
-
-    function acceptFriend(fromUser) {
-        if (!currentUser.requests) currentUser.requests = [];
-        currentUser.requests = currentUser.requests.filter(u => u !== fromUser);
-        if (!currentUser.friends) currentUser.friends = [];
-        if (!currentUser.friends.includes(fromUser)) currentUser.friends.push(fromUser);
-        if (!users[fromUser].friends) users[fromUser].friends = [];
-        if (!users[fromUser].friends.includes(currentUser.username)) users[fromUser].friends.push(currentUser.username);
-        saveAll();
-        loadUsers();
-        loadRequests();
-        loadChats();
-    }
-
-    function rejectFriend(fromUser) {
-        if (currentUser.requests) {
-            currentUser.requests = currentUser.requests.filter(u => u !== fromUser);
-            saveAll();
-            loadUsers();
-            loadRequests();
-        }
-    }
-
-    // ========== الطلبات ==========
-    function loadRequests() {
-        const container = document.getElementById('requests-list');
-        if (!container) return;
-        container.innerHTML = '';
-        const requests = currentUser.requests || [];
-        if (requests.length === 0) {
-            container.innerHTML = '<div class="empty">لا توجد طلبات</div>';
-            return;
-        }
-        requests.forEach(req => {
-            const div = document.createElement('div');
-            div.className = 'user-card';
-            div.innerHTML = `
-                <div><strong>${escapeHtml(users[req]?.displayName || req)}</strong><br><small>@${escapeHtml(req)}</small></div>
+                <div><strong>${escapeHtml(req)}</strong><br><small>@${escapeHtml(req)}</small></div>
                 <div>
                     <button class="accept" data-user="${req}">✅ قبول</button>
                     <button class="reject" data-user="${req}">❌ رفض</button>
                 </div>
             `;
-            div.querySelector('.accept').onclick = () => acceptFriend(req);
-            div.querySelector('.reject').onclick = () => rejectFriend(req);
-            container.appendChild(div);
+            div.querySelector('.accept').onclick = () => socket.emit('accept-friend', req);
+            div.querySelector('.reject').onclick = () => socket.emit('reject-friend', req);
+            requestsContainer.appendChild(div);
         });
     }
-
-    // ========== الدردشات ==========
-    function loadChats() {
-        const container = document.getElementById('chats-list');
-        if (!container) return;
-        container.innerHTML = '';
-        const friends = currentUser.friends || [];
-        if (friends.length === 0) {
-            container.innerHTML = '<div class="empty">لا توجد محادثات</div>';
-            return;
-        }
-        friends.forEach(friend => {
-            const roomId = [currentUser.username, friend].sort().join('-');
-            const lastMsg = conversations[roomId]?.length ? conversations[roomId][conversations[roomId].length-1] : null;
+    
+    // عرض الدردشات
+    const chatsContainer = document.getElementById('chats-list');
+    chatsContainer.innerHTML = '';
+    if (currentUser.friends.length === 0) {
+        chatsContainer.innerHTML = '<div class="empty">لا توجد محادثات</div>';
+    } else {
+        currentUser.friends.forEach(f => {
             const div = document.createElement('div');
             div.className = 'user-card';
             div.innerHTML = `
-                <div><strong>${escapeHtml(users[friend]?.displayName || friend)}</strong><br><small>@${escapeHtml(friend)}</small></div>
-                <div><button class="chat-btn" data-user="${friend}">💬 دردشة</button></div>
+                <div><strong>${escapeHtml(f)}</strong><br><small>@${escapeHtml(f)}</small></div>
+                <div><button class="chat-btn" data-user="${f}">💬 دردشة</button></div>
             `;
-            div.querySelector('.chat-btn').onclick = () => openChat(friend);
-            container.appendChild(div);
+            div.querySelector('.chat-btn').onclick = () => openChat(f);
+            chatsContainer.appendChild(div);
         });
     }
-
-    // ========== الدردشة ==========
-    function openChat(username) {
-        if (!currentUser.friends?.includes(username)) return;
-        currentChatWith = username;
-        document.querySelector('.main-content').style.display = 'none';
-        document.querySelector('.tabs').style.display = 'none';
-        document.getElementById('chat-window').style.display = 'flex';
-        document.getElementById('chat-with-name').textContent = users[username]?.displayName || username;
-        const roomId = [currentUser.username, username].sort().join('-');
-        const msgs = conversations[roomId] || [];
-        const msgsDiv = document.getElementById('chat-messages');
-        msgsDiv.innerHTML = '';
-        msgs.forEach(m => {
-            const div = document.createElement('div');
-            div.className = 'msg ' + (m.from === currentUser.username ? 'own' : '');
-            div.innerHTML = `<div class="bubble">${escapeHtml(m.message)}</div><div class="msg-time">${m.time || ''}</div>`;
-            msgsDiv.appendChild(div);
-        });
-        msgsDiv.scrollTop = msgsDiv.scrollHeight;
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const msg = input.value.trim();
-        if (!msg || !currentChatWith) return;
-        const roomId = [currentUser.username, currentChatWith].sort().join('-');
-        if (!conversations[roomId]) conversations[roomId] = [];
-        conversations[roomId].push({
-            from: currentUser.username,
-            message: msg,
-            time: new Date().toLocaleTimeString()
-        });
-        saveAll();
-        addMessageToChat(msg, true);
-        input.value = '';
-    }
-
-    function addMessageToChat(msg, isOwn) {
+    
+    socket.on('post-added', (post) => {
         const div = document.createElement('div');
-        div.className = 'msg ' + (isOwn ? 'own' : '');
-        div.innerHTML = `<div class="bubble">${escapeHtml(msg)}</div><div class="msg-time">${new Date().toLocaleTimeString()}</div>`;
-        document.getElementById('chat-messages').appendChild(div);
-        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-    }
-
-    // ========== تبديل التبويبات ==========
-    function switchTab(tabId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`${tabId}-page`).classList.add('active');
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-        if (tabId === 'users') loadUsers();
-        if (tabId === 'requests') loadRequests();
-        if (tabId === 'chats') loadChats();
-    }
-
-    // ========== تسجيل الدخول ==========
-    document.getElementById('login-btn').onclick = () => {
-        const username = document.getElementById('username').value.trim().toLowerCase();
-        const password = document.getElementById('password').value.trim();
-        const displayName = document.getElementById('displayname').value.trim();
-        const errorDiv = document.getElementById('error-msg');
-        const successDiv = document.getElementById('success-msg');
-        
-        errorDiv.textContent = '';
-        successDiv.textContent = '';
-        
-        if (!username || !password) {
-            errorDiv.textContent = '❌ املأ جميع الحقول';
-            return;
-        }
-        
-        if (!users[username]) {
-            users[username] = { 
-                password: password, 
-                displayName: displayName || username,
-                isAdmin: username === '3tx',
-                friends: [],
-                requests: []
-            };
-            saveAll();
-            successDiv.textContent = `✅ تم تسجيل حساب جديد! مرحباً ${users[username].displayName}`;
-        } else if (users[username].password !== password) {
-            errorDiv.textContent = '❌ كلمة السر غير صحيحة';
-            return;
-        } else {
-            successDiv.textContent = `✅ مرحباً ${users[username].displayName}`;
-        }
-        
-        currentUser = { 
-            username, 
-            displayName: users[username].displayName, 
-            isAdmin: users[username].isAdmin,
-            friends: users[username].friends || [],
-            requests: users[username].requests || []
-        };
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        document.getElementById('user-name').textContent = currentUser.displayName;
-        document.getElementById('user-username').textContent = `@${currentUser.username}`;
-        loadPosts();
-        loadUsers();
-        loadRequests();
-        loadChats();
-        switchTab('posts');
-    };
-
-    document.getElementById('logout-btn').onclick = () => {
-        currentUser = null;
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('displayname').value = '';
-    };
-
-    document.getElementById('post-btn').onclick = () => {
-        const text = document.getElementById('post-text').value.trim();
-        if (text && currentUser) {
-            posts.push({
-                id: Date.now(),
-                username: currentUser.username,
-                displayName: currentUser.displayName,
-                text: text,
-                time: new Date().toISOString(),
-                likes: 0
-            });
-            saveAll();
-            document.getElementById('post-text').value = '';
-            loadPosts();
-        }
-    };
-
-    document.getElementById('chat-back').onclick = () => {
-        document.getElementById('chat-window').style.display = 'none';
-        document.querySelector('.main-content').style.display = 'block';
-        document.querySelector('.tabs').style.display = 'flex';
-        currentChatWith = null;
-        loadChats();
-        switchTab('chats');
-    };
-
-    document.getElementById('send-msg').onclick = sendMessage;
-    document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.onclick = () => switchTab(tab.dataset.tab);
+        div.className = 'post-card';
+        div.dataset.id = post.id;
+        const isOwn = post.username === currentUser.username;
+        div.innerHTML = `
+            <div class="post-header">
+                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
+            </div>
+            <div class="post-text">${escapeHtml(post.text)}</div>
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
+            ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+        `;
+        div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
+        if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
+        document.getElementById('posts-list').prepend(div);
     });
+    
+    socket.on('post-updated', (post) => {
+        const el = document.querySelector(`.post-card[data-id="${post.id}"]`);
+        if (el) el.querySelector('.like-btn').innerHTML = `❤️ ${post.likes}`;
+    });
+    
+    socket.on('post-deleted', (id) => {
+        document.querySelector(`.post-card[data-id="${id}"]`)?.remove();
+    });
+    
+    socket.on('new-request', (d) => {
+        currentUser.requests.push(d.from);
+        const requestsContainer = document.getElementById('requests-list');
+        if (requestsContainer.querySelector('.empty')) requestsContainer.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+            <div><strong>${escapeHtml(d.fromName)}</strong><br><small>@${escapeHtml(d.from)}</small></div>
+            <div>
+                <button class="accept" data-user="${d.from}">✅ قبول</button>
+                <button class="reject" data-user="${d.from}">❌ رفض</button>
+            </div>
+        `;
+        div.querySelector('.accept').onclick = () => socket.emit('accept-friend', d.from);
+        div.querySelector('.reject').onclick = () => socket.emit('reject-friend', d.from);
+        requestsContainer.appendChild(div);
+    });
+    
+    socket.on('request-accepted', (d) => {
+        if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
+        currentUser.requests = currentUser.requests.filter(u => u !== d.from);
+        const chatsContainer = document.getElementById('chats-list');
+        if (chatsContainer.querySelector('.empty')) chatsContainer.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `<div><strong>${escapeHtml(d.fromName)}</strong><br><small>@${escapeHtml(d.from)}</small></div><div><button class="chat-btn" data-user="${d.from}">💬 دردشة</button></div>`;
+        div.querySelector('.chat-btn').onclick = () => openChat(d.from);
+        chatsContainer.appendChild(div);
+        const requestsContainer = document.getElementById('requests-list');
+        const requestDiv = Array.from(requestsContainer.children).find(el => el.querySelector(`[data-user="${d.from}"]`))?.parentElement?.parentElement;
+        if (requestDiv) requestDiv.remove();
+        if (requestsContainer.children.length === 0) requestsContainer.innerHTML = '<div class="empty">لا توجد طلبات</div>';
+        const usersContainer = document.getElementById('users-list');
+        const userDiv = Array.from(usersContainer.children).find(el => el.querySelector(`[data-user="${d.from}"]`));
+        if (userDiv) userDiv.remove();
+    });
+    
+    socket.on('new-message', (d) => {
+        const roomId = [currentUser.username, d.from].sort().join('-');
+        if (!conversations[roomId]) conversations[roomId] = [];
+        conversations[roomId].push({ from: d.from, message: d.message, time: d.time });
+        localStorage.setItem('conv', JSON.stringify(conversations));
+        if (currentChatWith === d.from) addMessageToChat(d.message, false, d.time);
+    });
+}
+
+function openChat(username) {
+    if (!currentUser.friends.includes(username)) return;
+    currentChatWith = username;
+    document.querySelector('.main-content').style.display = 'none';
+    document.querySelector('.tabs').style.display = 'none';
+    document.getElementById('chat-window').style.display = 'flex';
+    document.getElementById('chat-with-name').textContent = username;
+    const roomId = [currentUser.username, username].sort().join('-');
+    const msgs = conversations[roomId] || [];
+    const msgsDiv = document.getElementById('chat-messages');
+    msgsDiv.innerHTML = '';
+    msgs.forEach(m => addMessageToChat(m.message, m.from === currentUser.username, m.time));
+}
+
+function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg || !currentChatWith) return;
+    socket.emit('private-message', { to: currentChatWith, message: msg });
+    const roomId = [currentUser.username, currentChatWith].sort().join('-');
+    if (!conversations[roomId]) conversations[roomId] = [];
+    conversations[roomId].push({ from: currentUser.username, message: msg, time: new Date().toLocaleTimeString() });
+    localStorage.setItem('conv', JSON.stringify(conversations));
+    addMessageToChat(msg, true, new Date().toLocaleTimeString());
+    input.value = '';
+}
+
+document.getElementById('login-btn').onclick = () => {
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const password = document.getElementById('password').value.trim();
+    const displayName = document.getElementById('displayname').value.trim();
+    const err = document.getElementById('error-msg');
+    if (!username || !password) { err.textContent = 'املأ الحقول'; return; }
+    socket = io();
+    socket.on('connect', () => socket.emit('login', { username, password, displayName: displayName || username }));
+    socket.on('login-success', startApp);
+    socket.on('login-error', (m) => err.textContent = m);
+};
+
+document.getElementById('logout-btn').onclick = () => { location.reload(); };
+document.getElementById('post-btn').onclick = () => {
+    const text = document.getElementById('post-text').value.trim();
+    if (text && socket) socket.emit('new-post', { text });
+    document.getElementById('post-text').value = '';
+};
+document.getElementById('chat-back').onclick = () => {
+    document.getElementById('chat-window').style.display = 'none';
+    document.querySelector('.main-content').style.display = 'block';
+    document.querySelector('.tabs').style.display = 'flex';
+    currentChatWith = null;
+};
+document.getElementById('send-msg').onclick = sendMessage;
+document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => switchTab(tab.dataset.tab));
 </script>
 </body>
-    </html>
+</html>
