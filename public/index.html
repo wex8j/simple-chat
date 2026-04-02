@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>دردشة بغداد لايف</title>
+    <title>دردشة بغداد</title>
     <style>
         * {
             margin: 0;
@@ -40,7 +40,7 @@
             padding: 35px 25px;
             border-radius: 35px;
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
             text-align: center;
             border: 1px solid rgba(156, 39, 176, 0.5);
             box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
@@ -48,16 +48,24 @@
 
         .login-card h1 {
             font-size: 28px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .login-card p {
+        .login-card .welcome-text {
             color: #b39ddb;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .login-card .community-text {
+            color: #9c27b0;
             margin-bottom: 25px;
             font-size: 13px;
+            font-weight: bold;
         }
 
         .login-card input {
@@ -148,55 +156,18 @@
             gap: 12px;
         }
 
-        /* زر الإشعارات */
-        .notification-badge {
-            position: relative;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .notification-dot {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 12px;
-            height: 12px;
-            background: #ff4444;
-            border-radius: 50%;
-            display: none;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .notification-dot.show {
-            display: block;
-        }
-
-        /* زر المستخدمين النشطين */
         .active-users-btn {
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 30px;
             color: white;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-        }
-
-        .active-users-btn:active {
-            transform: scale(0.95);
+            gap: 4px;
         }
 
         .menu-btn {
@@ -228,6 +199,45 @@
             display: block;
         }
 
+        /* شعار الإشعارات على الصفحات */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #9c27b0;
+        }
+
+        .page-header h3 {
+            font-size: 18px;
+            color: #9c27b0;
+        }
+
+        .page-notification {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .page-notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: #ff4444;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .page-notification-dot.show {
+            display: block;
+        }
+
         /* المنشورات */
         .new-post {
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -253,7 +263,7 @@
             margin-top: 10px;
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none;
-            padding: 10px 25px;
+            padding: 8px 20px;
             border-radius: 30px;
             color: white;
             cursor: pointer;
@@ -735,8 +745,9 @@
 
 <div class="login-screen" id="login-screen">
     <div class="login-card">
-        <h1>🇮🇶 دردشة بغداد لايف</h1>
-        <p>أهلاً بك في منصة التواصل العراقية</p>
+        <h1>🇮🇶 دردشة بغداد</h1>
+        <div class="welcome-text">✨ هلاً بيكم ✨</div>
+        <div class="community-text">مجتمع عراقي - سجل الآن وتواصل ويا الناس</div>
         <input type="text" id="username" placeholder="اسم المستخدم">
         <input type="password" id="password" placeholder="كلمة السر">
         <input type="text" id="displayname" placeholder="الاسم الظاهر (للتسجيل)">
@@ -758,26 +769,48 @@
             <button class="active-users-btn" id="active-users-btn">
                 <span>🟢</span> النشطين
             </button>
-            <button class="notification-badge" id="notification-btn">
-                🔔
-                <span class="notification-dot" id="notification-dot"></span>
-            </button>
             <button class="menu-btn" id="menu-btn">👥</button>
         </div>
     </div>
 
     <div class="main-content" id="main-content">
+        <!-- صفحة المنشورات -->
         <div class="page active" id="posts-page">
+            <div class="page-header">
+                <h3>📱 المنشورات</h3>
+                <button class="page-notification" id="posts-notification">
+                    🔔
+                    <span class="page-notification-dot" id="posts-notification-dot"></span>
+                </button>
+            </div>
             <div class="new-post">
                 <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
                 <button class="post-btn" id="post-btn">نشر</button>
             </div>
             <div id="posts-list"></div>
         </div>
+
+        <!-- صفحة الدردشات -->
         <div class="page" id="chats-page">
+            <div class="page-header">
+                <h3>💬 الدردشات</h3>
+                <button class="page-notification" id="chats-notification">
+                    🔔
+                    <span class="page-notification-dot" id="chats-notification-dot"></span>
+                </button>
+            </div>
             <div id="chats-list"></div>
         </div>
+
+        <!-- صفحة الطلبات -->
         <div class="page" id="requests-page">
+            <div class="page-header">
+                <h3>📩 الطلبات</h3>
+                <button class="page-notification" id="requests-notification">
+                    🔔
+                    <span class="page-notification-dot" id="requests-notification-dot"></span>
+                </button>
+            </div>
             <div id="requests-list"></div>
         </div>
     </div>
@@ -836,16 +869,17 @@
 <script>
 let socket, currentUser, currentChatWith;
 let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
-let unreadCount = 0;
+let notifications = { posts: 0, chats: 0, requests: 0 };
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
-function showNotification() {
-    unreadCount++;
-    document.getElementById('notification-dot').classList.add('show');
+function showPageNotification(page) {
+    notifications[page]++;
+    let dot = document.getElementById(`${page}-notification-dot`);
+    if (dot) dot.classList.add('show');
     setTimeout(() => {
-        unreadCount--;
-        if (unreadCount === 0) document.getElementById('notification-dot').classList.remove('show');
+        notifications[page]--;
+        if (notifications[page] === 0 && dot) dot.classList.remove('show');
     }, 3000);
 }
 
@@ -856,6 +890,10 @@ function switchPage(page) {
     document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
     if (page === 'chats') loadChatsList();
     if (page === 'requests') loadRequestsList();
+    // إخفاء النقطة عند فتح الصفحة
+    let dot = document.getElementById(`${page}-notification-dot`);
+    if (dot) dot.classList.remove('show');
+    notifications[page] = 0;
 }
 
 function openUsersMenu() {
@@ -888,7 +926,6 @@ function saveProfile() {
         document.getElementById('user-name').textContent = newName;
         document.getElementById('profile-avatar-large').textContent = newAvatar;
         document.querySelector('.user-avatar').textContent = newAvatar;
-        // تحديث في السيرفر
         socket.emit('update-profile', { displayName: newName, avatar: newAvatar });
         closeProfileModal();
     }
@@ -897,7 +934,6 @@ function saveProfile() {
 function toggleActiveUsers() {
     let modal = document.getElementById('active-users-modal');
     modal.classList.toggle('active');
-    // إغلاق بعد 5 ثواني
     setTimeout(() => modal.classList.remove('active'), 5000);
 }
 
@@ -1066,7 +1102,7 @@ function startApp(data) {
         currentUser.requests.push(d.from);
         updateUsers(data.users);
         if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList();
-        showNotification();
+        showPageNotification('requests');
     });
     socket.on('request-accepted', (d) => {
         if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
@@ -1074,7 +1110,7 @@ function startApp(data) {
         updateUsers(data.users);
         loadChatsList();
         loadRequestsList();
-        showNotification();
+        showPageNotification('chats');
     });
     socket.on('new-message', (d) => {
         let room = [currentUser.username, d.from].sort().join('-');
@@ -1083,7 +1119,7 @@ function startApp(data) {
         localStorage.setItem('conv', JSON.stringify(conversations));
         if (currentChatWith === d.from) addMessage(d.message, false, d.time);
         else loadChatsList();
-        showNotification();
+        showPageNotification('chats');
     });
     socket.on('post-added', (p) => addPost(p));
     socket.on('post-updated', (p) => {
@@ -1121,9 +1157,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-modal').onclick = closeProfileModal;
     document.getElementById('save-profile-btn').onclick = saveProfile;
     document.getElementById('active-users-btn').onclick = toggleActiveUsers;
-    document.getElementById('notification-btn').onclick = () => {
-        document.getElementById('notification-dot').classList.remove('show');
-        unreadCount = 0;
+    
+    // أزرار الإشعارات على الصفحات
+    document.getElementById('posts-notification').onclick = () => {
+        document.getElementById('posts-notification-dot').classList.remove('show');
+        notifications.posts = 0;
+    };
+    document.getElementById('chats-notification').onclick = () => {
+        document.getElementById('chats-notification-dot').classList.remove('show');
+        notifications.chats = 0;
+        switchPage('chats');
+    };
+    document.getElementById('requests-notification').onclick = () => {
+        document.getElementById('requests-notification-dot').classList.remove('show');
+        notifications.requests = 0;
+        switchPage('requests');
     };
     
     document.getElementById('post-btn').onclick = () => {
@@ -1154,7 +1202,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
     document.querySelectorAll('.nav-item').forEach(el => el.onclick = () => switchPage(el.dataset.page));
     
-    // إغلاق قائمة النشطين عند الضغط خارجها
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#active-users-btn') && !e.target.closest('#active-users-modal')) {
             document.getElementById('active-users-modal').classList.remove('active');
@@ -1163,4 +1210,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-                    </html>
+    </html>
