@@ -19,6 +19,7 @@
             overflow: hidden;
         }
 
+        /* شاشة الدخول */
         .login-screen {
             position: fixed;
             top: 0;
@@ -102,6 +103,7 @@
             font-size: 13px;
         }
 
+        /* التطبيق الرئيسي */
         .app {
             display: flex;
             flex-direction: column;
@@ -109,6 +111,7 @@
             background: #000;
         }
 
+        /* الهيدر */
         .header {
             padding: 12px 15px;
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -134,6 +137,29 @@
             justify-content: center;
             font-size: 18px;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* صورة المشرف المتحركة */
+        .user-avatar.admin-avatar, .post-avatar.admin-avatar {
+            animation: adminGlow 1s ease-in-out infinite;
+            box-shadow: 0 0 10px #9c27b0;
+        }
+
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 0px #9c27b0; transform: scale(1); }
+            50% { box-shadow: 0 0 15px #CE1126; transform: scale(1.05); }
+            100% { box-shadow: 0 0 0px #9c27b0; transform: scale(1); }
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-right: 6px;
+            font-weight: bold;
         }
 
         .user-name {
@@ -173,6 +199,7 @@
             cursor: pointer;
         }
 
+        /* التبويبات الرئيسية */
         .main-tabs {
             display: flex;
             justify-content: space-around;
@@ -227,12 +254,14 @@
             display: flex;
         }
 
+        /* المحتوى الرئيسي */
         .main-content {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
         }
 
+        /* الصفحات */
         .page {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -247,6 +276,7 @@
             display: block;
         }
 
+        /* المنشورات */
         .new-post {
             background: linear-gradient(135deg, #1a0033, #0a001a);
             border-radius: 20px;
@@ -301,6 +331,7 @@
             align-items: center;
             justify-content: center;
             font-size: 20px;
+            transition: all 0.3s;
         }
 
         .post-info {
@@ -356,55 +387,128 @@
             font-size: 12px;
         }
 
-        .comments-section {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #9c27b0;
+        /* نافذة التعليقات المنفصلة */
+        .comments-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .comment {
+        .comments-modal.active {
             display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            padding: 6px;
+        }
+
+        .comments-modal-content {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 30px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #9c27b0;
+        }
+
+        .comments-modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #9c27b0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comments-modal-header h3 {
+            color: #9c27b0;
+        }
+
+        .close-comments {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .comments-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 8px;
             background: rgba(156, 39, 176, 0.1);
             border-radius: 15px;
         }
 
-        .comment-avatar {
-            width: 28px;
-            height: 28px;
+        .comment-avatar-modal {
+            width: 35px;
+            height: 35px;
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 16px;
         }
 
-        .add-comment-area {
-            display: none;
-            margin-top: 12px;
-        }
-
-        .add-comment-area input {
+        .comment-content {
             flex: 1;
-            padding: 8px;
+        }
+
+        .comment-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .comment-text {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .comment-time {
+            font-size: 9px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .add-comment-modal {
+            padding: 15px;
+            border-top: 1px solid #9c27b0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-comment-modal input {
+            flex: 1;
+            padding: 10px;
             background: rgba(50, 0, 80, 0.6);
             border: 1px solid #9c27b0;
             border-radius: 25px;
             color: white;
         }
 
-        .submit-comment {
+        .add-comment-modal button {
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none;
-            padding: 6px 15px;
+            padding: 10px 20px;
             border-radius: 25px;
             color: white;
             cursor: pointer;
         }
 
+        /* الدردشات والطلبات */
         .chat-item, .request-item {
             background: linear-gradient(135deg, #1a0033, #0a001a);
             border-radius: 18px;
@@ -441,6 +545,7 @@
             font-size: 14px;
         }
 
+        /* نافذة الدردشة */
         .chat-window {
             display: none;
             flex-direction: column;
@@ -559,6 +664,7 @@
             cursor: pointer;
         }
 
+        /* نافذة التنبيهات */
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -604,6 +710,7 @@
             cursor: pointer;
         }
 
+        /* نافذة تعديل الملف الشخصي */
         .profile-modal {
             display: none;
             position: fixed;
@@ -611,7 +718,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 3000;
             align-items: center;
             justify-content: center;
@@ -680,6 +787,7 @@
             margin-top: 15px;
         }
 
+        /* قائمة الأعضاء النشطين */
         .active-users-modal {
             display: none;
             position: fixed;
@@ -737,6 +845,7 @@
             margin-left: 6px;
         }
 
+        /* قائمة المستخدمين الجانبية */
         .users-sidebar {
             position: fixed;
             top: 0;
@@ -862,7 +971,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1999;
             display: none;
         }
@@ -951,6 +1060,21 @@
     </div>
 </div>
 
+<!-- نافذة التعليقات المنفصلة -->
+<div class="comments-modal" id="comments-modal">
+    <div class="comments-modal-content">
+        <div class="comments-modal-header">
+            <h3>💬 التعليقات</h3>
+            <button class="close-comments" id="close-comments">✕</button>
+        </div>
+        <div class="comments-list" id="comments-list"></div>
+        <div class="add-comment-modal">
+            <input type="text" id="modal-comment-input" placeholder="اكتب تعليق...">
+            <button id="modal-submit-comment">نشر</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast-notification" id="toast-notification">
     <div class="toast-content">
         <div class="toast-icon" id="toast-icon">⚠️</div>
@@ -993,6 +1117,8 @@ let socket, currentUser, currentChatWith;
 let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
 let notificationCounts = { posts: 0, chats: 0, requests: 0 };
 let mutedUsersList = [];
+let allUsersData = [];
+let currentPostId = null;
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
@@ -1087,6 +1213,9 @@ function saveProfile() {
         document.getElementById('user-name').textContent = newName;
         document.getElementById('profile-avatar-large').textContent = newAvatar;
         document.querySelector('.user-avatar').textContent = newAvatar;
+        if (currentUser.username === '3tx') {
+            document.querySelector('.user-avatar').classList.add('admin-avatar');
+        }
         socket.emit('update-profile', { displayName: newName, avatar: newAvatar });
         closeProfileModal();
         showToast('تم تحديث الملف الشخصي بنجاح', 'success');
@@ -1107,7 +1236,7 @@ function updateActiveUsersList(users) {
         let div = document.createElement('div');
         div.className = 'active-user-item';
         div.innerHTML = `
-            <div class="active-user-avatar">${u.avatar || '👤'}</div>
+            <div class="active-user-avatar ${u.username === '3tx' ? 'admin-avatar' : ''}">${u.avatar || '👤'}</div>
             <div class="active-user-name">${escapeHtml(u.displayName)} <span class="online-dot"></span></div>
         `;
         container.appendChild(div);
@@ -1118,6 +1247,7 @@ function updateActiveUsersList(users) {
 }
 
 function updateUsers(users) {
+    allUsersData = users;
     let container = document.getElementById('users-list');
     container.innerHTML = '';
     users.forEach(u => {
@@ -1269,78 +1399,68 @@ function sendMessage() {
     input.value = '';
 }
 
+function openCommentsModal(postId, comments) {
+    currentPostId = postId;
+    let container = document.getElementById('comments-list');
+    container.innerHTML = '';
+    
+    if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">لا توجد تعليقات</div>';
+    } else {
+        comments.forEach(c => {
+            let div = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = `
+                <div class="comment-avatar-modal ${c.username === '3tx' ? 'admin-avatar' : ''}">${c.avatar || '👤'}</div>
+                <div class="comment-content">
+                    <div class="comment-name">${escapeHtml(c.displayName)} ${c.username === '3tx' ? '<span class="vip-badge">VIP</span>' : ''} <span style="font-size:10px;color:#888;">@${escapeHtml(c.username)}</span></div>
+                    <div class="comment-text">${escapeHtml(c.text)}</div>
+                    <div class="comment-time">${c.time}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    document.getElementById('comments-modal').classList.add('active');
+}
+
 function addPost(post) {
     let container = document.getElementById('posts-list');
     let isOwn = post.username === currentUser.username;
     let isFriend = currentUser.friends.includes(post.username);
     let hasRequest = currentUser.requests.includes(post.username);
+    let isAdminPost = post.username === '3tx';
     
     let div = document.createElement('div');
     div.className = 'post-card';
     div.dataset.id = post.id;
     
-    let commentsHtml = '';
-    if (post.comments && post.comments.length > 0) {
-        commentsHtml = '<div class="comments-section">';
-        post.comments.forEach(c => {
-            commentsHtml += `
-                <div class="comment">
-                    <div class="comment-avatar">${c.avatar || '👤'}</div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; font-weight: bold;">${escapeHtml(c.displayName)} <span style="font-size: 10px; color: #888;">@${escapeHtml(c.username)}</span></div>
-                        <div style="font-size: 12px;">${escapeHtml(c.text)}</div>
-                        <div style="font-size: 9px; color: #888;">${c.time}</div>
-                    </div>
-                </div>
-            `;
-        });
-        commentsHtml += '</div>';
-    }
-    
     div.innerHTML = `
         <div class="post-header">
-            <div class="post-avatar">${post.avatar || '👤'}</div>
+            <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}">${post.avatar || '👤'}</div>
             <div class="post-info">
-                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-name">
+                    ${escapeHtml(post.displayName)}
+                    ${isAdminPost ? '<span class="vip-badge">⭐ VIP</span>' : ''}
+                </div>
                 <div class="post-username">@${escapeHtml(post.username)}</div>
             </div>
             <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
         </div>
         <div class="post-text">${escapeHtml(post.text)}</div>
         <div class="post-actions">
-            <button class="like-btn">❤️ ${post.likes||0}</button>
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
             <button class="comment-btn">💬 ${post.comments?.length || 0}</button>
             ${!isOwn && !isFriend && !hasRequest ? `<button class="add-friend-post" data-user="${post.username}">➕ إضافة صديق</button>` : ''}
             ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
         </div>
-        <div class="add-comment-area">
-            <div style="display: flex; gap: 8px;">
-                <input type="text" class="comment-input" placeholder="اكتب تعليق..." style="flex: 1; padding: 8px; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 25px; color: white;">
-                <button class="submit-comment">نشر</button>
-            </div>
-        </div>
-        ${commentsHtml}
     `;
     
     div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
     div.querySelector('.comment-btn').onclick = () => {
-        let commentArea = div.querySelector('.add-comment-area');
-        commentArea.style.display = commentArea.style.display === 'none' ? 'flex' : 'none';
+        openCommentsModal(post.id, post.comments || []);
     };
-    div.querySelector('.add-comment-area').style.display = 'none';
     
-    let submitBtn = div.querySelector('.submit-comment');
-    if (submitBtn) {
-        submitBtn.onclick = () => {
-            let input = div.querySelector('.comment-input');
-            let comment = input.value.trim();
-            if (comment) {
-                socket.emit('add-comment', { postId: post.id, comment: comment });
-                input.value = '';
-                div.querySelector('.add-comment-area').style.display = 'none';
-            }
-        };
-    }
     let addFriendBtn = div.querySelector('.add-friend-post');
     if (addFriendBtn) {
         addFriendBtn.onclick = () => socket.emit('add-friend', addFriendBtn.dataset.user);
@@ -1385,6 +1505,9 @@ function startApp(data) {
     document.getElementById('user-name').textContent = data.displayName;
     document.getElementById('user-username').textContent = `@${data.username}`;
     document.querySelector('.user-avatar').textContent = currentUser.avatar;
+    if (currentUser.username === '3tx') {
+        document.querySelector('.user-avatar').classList.add('admin-avatar');
+    }
     updateUsers(data.users);
     loadPosts(data.posts);
     switchTab('posts');
@@ -1393,7 +1516,7 @@ function startApp(data) {
     
     socket.on('new-request', (d) => {
         currentUser.requests.push(d.from);
-        updateUsers(data.users);
+        updateUsers(allUsersData);
         if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList();
         addNotification('requests');
         showToast(`📩 طلب صداقة جديد من ${d.fromName}`, 'info');
@@ -1401,7 +1524,7 @@ function startApp(data) {
     socket.on('request-accepted', (d) => {
         if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
         currentUser.requests = currentUser.requests.filter(u => u !== d.from);
-        updateUsers(data.users);
+        updateUsers(allUsersData);
         loadChatsList();
         loadRequestsList();
         addNotification('chats');
@@ -1429,6 +1552,9 @@ function startApp(data) {
             existingPost.remove();
             addPost(p);
         }
+        if (currentPostId === p.id && document.getElementById('comments-modal').classList.contains('active')) {
+            openCommentsModal(p.id, p.comments || []);
+        }
     });
     socket.on('post-deleted', (id) => document.querySelector(`.post-card[data-id="${id}"]`)?.remove());
     socket.on('profile-updated', (d) => {
@@ -1437,8 +1563,11 @@ function startApp(data) {
             currentUser.avatar = d.avatar;
             document.getElementById('user-name').textContent = d.displayName;
             document.querySelector('.user-avatar').textContent = d.avatar;
+            if (currentUser.username === '3tx') {
+                document.querySelector('.user-avatar').classList.add('admin-avatar');
+            }
         }
-        updateUsers(data.users);
+        updateUsers(allUsersData);
     });
     socket.on('muted', () => {
         if (!mutedUsersList.includes(currentUser.username)) mutedUsersList.push(currentUser.username);
@@ -1462,34 +1591,34 @@ function startApp(data) {
     socket.on('user-banned', (d) => {
         if (currentUser.isAdmin) {
             showToast(`✅ تم حظر ${d.username} نهائياً`, 'success');
-            updateUsers(data.users);
+            updateUsers(allUsersData);
         }
     });
     socket.on('user-temp-banned', (d) => {
         if (currentUser.isAdmin) {
             showToast(`⏰ تم حظر ${d.username} لمدة ${d.minutes} دقيقة`, 'success');
-            updateUsers(data.users);
+            updateUsers(allUsersData);
         }
     });
     socket.on('user-muted', (d) => {
         if (currentUser.isAdmin) {
             if (!mutedUsersList.includes(d.username)) mutedUsersList.push(d.username);
             showToast(`🔇 تم كتم ${d.username}`, 'success');
-            updateUsers(data.users);
+            updateUsers(allUsersData);
         }
     });
     socket.on('user-unmuted', (d) => {
         if (currentUser.isAdmin) {
             mutedUsersList = mutedUsersList.filter(u => u !== d.username);
             showToast(`🔊 تم فك الكتم عن ${d.username}`, 'success');
-            updateUsers(data.users);
+            updateUsers(allUsersData);
         }
     });
     socket.on('user-online', (d) => {
-        updateUsers(data.users);
+        updateUsers(allUsersData);
     });
     socket.on('user-offline', (d) => {
-        updateUsers(data.users);
+        updateUsers(allUsersData);
     });
     socket.on('users-refreshed', (users) => {
         updateUsers(users);
@@ -1521,6 +1650,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-modal').onclick = closeProfileModal;
     document.getElementById('save-profile-btn').onclick = saveProfile;
     document.getElementById('active-users-btn').onclick = toggleActiveUsers;
+    
+    // نافذة التعليقات
+    document.getElementById('close-comments').onclick = () => {
+        document.getElementById('comments-modal').classList.remove('active');
+        currentPostId = null;
+    };
+    document.getElementById('modal-submit-comment').onclick = () => {
+        let input = document.getElementById('modal-comment-input');
+        let comment = input.value.trim();
+        if (comment && currentPostId && socket) {
+            socket.emit('add-comment', { postId: currentPostId, comment: comment });
+            input.value = '';
+        }
+    };
     
     document.querySelectorAll('.main-tab').forEach(tab => {
         tab.onclick = () => switchTab(tab.dataset.tab);
