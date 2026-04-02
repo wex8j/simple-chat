@@ -199,7 +199,7 @@
             display: block;
         }
 
-        /* شعار الإشعارات على الصفحات */
+        /* شعار الإشعارات مع الرقم */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -223,19 +223,26 @@
             padding: 5px;
         }
 
-        .page-notification-dot {
+        .notification-badge {
             position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 10px;
-            height: 10px;
+            top: -5px;
+            right: -5px;
             background: #ff4444;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 18px;
+            height: 18px;
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
             display: none;
         }
 
-        .page-notification-dot.show {
-            display: block;
+        .notification-badge.show {
+            display: flex;
         }
 
         /* المنشورات */
@@ -780,7 +787,7 @@
                 <h3>📱 المنشورات</h3>
                 <button class="page-notification" id="posts-notification">
                     🔔
-                    <span class="page-notification-dot" id="posts-notification-dot"></span>
+                    <span class="notification-badge" id="posts-badge">0</span>
                 </button>
             </div>
             <div class="new-post">
@@ -796,7 +803,7 @@
                 <h3>💬 الدردشات</h3>
                 <button class="page-notification" id="chats-notification">
                     🔔
-                    <span class="page-notification-dot" id="chats-notification-dot"></span>
+                    <span class="notification-badge" id="chats-badge">0</span>
                 </button>
             </div>
             <div id="chats-list"></div>
@@ -808,7 +815,7 @@
                 <h3>📩 الطلبات</h3>
                 <button class="page-notification" id="requests-notification">
                     🔔
-                    <span class="page-notification-dot" id="requests-notification-dot"></span>
+                    <span class="notification-badge" id="requests-badge">0</span>
                 </button>
             </div>
             <div id="requests-list"></div>
@@ -869,18 +876,30 @@
 <script>
 let socket, currentUser, currentChatWith;
 let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
-let notifications = { posts: 0, chats: 0, requests: 0 };
+let notificationCounts = { posts: 0, chats: 0, requests: 0 };
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
-function showPageNotification(page) {
-    notifications[page]++;
-    let dot = document.getElementById(`${page}-notification-dot`);
-    if (dot) dot.classList.add('show');
-    setTimeout(() => {
-        notifications[page]--;
-        if (notifications[page] === 0 && dot) dot.classList.remove('show');
-    }, 3000);
+function updateNotificationBadge(page, count) {
+    let badge = document.getElementById(`${page}-badge`);
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    }
+}
+
+function addNotification(page) {
+    notificationCounts[page]++;
+    updateNotificationBadge(page, notificationCounts[page]);
+}
+
+function clearNotifications(page) {
+    notificationCounts[page] = 0;
+    updateNotificationBadge(page, 0);
 }
 
 function switchPage(page) {
@@ -890,10 +909,7 @@ function switchPage(page) {
     document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
     if (page === 'chats') loadChatsList();
     if (page === 'requests') loadRequestsList();
-    // إخفاء النقطة عند فتح الصفحة
-    let dot = document.getElementById(`${page}-notification-dot`);
-    if (dot) dot.classList.remove('show');
-    notifications[page] = 0;
+    clearNotifications(page);
 }
 
 function openUsersMenu() {
@@ -1102,7 +1118,7 @@ function startApp(data) {
         currentUser.requests.push(d.from);
         updateUsers(data.users);
         if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList();
-        showPageNotification('requests');
+        addNotification('requests');
     });
     socket.on('request-accepted', (d) => {
         if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
@@ -1110,7 +1126,7 @@ function startApp(data) {
         updateUsers(data.users);
         loadChatsList();
         loadRequestsList();
-        showPageNotification('chats');
+        addNotification('chats');
     });
     socket.on('new-message', (d) => {
         let room = [currentUser.username, d.from].sort().join('-');
@@ -1119,7 +1135,7 @@ function startApp(data) {
         localStorage.setItem('conv', JSON.stringify(conversations));
         if (currentChatWith === d.from) addMessage(d.message, false, d.time);
         else loadChatsList();
-        showPageNotification('chats');
+        addNotification('chats');
     });
     socket.on('post-added', (p) => addPost(p));
     socket.on('post-updated', (p) => {
@@ -1158,19 +1174,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-profile-btn').onclick = saveProfile;
     document.getElementById('active-users-btn').onclick = toggleActiveUsers;
     
-    // أزرار الإشعارات على الصفحات
     document.getElementById('posts-notification').onclick = () => {
-        document.getElementById('posts-notification-dot').classList.remove('show');
-        notifications.posts = 0;
+        clearNotifications('posts');
     };
     document.getElementById('chats-notification').onclick = () => {
-        document.getElementById('chats-notification-dot').classList.remove('show');
-        notifications.chats = 0;
+        clearNotifications('chats');
         switchPage('chats');
     };
     document.getElementById('requests-notification').onclick = () => {
-        document.getElementById('requests-notification-dot').classList.remove('show');
-        notifications.requests = 0;
+        clearNotifications('requests');
         switchPage('requests');
     };
     
