@@ -33,14 +33,15 @@ io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
-        const { username, password, displayName, avatar, avatarType } = data;
+        console.log('محاولة تسجيل:', data.username);
+        const { username, password, displayName } = data;
         
         if (!users[username]) {
             users[username] = {
                 password: password,
                 displayName: displayName || username,
-                avatar: avatar || '👤',
-                avatarType: avatarType || 'emoji',
+                avatar: '👤',
+                avatarType: 'emoji',
                 friends: [],
                 requests: [],
                 socketId: socket.id,
@@ -181,6 +182,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 دردشة بغداد لايف شغالة`);
-    console.log(`👑 المشرف: 3tx - صورته متحركة VIP`);
+    console.log(`🚀 دردشة بغداد لايف شغالة على http://localhost:${PORT}`);
+    console.log(`👑 المشرف: 3tx`);
 });
