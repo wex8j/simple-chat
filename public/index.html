@@ -176,7 +176,7 @@
             cursor: pointer;
         }
 
-        /* التبويبات الرئيسية - بارزة في الأعلى */
+        /* التبويبات الرئيسية */
         .main-tabs {
             display: flex;
             justify-content: space-around;
@@ -588,6 +588,52 @@
             margin-top: 15px;
         }
 
+        /* نافذة التنبيهات الاحترافية */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border: 1px solid #9c27b0;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 4000;
+            transform: translateY(100px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-text {
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
         /* قائمة الأعضاء النشطين */
         .active-users-modal {
             display: none;
@@ -850,6 +896,15 @@
     </div>
 </div>
 
+<!-- نافذة التنبيهات الاحترافية -->
+<div class="toast-notification" id="toast-notification">
+    <div class="toast-content">
+        <div class="toast-icon" id="toast-icon">⚠️</div>
+        <div class="toast-text" id="toast-text"></div>
+    </div>
+    <button class="toast-close" id="toast-close">✕</button>
+</div>
+
 <!-- نافذة تعديل الملف الشخصي -->
 <div class="profile-modal" id="profile-modal">
     <div class="profile-card">
@@ -885,6 +940,31 @@ let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
 let notificationCounts = { posts: 0, chats: 0, requests: 0 };
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+// نافذة التنبيهات الاحترافية
+function showToast(message, type = 'info') {
+    let toast = document.getElementById('toast-notification');
+    let icon = document.getElementById('toast-icon');
+    let text = document.getElementById('toast-text');
+    
+    if (type === 'ban') icon.innerHTML = '⛔';
+    else if (type === 'tempban') icon.innerHTML = '⏰';
+    else if (type === 'mute') icon.innerHTML = '🔇';
+    else if (type === 'success') icon.innerHTML = '✅';
+    else if (type === 'error') icon.innerHTML = '❌';
+    else icon.innerHTML = '⚠️';
+    
+    text.innerHTML = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 4000);
+}
+
+document.getElementById('toast-close').onclick = () => {
+    document.getElementById('toast-notification').classList.remove('show');
+};
 
 function updateTabBadge(tab, count) {
     let badge = document.getElementById(`${tab}-badge`);
@@ -950,6 +1030,7 @@ function saveProfile() {
         document.querySelector('.user-avatar').textContent = newAvatar;
         socket.emit('update-profile', { displayName: newName, avatar: newAvatar });
         closeProfileModal();
+        showToast('تم تحديث الملف الشخصي بنجاح', 'success');
     }
 }
 
@@ -984,7 +1065,6 @@ function updateUsers(users) {
         if (u.username === currentUser.username) return;
         let isFriend = currentUser.friends.includes(u.username);
         let hasRequest = currentUser.requests.includes(u.username);
-        let isMuted = false; // سيتم تحديثها من السيرفر
         
         let div = document.createElement('div');
         div.className = 'user-item';
@@ -1024,20 +1104,20 @@ function updateUsers(users) {
         // أزرار المشرف
         let banBtn = div.querySelector('.admin-ban');
         if (banBtn) banBtn.onclick = () => {
-            if (confirm(`هل تريد حظر ${u.displayName} نهائياً؟`)) {
+            if (confirm(`⚠️ هل تريد حظر ${u.displayName} نهائياً؟`)) {
                 socket.emit('ban-user', u.username);
             }
         };
         let tempBanBtn = div.querySelector('.admin-tempban');
         if (tempBanBtn) tempBanBtn.onclick = () => {
             let minutes = prompt('عدد الدقائق للحظر المؤقت:', '5');
-            if (minutes && !isNaN(minutes)) {
+            if (minutes && !isNaN(minutes) && minutes > 0) {
                 socket.emit('temp-ban-user', { username: u.username, minutes: parseInt(minutes) });
             }
         };
         let muteBtn = div.querySelector('.admin-mute');
         if (muteBtn) muteBtn.onclick = () => {
-            if (confirm(`هل تريد كتم ${u.displayName}؟`)) {
+            if (confirm(`🔇 هل تريد كتم ${u.displayName}؟`)) {
                 socket.emit('mute-user', u.username);
             }
         };
@@ -1084,7 +1164,10 @@ function loadChatsList() {
 }
 
 function openChat(username) {
-    if (!currentUser.friends.includes(username)) { alert('يجب أن تكون صديقاً أولاً'); return; }
+    if (!currentUser.friends.includes(username)) { 
+        showToast('يجب أن تكون صديقاً أولاً للدردشة', 'error');
+        return; 
+    }
     currentChatWith = username;
     document.getElementById('main-content').style.display = 'none';
     document.querySelector('.main-tabs').style.display = 'none';
@@ -1189,6 +1272,7 @@ function startApp(data) {
         updateUsers(data.users);
         if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList();
         addNotification('requests');
+        showToast(`📩 طلب صداقة جديد من ${d.fromName}`, 'info');
     });
     socket.on('request-accepted', (d) => {
         if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
@@ -1197,6 +1281,7 @@ function startApp(data) {
         loadChatsList();
         loadRequestsList();
         addNotification('chats');
+        showToast(`🎉 ${d.fromName} قبل طلب الصداقة!`, 'success');
     });
     socket.on('new-message', (d) => {
         let room = [currentUser.username, d.from].sort().join('-');
@@ -1206,6 +1291,7 @@ function startApp(data) {
         if (currentChatWith === d.from) addMessage(d.message, false, d.time);
         else loadChatsList();
         addNotification('chats');
+        showToast(`💬 رسالة جديدة من ${d.fromName}`, 'info');
     });
     socket.on('post-added', (p) => addPost(p));
     socket.on('post-updated', (p) => {
@@ -1221,22 +1307,47 @@ function startApp(data) {
             document.querySelector('.user-avatar').textContent = d.avatar;
         }
     });
-    socket.on('muted', (d) => {
-        addSystemMessage(`🔇 لقد تم كتمك بواسطة المشرف`, 'chat-messages');
+    
+    // رسائل الحظر والكتم الاحترافية
+    socket.on('muted', () => {
+        showToast('🔇 لقد تم كتمك بواسطة المشرف', 'mute');
     });
-    socket.on('unmuted', (d) => {
-        addSystemMessage(`🔊 تم فك الكتم عنك`, 'chat-messages');
+    socket.on('unmuted', () => {
+        showToast('🔊 تم فك الكتم عنك', 'success');
     });
     socket.on('banned-permanent', (d) => {
-        alert('⛔ تم حظر حسابك بشكل دائم');
-        location.reload();
+        showToast('⛔ تم حظر حسابك بشكل دائم من الدردشة', 'ban');
+        setTimeout(() => location.reload(), 3000);
     });
     socket.on('temp-banned', (d) => {
-        alert(`⏰ تم حظر حسابك مؤقتاً لمدة ${d.minutes} دقيقة`);
-        location.reload();
+        showToast(`⏰ تم حظر حسابك مؤقتاً لمدة ${d.minutes} دقيقة`, 'tempban');
+        setTimeout(() => location.reload(), 3000);
     });
     socket.on('muted-error', (msg) => {
-        addSystemMessage(msg, 'posts-list');
+        showToast(msg, 'error');
+    });
+    socket.on('user-banned', (d) => {
+        if (currentUser.isAdmin) {
+            showToast(`✅ تم حظر ${d.username} نهائياً`, 'success');
+            updateUsers(data.users);
+        }
+    });
+    socket.on('user-temp-banned', (d) => {
+        if (currentUser.isAdmin) {
+            showToast(`⏰ تم حظر ${d.username} لمدة ${d.minutes} دقيقة`, 'success');
+            updateUsers(data.users);
+        }
+    });
+    socket.on('user-muted', (d) => {
+        if (currentUser.isAdmin) {
+            showToast(`🔇 تم كتم ${d.username}`, 'success');
+        }
+    });
+    socket.on('user-online', (d) => {
+        updateUsers(data.users);
+    });
+    socket.on('user-offline', (d) => {
+        updateUsers(data.users);
     });
 }
 
@@ -1250,7 +1361,10 @@ document.addEventListener('DOMContentLoaded', () => {
         socket = io();
         socket.on('connect', () => socket.emit('login', { username: user, password: pass, displayName: name || user }));
         socket.on('login-success', startApp);
-        socket.on('login-error', (m) => err.textContent = m);
+        socket.on('login-error', (m) => {
+            err.textContent = m;
+            showToast(m, 'error');
+        });
     };
     
     document.getElementById('menu-btn').onclick = openUsersMenu;
