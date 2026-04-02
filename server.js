@@ -11,9 +11,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const users = {};
 let posts = [];
-const bannedUsers = []; // قائمة المحظورين نهائياً
-const mutedUsers = []; // قائمة المكتمين
-const tempBannedUsers = []; // { username, until } حظر مؤقت
+const bannedUsers = [];
+const mutedUsers = [];
+const tempBannedUsers = [];
 
 // منشور ترحيبي
 posts.push({
@@ -23,21 +23,30 @@ posts.push({
     avatar: '🇮🇶',
     text: '✨ هلا بيكم في دردشة بغداد لايف ✨\nنرجو من المستخدمين الالتزام بالاحترام والتواصل الإيجابي 🤍',
     time: new Date().toISOString(),
-    likes: 0
+    likes: 0,
+    comments: [] // مصفوفة التعليقات
 });
 
-// التحقق من الحظر المؤقت
 function isTempBanned(username) {
     const tempBan = tempBannedUsers.find(b => b.username === username);
     if (tempBan && tempBan.until > Date.now()) {
         return true;
     } else if (tempBan) {
-        // إزالة الحظر المؤقت بعد انتهاء المدة
         const index = tempBannedUsers.findIndex(b => b.username === username);
         tempBannedUsers.splice(index, 1);
         return false;
     }
     return false;
+}
+
+function broadcastUsers() {
+    const userList = Object.keys(users).map(u => ({
+        username: u,
+        displayName: users[u].displayName,
+        avatar: users[u].avatar || '👤',
+        isAdmin: users[u].isAdmin || false
+    }));
+    io.emit('users-list', userList);
 }
 
 io.on('connection', (socket) => {
@@ -46,13 +55,10 @@ io.on('connection', (socket) => {
     socket.on('login', (data) => {
         const { username, password, displayName, avatar } = data;
         
-        // التحقق من الحظر الدائم
         if (bannedUsers.includes(username)) {
-            socket.emit('login-error', '⛔ حسابك محظور بشكل دائم من الدردشة');
+            socket.emit('login-error', '⛔ حسابك محظور بشكل دائم');
             return;
         }
-        
-        // التحقق من الحظر المؤقت
         if (isTempBanned(username)) {
             const tempBan = tempBannedUsers.find(b => b.username === username);
             const remaining = Math.ceil((tempBan.until - Date.now()) / 60000);
@@ -68,7 +74,7 @@ io.on('connection', (socket) => {
                 friends: [],
                 requests: [],
                 socketId: socket.id,
-                isAdmin: username === '3tx' // المشرف
+                isAdmin: username === '3tx'
             };
         } else if (users[username].password !== password) {
             socket.emit('login-error', 'كلمة السر غير صحيحة');
@@ -95,86 +101,40 @@ io.on('connection', (socket) => {
             }))
         });
         
+        broadcastUsers();
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
-    // ========== صلاحيات المشرف ==========
-    
-    // حظر دائم
-    socket.on('ban-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        if (targetUsername === currentUser) return;
-        
-        if (!bannedUsers.includes(targetUsername)) {
-            bannedUsers.push(targetUsername);
-            
-            // طرد المستخدم إذا كان متصلاً
-            const targetSocket = users[targetUsername]?.socketId;
-            if (targetSocket) {
-                io.to(targetSocket).emit('banned-permanent', { by: currentUser });
-                const clientSocket = io.sockets.sockets.get(targetSocket);
-                if (clientSocket) clientSocket.disconnect();
-            }
-            
-            io.emit('user-banned', { username: targetUsername, by: currentUser });
+    // تحديث يدوي لقائمة المستخدمين
+    socket.on('refresh-users', () => {
+        if (currentUser) {
+            const userList = Object.keys(users).map(u => ({
+                username: u,
+                displayName: users[u].displayName,
+                avatar: users[u].avatar || '👤',
+                isAdmin: users[u].isAdmin || false
+            }));
+            socket.emit('users-refreshed', userList);
         }
     });
     
-    // حظر مؤقت (بالدقائق)
-    socket.on('temp-ban-user', (data) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        const { username, minutes } = data;
-        if (username === currentUser) return;
-        
-        const until = Date.now() + (minutes * 60 * 1000);
-        tempBannedUsers.push({ username, until });
-        
-        // طرد المستخدم إذا كان متصلاً
-        const targetSocket = users[username]?.socketId;
-        if (targetSocket) {
-            io.to(targetSocket).emit('temp-banned', { by: currentUser, minutes });
-            const clientSocket = io.sockets.sockets.get(targetSocket);
-            if (clientSocket) clientSocket.disconnect();
-        }
-        
-        io.emit('user-temp-banned', { username, by: currentUser, minutes });
-    });
-    
-    // كتم مستخدم
-    socket.on('mute-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        if (targetUsername === currentUser) return;
-        
-        if (!mutedUsers.includes(targetUsername)) {
-            mutedUsers.push(targetUsername);
-            io.to(users[targetUsername]?.socketId).emit('muted', { by: currentUser });
-            io.emit('user-muted', { username: targetUsername, by: currentUser });
+    // إضافة تعليق على منشور
+    socket.on('add-comment', (data) => {
+        const { postId, comment } = data;
+        const post = posts.find(p => p.id == postId);
+        if (post && currentUser) {
+            post.comments.push({
+                username: currentUser,
+                displayName: users[currentUser].displayName,
+                avatar: users[currentUser].avatar || '👤',
+                text: comment,
+                time: new Date().toLocaleTimeString('ar-EG')
+            });
+            io.emit('post-updated', post);
         }
     });
     
-    // فك الكتم
-    socket.on('unmute-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        const index = mutedUsers.indexOf(targetUsername);
-        if (index !== -1) {
-            mutedUsers.splice(index, 1);
-            io.to(users[targetUsername]?.socketId).emit('unmuted', { by: currentUser });
-            io.emit('user-unmuted', { username: targetUsername, by: currentUser });
-        }
-    });
-    
-    // إلغاء الحظر الدائم
-    socket.on('unban-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        const index = bannedUsers.indexOf(targetUsername);
-        if (index !== -1) {
-            bannedUsers.splice(index, 1);
-            io.emit('user-unbanned', { username: targetUsername, by: currentUser });
-        }
-    });
-    
-    // ========== بقية الأحداث ==========
-    
+    // إضافة صديق
     socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
         if (mutedUsers.includes(currentUser)) {
@@ -189,9 +149,9 @@ io.on('connection', (socket) => {
             target.requests.push(currentUser);
             io.to(target.socketId).emit('new-request', {
                 from: currentUser,
-                fromName: users[currentUser].displayName,
-                count: target.requests.length
+                fromName: users[currentUser].displayName
             });
+            socket.emit('request-sent', { to: toUsername });
         }
     });
     
@@ -244,7 +204,8 @@ io.on('connection', (socket) => {
             avatar: users[currentUser].avatar || '👤',
             text: data.text,
             time: new Date().toISOString(),
-            likes: 0
+            likes: 0,
+            comments: []
         });
         io.emit('post-added', posts[0]);
     });
@@ -267,10 +228,62 @@ io.on('connection', (socket) => {
         if (data.displayName) users[currentUser].displayName = data.displayName;
         if (data.avatar) users[currentUser].avatar = data.avatar;
         io.emit('profile-updated', { username: currentUser, displayName: users[currentUser].displayName, avatar: users[currentUser].avatar });
+        broadcastUsers();
+    });
+    
+    // صلاحيات المشرف
+    socket.on('ban-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        if (!bannedUsers.includes(targetUsername)) {
+            bannedUsers.push(targetUsername);
+            const targetSocket = users[targetUsername]?.socketId;
+            if (targetSocket) {
+                io.to(targetSocket).emit('banned-permanent', { by: currentUser });
+                const clientSocket = io.sockets.sockets.get(targetSocket);
+                if (clientSocket) clientSocket.disconnect();
+            }
+            io.emit('user-banned', { username: targetUsername, by: currentUser });
+            broadcastUsers();
+        }
+    });
+    
+    socket.on('temp-ban-user', (data) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        const { username, minutes } = data;
+        const until = Date.now() + (minutes * 60 * 1000);
+        tempBannedUsers.push({ username, until });
+        const targetSocket = users[username]?.socketId;
+        if (targetSocket) {
+            io.to(targetSocket).emit('temp-banned', { by: currentUser, minutes });
+            const clientSocket = io.sockets.sockets.get(targetSocket);
+            if (clientSocket) clientSocket.disconnect();
+        }
+        io.emit('user-temp-banned', { username, by: currentUser, minutes });
+        broadcastUsers();
+    });
+    
+    socket.on('mute-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        if (!mutedUsers.includes(targetUsername)) {
+            mutedUsers.push(targetUsername);
+            io.to(users[targetUsername]?.socketId).emit('muted', { by: currentUser });
+            io.emit('user-muted', { username: targetUsername, by: currentUser });
+        }
+    });
+    
+    socket.on('unmute-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        const index = mutedUsers.indexOf(targetUsername);
+        if (index !== -1) {
+            mutedUsers.splice(index, 1);
+            io.to(users[targetUsername]?.socketId).emit('unmuted', { by: currentUser });
+            io.emit('user-unmuted', { username: targetUsername, by: currentUser });
+        }
     });
     
     socket.on('disconnect', () => {
         if (currentUser && users[currentUser]) {
+            broadcastUsers();
             io.emit('user-offline', { username: currentUser });
         }
     });
