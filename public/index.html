@@ -114,13 +114,6 @@
             justify-content: space-between;
         }
 
-        .header h2 {
-            font-size: 20px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
         .header-left {
             display: flex;
             align-items: center;
@@ -148,7 +141,7 @@
             color: #b39ddb;
         }
 
-        .menu-btn, .close-users-btn {
+        .menu-btn {
             background: none;
             border: none;
             font-size: 24px;
@@ -276,8 +269,6 @@
             gap: 5px;
         }
 
-        .like-btn:hover { color: #ff6b6b; }
-
         /* الدردشات والطلبات */
         .chat-item, .request-item {
             background: linear-gradient(135deg, #1a0033, #0a001a);
@@ -315,18 +306,12 @@
             font-size: 14px;
         }
 
-        /* نافذة الدردشة - تصميم نيون بنفسجي */
+        /* نافذة الدردشة */
         .chat-window {
             display: none;
             flex-direction: column;
             height: 100%;
             background: linear-gradient(135deg, #1a0033, #0a001a);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 100;
         }
 
         .chat-header {
@@ -589,7 +574,7 @@
         <button class="menu-btn" id="menu-btn">👥</button>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="main-content">
         <!-- صفحة المنشورات -->
         <div class="page active" id="posts-page">
             <div class="new-post">
@@ -608,18 +593,18 @@
         <div class="page" id="requests-page">
             <div id="requests-list"></div>
         </div>
+    </div>
 
-        <!-- نافذة الدردشة الخاصة -->
-        <div class="chat-window" id="chat-window">
-            <div class="chat-header">
-                <button class="back" id="chat-back">←</button>
-                <span class="chat-with-name" id="chat-with-name"></span>
-            </div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input">
-                <input type="text" id="chat-input" placeholder="اكتب رسالة...">
-                <button id="send-msg">إرسال</button>
-            </div>
+    <!-- نافذة الدردشة (خارج main-content) -->
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <button class="back" id="chat-back">←</button>
+            <span class="chat-with-name" id="chat-with-name"></span>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="اكتب رسالة...">
+            <button id="send-msg">إرسال</button>
         </div>
     </div>
 
@@ -734,12 +719,17 @@ function loadChatsList() {
 }
 
 function openChat(username) {
-    if (!currentUser.friends.includes(username)) return;
+    if (!currentUser.friends.includes(username)) {
+        alert('يجب أن تكون صديقاً أولاً');
+        return;
+    }
     currentChatWith = username;
-    document.querySelector('.main-content').style.display = 'none';
+    // إخفاء المحتوى الرئيسي وإظهار نافذة الدردشة
+    document.getElementById('main-content').style.display = 'none';
     document.querySelector('.bottom-nav').style.display = 'none';
     document.getElementById('chat-window').style.display = 'flex';
     document.getElementById('chat-with-name').textContent = username;
+    
     let msgsDiv = document.getElementById('chat-messages');
     msgsDiv.innerHTML = '';
     let room = [currentUser.username, username].sort().join('-');
@@ -868,9 +858,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('chat-back').onclick = () => {
         document.getElementById('chat-window').style.display = 'none';
-        document.querySelector('.main-content').style.display = 'block';
+        document.getElementById('main-content').style.display = 'block';
         document.querySelector('.bottom-nav').style.display = 'flex';
         currentChatWith = null;
+        // تحديث قائمة الدردشات
+        loadChatsList();
         switchPage('chats');
     };
     
@@ -880,4 +872,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-    </html>
+            </html>
