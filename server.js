@@ -11,10 +11,10 @@ const io = new Server(server);
 const users = {};
 const posts = [];
 let postId = 1;
-const connectedUsers = {}; // username -> socket.id
-const socketToUser = {};   // socket.id -> username
+const connectedUsers = {};
+const socketToUser = {};
 
-// حساب المشرف الثابت
+// حساب المشرف
 users['3tx'] = {
     password: 'admin2024',
     displayName: 'المشرف',
@@ -25,14 +25,11 @@ users['3tx'] = {
     requests: []
 };
 
-// ===== خدمة ملف الواجهة =====
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// ===== Socket.io =====
 io.on('connection', (socket) => {
 
-    // ---- تسجيل الدخول / التسجيل ----
     socket.on('login', ({ username, password, displayName }) => {
         username = username.trim().toLowerCase();
         if (!username || !password) return socket.emit('login-error', 'يرجى ملء جميع الحقول');
@@ -41,7 +38,6 @@ io.on('connection', (socket) => {
             if (users[username].password !== password)
                 return socket.emit('login-error', 'كلمة السر غلط');
         } else {
-            // تسجيل مستخدم جديد
             users[username] = {
                 password,
                 displayName: displayName || username,
@@ -51,7 +47,6 @@ io.on('connection', (socket) => {
                 friends: [],
                 requests: []
             };
-            // إشعار بقية المستخدمين بمستخدم جديد
             socket.broadcast.emit('user-joined', {
                 username,
                 displayName: displayName || username,
@@ -62,8 +57,8 @@ io.on('connection', (socket) => {
 
         connectedUsers[username] = socket.id;
         socketToUser[socket.id] = username;
-
         const u = users[username];
+
         socket.emit('login-success', {
             username,
             displayName: u.displayName,
@@ -82,7 +77,6 @@ io.on('connection', (socket) => {
         });
     });
 
-    // ---- منشور جديد ----
     socket.on('new-post', ({ text }) => {
         const username = socketToUser[socket.id];
         if (!username || !text?.trim()) return;
@@ -102,13 +96,11 @@ io.on('connection', (socket) => {
         io.emit('post-added', post);
     });
 
-    // ---- إعجاب بمنشور ----
     socket.on('like-post', (id) => {
         const username = socketToUser[socket.id];
         const post = posts.find(p => p.id === id);
         if (!post || !username) return;
         if (post.likedBy.includes(username)) {
-            // إلغاء الإعجاب
             post.likes--;
             post.likedBy = post.likedBy.filter(u => u !== username);
         } else {
@@ -118,101 +110,68 @@ io.on('connection', (socket) => {
         io.emit('post-updated', post);
     });
 
-    // ---- حذف منشور ----
     socket.on('delete-post', (id) => {
         const username = socketToUser[socket.id];
         const idx = posts.findIndex(p => p.id === id && p.username === username);
-        if (idx !== -1) {
-            posts.splice(idx, 1);
-            io.emit('post-deleted', id);
-        }
+        if (idx !== -1) { posts.splice(idx, 1); io.emit('post-deleted', id); }
     });
 
-    // ---- إضافة صديق ----
     socket.on('add-friend', (toUsername) => {
         const from = socketToUser[socket.id];
         if (!from || !users[toUsername] || from === toUsername) return;
         if (users[toUsername].requests.includes(from) || users[toUsername].friends.includes(from)) return;
-
         users[toUsername].requests.push(from);
-
         if (connectedUsers[toUsername]) {
-            io.to(connectedUsers[toUsername]).emit('new-request', {
-                from,
-                fromName: users[from].displayName
-            });
+            io.to(connectedUsers[toUsername]).emit('new-request', { from, fromName: users[from].displayName });
         }
     });
 
-    // ---- قبول طلب صداقة ----
     socket.on('accept-friend', (fromUsername) => {
         const to = socketToUser[socket.id];
         if (!to || !users[fromUsername]) return;
-
         if (!users[to].friends.includes(fromUsername)) users[to].friends.push(fromUsername);
         if (!users[fromUsername].friends.includes(to)) users[fromUsername].friends.push(to);
-
         users[to].requests = users[to].requests.filter(u => u !== fromUsername);
         users[fromUsername].requests = users[fromUsername].requests.filter(u => u !== to);
-
         socket.emit('request-accepted', { from: fromUsername, fromName: users[fromUsername].displayName });
-
         if (connectedUsers[fromUsername]) {
-            io.to(connectedUsers[fromUsername]).emit('request-accepted', {
-                from: to,
-                fromName: users[to].displayName
-            });
+            io.to(connectedUsers[fromUsername]).emit('request-accepted', { from: to, fromName: users[to].displayName });
         }
     });
 
-    // ---- رفض طلب صداقة ----
     socket.on('reject-friend', (fromUsername) => {
         const to = socketToUser[socket.id];
         if (!to) return;
         users[to].requests = users[to].requests.filter(u => u !== fromUsername);
     });
 
-    // ---- رسالة خاصة ----
     socket.on('private-message', ({ to, message }) => {
         const from = socketToUser[socket.id];
         if (!from || !message?.trim()) return;
-
         const time = new Date().toLocaleTimeString('ar-IQ');
-
         if (connectedUsers[to]) {
             io.to(connectedUsers[to]).emit('new-message', { from, message, time });
         }
     });
 
-    // ---- تحديث الصورة الشخصية ----
     socket.on('update-avatar', ({ avatar }) => {
         const username = socketToUser[socket.id];
         if (!username || users[username]?.isAdmin) return;
-
         users[username].avatar = avatar;
         users[username].avatarType = 'image';
-
+        posts.filter(p => p.username === username).forEach(p => { p.avatar = avatar; p.avatarType = 'image'; });
         socket.emit('avatar-updated-success');
         io.emit('avatar-updated', { username, avatar });
-
-        // تحديث المنشورات القديمة
-        posts.filter(p => p.username === username).forEach(p => {
-            p.avatar = avatar;
-            p.avatarType = 'image';
-        });
     });
 
-    // ---- قطع الاتصال ----
     socket.on('disconnect', () => {
         const username = socketToUser[socket.id];
-        if (username) {
-            delete connectedUsers[username];
-            delete socketToUser[socket.id];
-        }
+        if (username) { delete connectedUsers[username]; delete socketToUser[socket.id]; }
     });
 });
 
+// ✅ مهم جداً لـ Railway - يستمع على 0.0.0.0
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`✅ السيرفر يشتغل على: http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ السيرفر يشتغل على port ${PORT}`);
 });
