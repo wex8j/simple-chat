@@ -30,7 +30,6 @@ io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
-        console.log('محاولة تسجيل:', data.username);
         const { username, password, displayName } = data;
         
         if (!users[username]) {
@@ -69,7 +68,6 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('user-online', { username });
     });
     
-    // إضافة صديق
     socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
         const target = users[toUsername];
@@ -85,7 +83,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // قبول صديق
     socket.on('accept-friend', (fromUsername) => {
         if (!currentUser) return;
         const current = users[currentUser];
@@ -99,13 +96,11 @@ io.on('connection', (socket) => {
         io.to(from.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    // رفض صديق
     socket.on('reject-friend', (fromUsername) => {
         if (!currentUser) return;
         users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
     });
     
-    // رسالة خاصة
     socket.on('private-message', (data) => {
         if (!currentUser) return;
         const { to, message } = data;
@@ -120,7 +115,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // منشور جديد
     socket.on('new-post', (data) => {
         if (!currentUser) return;
         posts.unshift({
@@ -134,13 +128,11 @@ io.on('connection', (socket) => {
         io.emit('post-added', posts[0]);
     });
     
-    // إعجاب
     socket.on('like-post', (id) => {
         let post = posts.find(p => p.id == id);
         if (post) { post.likes++; io.emit('post-updated', post); }
     });
     
-    // حذف منشور
     socket.on('delete-post', (id) => {
         let index = posts.findIndex(p => p.id == id);
         if (index !== -1 && posts[index].username === currentUser) {
