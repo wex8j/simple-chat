@@ -12,7 +12,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 const users = {};
 let posts = [];
 
-// لا يوجد منشورات تجريبية - تبدأ فارغة
+// منشور ترحيبي
+posts.push({
+    id: Date.now(),
+    username: 'baghdad',
+    displayName: 'دردشة بغداد لايف',
+    avatar: '🇮🇶',
+    text: '✨ هلا بيكم في دردشة بغداد لايف ✨\nنرجو من المستخدمين الالتزام بالاحترام والتواصل الإيجابي 🤍',
+    time: new Date().toISOString(),
+    likes: 0
+});
 
 io.on('connection', (socket) => {
     let currentUser = null;
@@ -50,11 +59,6 @@ io.on('connection', (socket) => {
                 displayName: users[u].displayName,
                 avatar: users[u].avatar || '👤'
             }))
-        });
-        
-        // رسالة الترحيب
-        socket.emit('welcome-message', {
-            text: '✨ هلا بيكم في دردشة بغداد لايف - نرجو من المستخدمين الالتزام بالاحترام ✨'
         });
         
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
