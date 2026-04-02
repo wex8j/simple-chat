@@ -11,8 +11,8 @@ const io = socketIo(server, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' }));
 
-// قاعدة البيانات المركزية
 const users = {};
 let posts = [];
 
@@ -21,6 +21,8 @@ posts.push({
     id: Date.now(),
     username: 'baghdad',
     displayName: 'دردشة بغداد لايف',
+    avatar: '🇮🇶',
+    avatarType: 'emoji',
     text: '✨ هلا بيكم في دردشة بغداد لايف ✨',
     time: new Date().toISOString(),
     likes: 0
@@ -31,15 +33,18 @@ io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
-        const { username, password, displayName } = data;
+        const { username, password, displayName, avatar, avatarType } = data;
         
         if (!users[username]) {
             users[username] = {
                 password: password,
                 displayName: displayName || username,
+                avatar: avatar || '👤',
+                avatarType: avatarType || 'emoji',
                 friends: [],
                 requests: [],
-                socketId: socket.id
+                socketId: socket.id,
+                isAdmin: username === '3tx'
             };
             console.log(`📝 مستخدم جديد: ${username}`);
         } else if (users[username].password !== password) {
@@ -54,16 +59,35 @@ io.on('connection', (socket) => {
         socket.emit('login-success', {
             username: username,
             displayName: users[username].displayName,
+            avatar: users[username].avatar,
+            avatarType: users[username].avatarType,
+            isAdmin: users[username].isAdmin || false,
             friends: users[username].friends,
             requests: users[username].requests,
             posts: posts,
             users: Object.keys(users).map(u => ({
                 username: u,
-                displayName: users[u].displayName
+                displayName: users[u].displayName,
+                avatar: users[u].avatar || '👤',
+                avatarType: users[u].avatarType || 'emoji',
+                isAdmin: users[u].isAdmin || false
             }))
         });
         
         socket.broadcast.emit('user-online', { username });
+    });
+    
+    // تحديث الصورة الشخصية
+    socket.on('update-avatar', (data) => {
+        if (!currentUser) return;
+        if (currentUser === '3tx') {
+            socket.emit('avatar-error', 'المشرف لا يمكنه تغيير صورته');
+            return;
+        }
+        users[currentUser].avatar = data.avatar;
+        users[currentUser].avatarType = 'image';
+        io.emit('avatar-updated', { username: currentUser, avatar: data.avatar });
+        socket.emit('avatar-updated-success');
     });
     
     // إضافة صديق
@@ -124,6 +148,8 @@ io.on('connection', (socket) => {
             id: Date.now(),
             username: currentUser,
             displayName: users[currentUser].displayName,
+            avatar: users[currentUser].avatar || '👤',
+            avatarType: users[currentUser].avatarType || 'emoji',
             text: data.text,
             time: new Date().toISOString(),
             likes: 0
@@ -156,4 +182,5 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 دردشة بغداد لايف شغالة`);
+    console.log(`👑 المشرف: 3tx - صورته متحركة VIP`);
 });
