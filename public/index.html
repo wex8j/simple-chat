@@ -720,6 +720,23 @@
             border-bottom: 1px solid #9c27b0;
         }
 
+        .users-header h3 {
+            font-size: 18px;
+        }
+
+        .refresh-users-btn {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .close-users {
             background: none;
             border: none;
@@ -763,7 +780,7 @@
             display: block;
         }
 
-        .friend-badge, .admin-badge {
+        .friend-badge, .admin-badge, .muted-badge {
             font-size: 9px;
             padding: 2px 6px;
             border-radius: 20px;
@@ -771,6 +788,7 @@
         }
         .friend-badge { background: #4caf50; }
         .admin-badge { background: #9c27b0; }
+        .muted-badge { background: #ff9800; }
 
         .user-actions {
             display: flex;
@@ -779,7 +797,7 @@
             margin-top: 8px;
         }
 
-        .add-friend, .admin-ban, .admin-tempban, .admin-mute {
+        .add-friend, .admin-ban, .admin-tempban, .admin-mute, .admin-unmute {
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none;
             padding: 4px 10px;
@@ -792,6 +810,7 @@
         .admin-ban { background: #f44336; }
         .admin-tempban { background: #ff9800; }
         .admin-mute { background: #9c27b0; }
+        .admin-unmute { background: #4caf50; }
 
         .overlay {
             position: fixed;
@@ -916,7 +935,10 @@
 <div class="users-sidebar" id="users-sidebar">
     <div class="users-header">
         <h3>👥 المستخدمون</h3>
-        <button class="close-users" id="close-users">✕</button>
+        <div style="display: flex; gap: 8px;">
+            <button class="refresh-users-btn" id="refresh-users-btn">🔄 تحديث</button>
+            <button class="close-users" id="close-users">✕</button>
+        </div>
     </div>
     <div class="users-list" id="users-list"></div>
 </div>
@@ -926,6 +948,7 @@
 let socket, currentUser, currentChatWith;
 let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
 let notificationCounts = { posts: 0, chats: 0, requests: 0 };
+let mutedUsersList = []; // قائمة المكتمين من السيرفر
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
@@ -962,7 +985,11 @@ function updateTabBadge(tab, count) {
     }
 }
 
-function addNotification(tab) {
+function addNotification(tab, fromUser = null) {
+    // إذا كنا في المحادثة مع المرسل، لا نضيف إشعار
+    if (tab === 'chats' && fromUser && currentChatWith === fromUser) {
+        return;
+    }
     notificationCounts[tab]++;
     updateTabBadge(tab, notificationCounts[tab]);
 }
@@ -990,6 +1017,14 @@ function openUsersMenu() {
 function closeUsersMenu() {
     document.getElementById('users-sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('active');
+}
+
+// تحديث يدوي لقائمة المستخدمين
+function refreshUsersList() {
+    if (socket && currentUser) {
+        socket.emit('refresh-users');
+        showToast('جاري تحديث قائمة المستخدمين...', 'info');
+    }
 }
 
 function openProfileModal() {
@@ -1049,6 +1084,7 @@ function updateUsers(users) {
         if (u.username === currentUser.username) return;
         let isFriend = currentUser.friends.includes(u.username);
         let hasRequest = currentUser.requests.includes(u.username);
+        let isMuted = mutedUsersList.includes(u.username);
         
         let div = document.createElement('div');
         div.className = 'user-item';
@@ -1058,6 +1094,7 @@ function updateUsers(users) {
                     <strong>${escapeHtml(u.displayName)}</strong>
                     ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
                     ${u.isAdmin ? '<span class="admin-badge">👑 مشرف</span>' : ''}
+                    ${isMuted ? '<span class="muted-badge">🔇 مكتوم</span>' : ''}
                     <small>@${escapeHtml(u.username)}</small>
                 </div>
                 <div class="user-actions" id="actions-${u.username}">
@@ -1070,7 +1107,10 @@ function updateUsers(users) {
                 <div style="display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap;">
                     <button class="admin-ban" data-user="${u.username}">🚫 حظر دائم</button>
                     <button class="admin-tempban" data-user="${u.username}">⏰ حظر مؤقت</button>
-                    <button class="admin-mute" data-user="${u.username}">🔇 كتم</button>
+                    ${isMuted ? 
+                        `<button class="admin-unmute" data-user="${u.username}">🔊 فك كتم</button>` : 
+                        `<button class="admin-mute" data-user="${u.username}">🔇 كتم</button>`
+                    }
                 </div>
             ` : ''}
         `;
@@ -1101,6 +1141,12 @@ function updateUsers(users) {
         if (muteBtn) muteBtn.onclick = () => {
             if (confirm(`🔇 هل تريد كتم ${u.displayName}؟`)) {
                 socket.emit('mute-user', u.username);
+            }
+        };
+        let unmuteBtn = div.querySelector('.admin-unmute');
+        if (unmuteBtn) unmuteBtn.onclick = () => {
+            if (confirm(`🔊 هل تريد فك الكتم عن ${u.displayName}؟`)) {
+                socket.emit('unmute-user', u.username);
             }
         };
         
@@ -1270,10 +1316,15 @@ function startApp(data) {
         if (!conversations[room]) conversations[room] = [];
         conversations[room].push({ from: d.from, message: d.message, time: d.time });
         localStorage.setItem('conv', JSON.stringify(conversations));
-        if (currentChatWith === d.from) addMessage(d.message, false, d.time);
-        else loadChatsList();
-        addNotification('chats');
-        showToast(`💬 رسالة جديدة من ${d.fromName}`, 'info');
+        if (currentChatWith === d.from) {
+            addMessage(d.message, false, d.time);
+        } else {
+            loadChatsList();
+            addNotification('chats', d.from);
+        }
+        if (currentChatWith !== d.from) {
+            showToast(`💬 رسالة جديدة من ${d.fromName}`, 'info');
+        }
     });
     socket.on('post-added', (p) => addPost(p));
     socket.on('post-updated', (p) => {
@@ -1289,10 +1340,12 @@ function startApp(data) {
             document.querySelector('.user-avatar').textContent = d.avatar;
         }
     });
-    socket.on('muted', () => {
+    socket.on('muted', (d) => {
+        if (!mutedUsersList.includes(currentUser.username)) mutedUsersList.push(currentUser.username);
         showToast('🔇 لقد تم كتمك بواسطة المشرف', 'mute');
     });
-    socket.on('unmuted', () => {
+    socket.on('unmuted', (d) => {
+        mutedUsersList = mutedUsersList.filter(u => u !== currentUser.username);
         showToast('🔊 تم فك الكتم عنك', 'success');
     });
     socket.on('banned-permanent', (d) => {
@@ -1320,7 +1373,16 @@ function startApp(data) {
     });
     socket.on('user-muted', (d) => {
         if (currentUser.isAdmin) {
+            if (!mutedUsersList.includes(d.username)) mutedUsersList.push(d.username);
             showToast(`🔇 تم كتم ${d.username}`, 'success');
+            updateUsers(data.users);
+        }
+    });
+    socket.on('user-unmuted', (d) => {
+        if (currentUser.isAdmin) {
+            mutedUsersList = mutedUsersList.filter(u => u !== d.username);
+            showToast(`🔊 تم فك الكتم عن ${d.username}`, 'success');
+            updateUsers(data.users);
         }
     });
     socket.on('user-online', (d) => {
@@ -1328,6 +1390,10 @@ function startApp(data) {
     });
     socket.on('user-offline', (d) => {
         updateUsers(data.users);
+    });
+    socket.on('users-refreshed', (users) => {
+        updateUsers(users);
+        showToast('تم تحديث قائمة المستخدمين', 'success');
     });
 }
 
@@ -1349,6 +1415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('menu-btn').onclick = openUsersMenu;
     document.getElementById('close-users').onclick = closeUsersMenu;
+    document.getElementById('refresh-users-btn').onclick = refreshUsersList;
     document.getElementById('overlay').onclick = closeUsersMenu;
     document.getElementById('profile-avatar-btn').onclick = openProfileModal;
     document.getElementById('close-profile-modal').onclick = closeProfileModal;
@@ -1394,4 +1461,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>
+    </html>
