@@ -58,6 +58,26 @@
             display: flex;
             align-items: center; justify-content: center;
             font-size: 18px;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+        }
+        /* صورة المشرف المتحركة */
+        .user-avatar.admin-avatar {
+            background: url('https://g.top4top.io/p_37443983d0.gif') !important;
+            background-size: cover !important;
+            animation: adminGlow 1s ease-in-out infinite;
+            box-shadow: 0 0 15px #ffd700;
+        }
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 0px #ffd700; transform: scale(1); }
+            50% { box-shadow: 0 0 20px #ff8c00; transform: scale(1.05); }
+            100% { box-shadow: 0 0 0px #ffd700; transform: scale(1); }
+        }
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000; font-size: 9px; padding: 2px 6px; border-radius: 20px;
+            margin-left: 6px; font-weight: bold;
         }
         .user-name { font-size: 14px; font-weight: bold; }
         .user-username { font-size: 10px; color: #b39ddb; }
@@ -97,22 +117,49 @@
             background: #1e1e2e; border-radius: 20px; padding: 15px;
             margin-bottom: 15px; border: 1px solid #9c27b0;
         }
-        .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .post-header { display: flex; gap: 12px; margin-bottom: 10px; }
+        .post-avatar {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 18px;
+            background-size: cover;
+            background-position: center;
+        }
+        .post-avatar.admin-avatar {
+            background: url('https://g.top4top.io/p_37443983d0.gif') !important;
+            background-size: cover !important;
+        }
+        .post-info { flex: 1; }
         .post-name { font-weight: bold; color: #ffaaaa; }
+        .post-username { font-size: 10px; color: #b39ddb; }
         .post-time { font-size: 10px; color: #888; }
         .post-text { margin: 10px 0; line-height: 1.4; }
+        .post-actions { display: flex; gap: 15px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #9c27b0; }
         .like-btn, .delete-btn {
             background: none; border: none; cursor: pointer; font-size: 13px;
         }
         .like-btn { color: #888; }
-        .delete-btn { color: #ff6b6b; margin-left: 10px; }
+        .delete-btn { color: #ff6b6b; }
         .user-card {
             background: #1e1e2e; border-radius: 18px; padding: 12px;
             margin-bottom: 12px; display: flex; justify-content: space-between;
             align-items: center; border: 1px solid #9c27b0;
         }
-        .friend-badge { background: #4caf50; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
-        .request-badge { background: #ff9800; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .user-card-avatar {
+            width: 35px; height: 35px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 16px;
+            background-size: cover;
+            background-position: center;
+        }
+        .friend-badge { background: #4caf50; padding: 2px 8px; border-radius: 20px; font-size: 10px; margin-left: 6px; }
+        .request-badge { background: #ff9800; padding: 2px 8px; border-radius: 20px; font-size: 10px; margin-left: 6px; }
         .add-friend, .accept, .reject, .chat-btn {
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none; padding: 5px 12px; border-radius: 20px;
@@ -155,6 +202,41 @@
             color: white; cursor: pointer;
         }
         .empty { text-align: center; color: #888; padding: 40px; }
+        
+        /* نافذة تعديل الصورة الشخصية */
+        .profile-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); z-index: 3000;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .profile-modal.active { display: flex; }
+        .profile-card {
+            background: #1e1e2e; border-radius: 30px; padding: 25px;
+            width: 100%; max-width: 320px; text-align: center;
+            border: 1px solid #9c27b0;
+        }
+        .profile-avatar-large {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .upload-btn {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none; padding: 10px; border-radius: 30px;
+            color: white; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+        .close-modal {
+            background: none; border: none; color: #9c27b0;
+            font-size: 24px; cursor: pointer; margin-top: 15px;
+        }
+        .hidden-file { display: none; }
     </style>
 </head>
 <body>
@@ -216,6 +298,17 @@
     </div>
 </div>
 
+<!-- نافذة تعديل الصورة -->
+<div class="profile-modal" id="profile-modal">
+    <div class="profile-card">
+        <h3>📷 تغيير الصورة الشخصية</h3>
+        <div class="profile-avatar-large" id="profile-avatar-large">👤</div>
+        <input type="file" id="avatar-file" accept="image/*" class="hidden-file">
+        <button class="upload-btn" id="upload-btn">اختر صورة من جهازك</button>
+        <button class="close-modal" id="close-modal">إلغاء</button>
+    </div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 let socket, currentUser, currentChatWith;
@@ -238,10 +331,20 @@ function switchTab(tab) {
     document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
 }
 
+function openProfileModal() {
+    document.getElementById('profile-modal').classList.add('active');
+}
+function closeProfileModal() {
+    document.getElementById('profile-modal').classList.remove('active');
+}
+
 function startApp(data) {
     currentUser = {
         username: data.username,
         displayName: data.displayName,
+        avatar: data.avatar || '👤',
+        avatarType: data.avatarType || 'emoji',
+        isAdmin: data.isAdmin || false,
         friends: data.friends || [],
         requests: data.requests || []
     };
@@ -250,22 +353,42 @@ function startApp(data) {
     document.getElementById('user-name').textContent = data.displayName;
     document.getElementById('user-username').textContent = `@${data.username}`;
     
+    // تحديث صورة المستخدم
+    const userAvatar = document.getElementById('user-avatar');
+    if (currentUser.isAdmin) {
+        userAvatar.classList.add('admin-avatar');
+        userAvatar.textContent = '';
+    } else if (currentUser.avatarType === 'image') {
+        userAvatar.style.backgroundImage = `url('${currentUser.avatar}')`;
+        userAvatar.style.backgroundSize = 'cover';
+        userAvatar.textContent = '';
+    } else {
+        userAvatar.textContent = currentUser.avatar || '👤';
+    }
+    
     // عرض المنشورات
     const postsContainer = document.getElementById('posts-list');
     postsContainer.innerHTML = '';
     [...data.posts].reverse().forEach(post => {
         const isOwn = post.username === currentUser.username;
+        const isAdminPost = post.username === '3tx';
         const div = document.createElement('div');
         div.className = 'post-card';
         div.dataset.id = post.id;
         div.innerHTML = `
             <div class="post-header">
-                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}" style="${!isAdminPost && post.avatarType === 'image' ? `background-image: url('${post.avatar}'); background-size: cover;` : ''}">${!isAdminPost && (!post.avatar || post.avatarType !== 'image') ? (post.avatar || '👤') : ''}</div>
+                <div class="post-info">
+                    <div class="post-name">${escapeHtml(post.displayName)} ${isAdminPost ? '<span class="vip-badge">VIP</span>' : ''}</div>
+                    <div class="post-username">@${escapeHtml(post.username)}</div>
+                </div>
                 <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
             </div>
             <div class="post-text">${escapeHtml(post.text)}</div>
-            <button class="like-btn">❤️ ${post.likes || 0}</button>
-            ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+            <div class="post-actions">
+                <button class="like-btn">❤️ ${post.likes || 0}</button>
+                ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+            </div>
         `;
         div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
         if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
@@ -279,14 +402,18 @@ function startApp(data) {
         if (u.username === currentUser.username) return;
         const isFriend = currentUser.friends.includes(u.username);
         const hasRequest = currentUser.requests.includes(u.username);
+        const isAdminUser = u.username === '3tx';
         const div = document.createElement('div');
         div.className = 'user-card';
         div.innerHTML = `
-            <div>
-                <strong>${escapeHtml(u.displayName)}</strong>
-                ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
-                ${hasRequest ? '<span class="request-badge">طلب وارد</span>' : ''}
-                <br><small>@${escapeHtml(u.username)}</small>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="user-card-avatar ${isAdminUser ? 'admin-avatar' : ''}" style="${!isAdminUser && u.avatarType === 'image' ? `background-image: url('${u.avatar}'); background-size: cover;` : ''}">${!isAdminUser && (!u.avatar || u.avatarType !== 'image') ? (u.avatar || '👤') : ''}</div>
+                <div>
+                    <strong>${escapeHtml(u.displayName)}</strong>
+                    ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
+                    ${hasRequest ? '<span class="request-badge">طلب وارد</span>' : ''}
+                    <br><small>@${escapeHtml(u.username)}</small>
+                </div>
             </div>
             <div>
                 ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${u.username}">➕ إضافة</button>` : ''}
@@ -341,19 +468,27 @@ function startApp(data) {
         });
     }
     
+    // أحداث السيرفر
     socket.on('post-added', (post) => {
+        const isOwn = post.username === currentUser.username;
+        const isAdminPost = post.username === '3tx';
         const div = document.createElement('div');
         div.className = 'post-card';
         div.dataset.id = post.id;
-        const isOwn = post.username === currentUser.username;
         div.innerHTML = `
             <div class="post-header">
-                <div class="post-name">${escapeHtml(post.displayName)}</div>
+                <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}" style="${!isAdminPost && post.avatarType === 'image' ? `background-image: url('${post.avatar}'); background-size: cover;` : ''}">${!isAdminPost && (!post.avatar || post.avatarType !== 'image') ? (post.avatar || '👤') : ''}</div>
+                <div class="post-info">
+                    <div class="post-name">${escapeHtml(post.displayName)} ${isAdminPost ? '<span class="vip-badge">VIP</span>' : ''}</div>
+                    <div class="post-username">@${escapeHtml(post.username)}</div>
+                </div>
                 <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
             </div>
             <div class="post-text">${escapeHtml(post.text)}</div>
-            <button class="like-btn">❤️ ${post.likes || 0}</button>
-            ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+            <div class="post-actions">
+                <button class="like-btn">❤️ ${post.likes || 0}</button>
+                ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+            </div>
         `;
         div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
         if (isOwn) div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
@@ -398,12 +533,9 @@ function startApp(data) {
         div.querySelector('.chat-btn').onclick = () => openChat(d.from);
         chatsContainer.appendChild(div);
         const requestsContainer = document.getElementById('requests-list');
-        const requestDiv = Array.from(requestsContainer.children).find(el => el.querySelector(`[data-user="${d.from}"]`))?.parentElement?.parentElement;
+        const requestDiv = Array.from(requestsContainer.children).find(el => el.innerHTML.includes(d.from));
         if (requestDiv) requestDiv.remove();
         if (requestsContainer.children.length === 0) requestsContainer.innerHTML = '<div class="empty">لا توجد طلبات</div>';
-        const usersContainer = document.getElementById('users-list');
-        const userDiv = Array.from(usersContainer.children).find(el => el.querySelector(`[data-user="${d.from}"]`));
-        if (userDiv) userDiv.remove();
     });
     
     socket.on('new-message', (d) => {
@@ -412,6 +544,23 @@ function startApp(data) {
         conversations[roomId].push({ from: d.from, message: d.message, time: d.time });
         localStorage.setItem('conv', JSON.stringify(conversations));
         if (currentChatWith === d.from) addMessageToChat(d.message, false, d.time);
+    });
+    
+    socket.on('avatar-updated', (data) => {
+        if (data.username === currentUser.username) {
+            currentUser.avatar = data.avatar;
+            currentUser.avatarType = 'image';
+            document.getElementById('user-avatar').style.backgroundImage = `url('${data.avatar}')`;
+            document.getElementById('user-avatar').style.backgroundSize = 'cover';
+            document.getElementById('user-avatar').textContent = '';
+        }
+        // تحديث قائمة المستخدمين والمنشورات
+        const userEl = document.querySelector(`.user-card-avatar[data-user="${data.username}"]`);
+        if (userEl) {
+            userEl.style.backgroundImage = `url('${data.avatar}')`;
+            userEl.style.backgroundSize = 'cover';
+            userEl.textContent = '';
+        }
     });
 }
 
@@ -442,6 +591,34 @@ function sendMessage() {
     input.value = '';
 }
 
+// رفع الصورة
+document.getElementById('upload-btn').onclick = () => {
+    if (currentUser.isAdmin) {
+        alert('المشرف لا يمكنه تغيير صورته');
+        return;
+    }
+    document.getElementById('avatar-file').click();
+};
+document.getElementById('avatar-file').onchange = (e) => {
+    const file = e.target.files[0];
+    if (file && currentUser && !currentUser.isAdmin) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const imageData = event.target.result;
+            document.getElementById('profile-avatar-large').style.backgroundImage = `url('${imageData}')`;
+            document.getElementById('profile-avatar-large').style.backgroundSize = 'cover';
+            document.getElementById('profile-avatar-large').textContent = '';
+            socket.emit('update-avatar', { avatar: imageData });
+            alert('جاري رفع الصورة...');
+        };
+        reader.readAsDataURL(file);
+    }
+};
+socket.on('avatar-updated-success', () => {
+    alert('تم تحديث الصورة الشخصية بنجاح');
+    closeProfileModal();
+});
+
 document.getElementById('login-btn').onclick = () => {
     const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value.trim();
@@ -469,6 +646,8 @@ document.getElementById('chat-back').onclick = () => {
 document.getElementById('send-msg').onclick = sendMessage;
 document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => switchTab(tab.dataset.tab));
+document.getElementById('user-avatar').onclick = openProfileModal;
+document.getElementById('close-modal').onclick = closeProfileModal;
 </script>
 </body>
 </html>
