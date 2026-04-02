@@ -11,6 +11,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const users = {};
 let posts = [];
+const bannedUsers = []; // قائمة المحظورين نهائياً
+const mutedUsers = []; // قائمة المكتمين
+const tempBannedUsers = []; // { username, until } حظر مؤقت
 
 // منشور ترحيبي
 posts.push({
@@ -23,11 +26,39 @@ posts.push({
     likes: 0
 });
 
+// التحقق من الحظر المؤقت
+function isTempBanned(username) {
+    const tempBan = tempBannedUsers.find(b => b.username === username);
+    if (tempBan && tempBan.until > Date.now()) {
+        return true;
+    } else if (tempBan) {
+        // إزالة الحظر المؤقت بعد انتهاء المدة
+        const index = tempBannedUsers.findIndex(b => b.username === username);
+        tempBannedUsers.splice(index, 1);
+        return false;
+    }
+    return false;
+}
+
 io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
         const { username, password, displayName, avatar } = data;
+        
+        // التحقق من الحظر الدائم
+        if (bannedUsers.includes(username)) {
+            socket.emit('login-error', '⛔ حسابك محظور بشكل دائم من الدردشة');
+            return;
+        }
+        
+        // التحقق من الحظر المؤقت
+        if (isTempBanned(username)) {
+            const tempBan = tempBannedUsers.find(b => b.username === username);
+            const remaining = Math.ceil((tempBan.until - Date.now()) / 60000);
+            socket.emit('login-error', `⏰ حسابك محظور مؤقتاً لمدة ${remaining} دقيقة`);
+            return;
+        }
         
         if (!users[username]) {
             users[username] = {
@@ -36,7 +67,8 @@ io.on('connection', (socket) => {
                 avatar: avatar || '👤',
                 friends: [],
                 requests: [],
-                socketId: socket.id
+                socketId: socket.id,
+                isAdmin: username === '3tx' // المشرف
             };
         } else if (users[username].password !== password) {
             socket.emit('login-error', 'كلمة السر غير صحيحة');
@@ -53,19 +85,102 @@ io.on('connection', (socket) => {
             avatar: users[username].avatar,
             friends: users[username].friends,
             requests: users[username].requests,
+            isAdmin: users[username].isAdmin || false,
             posts: posts,
             users: Object.keys(users).map(u => ({
                 username: u,
                 displayName: users[u].displayName,
-                avatar: users[u].avatar || '👤'
+                avatar: users[u].avatar || '👤',
+                isAdmin: users[u].isAdmin || false
             }))
         });
         
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
+    // ========== صلاحيات المشرف ==========
+    
+    // حظر دائم
+    socket.on('ban-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        if (targetUsername === currentUser) return;
+        
+        if (!bannedUsers.includes(targetUsername)) {
+            bannedUsers.push(targetUsername);
+            
+            // طرد المستخدم إذا كان متصلاً
+            const targetSocket = users[targetUsername]?.socketId;
+            if (targetSocket) {
+                io.to(targetSocket).emit('banned-permanent', { by: currentUser });
+                const clientSocket = io.sockets.sockets.get(targetSocket);
+                if (clientSocket) clientSocket.disconnect();
+            }
+            
+            io.emit('user-banned', { username: targetUsername, by: currentUser });
+        }
+    });
+    
+    // حظر مؤقت (بالدقائق)
+    socket.on('temp-ban-user', (data) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        const { username, minutes } = data;
+        if (username === currentUser) return;
+        
+        const until = Date.now() + (minutes * 60 * 1000);
+        tempBannedUsers.push({ username, until });
+        
+        // طرد المستخدم إذا كان متصلاً
+        const targetSocket = users[username]?.socketId;
+        if (targetSocket) {
+            io.to(targetSocket).emit('temp-banned', { by: currentUser, minutes });
+            const clientSocket = io.sockets.sockets.get(targetSocket);
+            if (clientSocket) clientSocket.disconnect();
+        }
+        
+        io.emit('user-temp-banned', { username, by: currentUser, minutes });
+    });
+    
+    // كتم مستخدم
+    socket.on('mute-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        if (targetUsername === currentUser) return;
+        
+        if (!mutedUsers.includes(targetUsername)) {
+            mutedUsers.push(targetUsername);
+            io.to(users[targetUsername]?.socketId).emit('muted', { by: currentUser });
+            io.emit('user-muted', { username: targetUsername, by: currentUser });
+        }
+    });
+    
+    // فك الكتم
+    socket.on('unmute-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        const index = mutedUsers.indexOf(targetUsername);
+        if (index !== -1) {
+            mutedUsers.splice(index, 1);
+            io.to(users[targetUsername]?.socketId).emit('unmuted', { by: currentUser });
+            io.emit('user-unmuted', { username: targetUsername, by: currentUser });
+        }
+    });
+    
+    // إلغاء الحظر الدائم
+    socket.on('unban-user', (targetUsername) => {
+        if (!currentUser || !users[currentUser]?.isAdmin) return;
+        const index = bannedUsers.indexOf(targetUsername);
+        if (index !== -1) {
+            bannedUsers.splice(index, 1);
+            io.emit('user-unbanned', { username: targetUsername, by: currentUser });
+        }
+    });
+    
+    // ========== بقية الأحداث ==========
+    
     socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
+        if (mutedUsers.includes(currentUser)) {
+            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك إرسال طلبات');
+            return;
+        }
         const target = users[toUsername];
         if (!target) return;
         if (users[currentUser].friends.includes(toUsername)) return;
@@ -100,6 +215,10 @@ io.on('connection', (socket) => {
     
     socket.on('private-message', (data) => {
         if (!currentUser) return;
+        if (mutedUsers.includes(currentUser)) {
+            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك إرسال رسائل');
+            return;
+        }
         const { to, message } = data;
         const target = users[to];
         if (target && users[currentUser].friends.includes(to)) {
@@ -114,6 +233,10 @@ io.on('connection', (socket) => {
     
     socket.on('new-post', (data) => {
         if (!currentUser) return;
+        if (mutedUsers.includes(currentUser)) {
+            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك النشر');
+            return;
+        }
         posts.unshift({
             id: Date.now(),
             username: currentUser,
@@ -154,4 +277,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`✅ دردشة بغداد شغالة`));
+server.listen(PORT, () => console.log(`✅ دردشة بغداد شغالة - المشرف: 3tx`));
