@@ -1,292 +1,1707 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const path = require('path');
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>دردشة بغداد لايف</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-app.use(express.static(path.join(__dirname, 'public')));
+        /* شاشة الدخول */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1a0033, #0a001a, #000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
 
-const users = {};
-let posts = [];
-const bannedUsers = [];
-const mutedUsers = [];
-const tempBannedUsers = [];
+        .login-card {
+            background: rgba(30, 0, 60, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 35px 25px;
+            border-radius: 35px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            border: 1px solid rgba(156, 39, 176, 0.5);
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
+        }
 
-// منشور ترحيبي
-posts.push({
-    id: Date.now(),
-    username: 'baghdad',
-    displayName: 'دردشة بغداد لايف',
-    avatar: '🇮🇶',
-    text: '✨ هلا بيكم في دردشة بغداد لايف ✨\nنرجو من المستخدمين الالتزام بالاحترام والتواصل الإيجابي 🤍',
-    time: new Date().toISOString(),
-    likes: 0,
-    comments: []
-});
+        .login-card h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-function isTempBanned(username) {
-    const tempBan = tempBannedUsers.find(b => b.username === username);
-    if (tempBan && tempBan.until > Date.now()) {
-        return true;
-    } else if (tempBan) {
-        const index = tempBannedUsers.findIndex(b => b.username === username);
-        tempBannedUsers.splice(index, 1);
-        return false;
-    }
-    return false;
+        .login-card .welcome-text {
+            color: #b39ddb;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .login-card .community-text {
+            color: #9c27b0;
+            margin-bottom: 25px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            background: rgba(50, 0, 80, 0.6);
+            border: 1px solid #9c27b0;
+            border-radius: 40px;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .login-card input::placeholder {
+            color: #9c27b0;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+        }
+
+        .error {
+            color: #ff6b6b;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        /* التطبيق الرئيسي */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #000;
+        }
+
+        /* الهيدر */
+        .header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-bottom: 1px solid #9c27b0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* صورة المشرف المتحركة */
+        .user-avatar.admin-avatar, .post-avatar.admin-avatar {
+            animation: adminGlow 1s ease-in-out infinite;
+            box-shadow: 0 0 10px #9c27b0;
+        }
+
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 0px #9c27b0; transform: scale(1); }
+            50% { box-shadow: 0 0 15px #CE1126; transform: scale(1.05); }
+            100% { box-shadow: 0 0 0px #9c27b0; transform: scale(1); }
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-right: 6px;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .user-username {
+            font-size: 10px;
+            color: #b39ddb;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .active-users-btn {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 6px 10px;
+            border-radius: 30px;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* التبويبات الرئيسية */
+        .main-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            padding: 8px 12px;
+            border-bottom: 2px solid #9c27b0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .main-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 12px;
+            background: none;
+            border: none;
+            color: #b39ddb;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .main-tab.active {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            color: white;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+        }
+
+        .tab-badge {
+            position: absolute;
+            top: -5px;
+            right: 5px;
+            background: #ff4444;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            display: none;
+        }
+
+        .tab-badge.show {
+            display: flex;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* الصفحات */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* المنشورات */
+        .new-post {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #9c27b0;
+        }
+
+        .new-post textarea {
+            width: 100%;
+            background: rgba(50, 0, 80, 0.6);
+            border: 1px solid #9c27b0;
+            border-radius: 20px;
+            padding: 12px;
+            color: white;
+            resize: none;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .post-btn {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .post-card {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #9c27b0;
+        }
+
+        .post-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .post-info {
+            flex: 1;
+        }
+
+        .post-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .post-username {
+            font-size: 11px;
+            color: #b39ddb;
+        }
+
+        .post-time {
+            font-size: 10px;
+            color: #9c27b0;
+        }
+
+        .post-text {
+            margin: 12px 0;
+            line-height: 1.5;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #9c27b0;
+            flex-wrap: wrap;
+        }
+
+        .like-btn, .comment-btn, .delete-btn, .add-friend-post {
+            background: none;
+            border: none;
+            color: #b39ddb;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-friend-post {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* نافذة التعليقات المنفصلة */
+        .comments-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .comments-modal.active {
+            display: flex;
+        }
+
+        .comments-modal-content {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 30px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #9c27b0;
+        }
+
+        .comments-modal-header {
+            padding: 15px;
+            border-bottom: 1px solid #9c27b0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comments-modal-header h3 {
+            color: #9c27b0;
+        }
+
+        .close-comments {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .comments-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(156, 39, 176, 0.1);
+            border-radius: 15px;
+        }
+
+        .comment-avatar-modal {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .comment-text {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .comment-time {
+            font-size: 9px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .add-comment-modal {
+            padding: 15px;
+            border-top: 1px solid #9c27b0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-comment-modal input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(50, 0, 80, 0.6);
+            border: 1px solid #9c27b0;
+            border-radius: 25px;
+            color: white;
+        }
+
+        .add-comment-modal button {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* الدردشات والطلبات */
+        .chat-item, .request-item {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 18px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border: 1px solid #9c27b0;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .accept, .reject {
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .accept { background: #4caf50; }
+        .reject { background: #f44336; }
+
+        .empty {
+            text-align: center;
+            color: #b39ddb;
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        /* نافذة الدردشة */
+        .chat-window {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .chat-header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #2a004a, #1a0033);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #9c27b0;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .chat-with-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .exit-chat-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border: none;
+            padding: 6px 15px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 85%;
+        }
+
+        .msg.own {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .bubble {
+            background: rgba(156, 39, 176, 0.3);
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            border: 1px solid #9c27b0;
+        }
+
+        .msg.own .bubble {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+        }
+
+        .msg-time {
+            font-size: 9px;
+            color: #9c27b0;
+            margin-top: 3px;
+        }
+
+        .chat-input {
+            padding: 12px;
+            background: linear-gradient(135deg, #2a004a, #1a0033);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #9c27b0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(50, 0, 80, 0.6);
+            border: 1px solid #9c27b0;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .chat-input button {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* نافذة التنبيهات */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border: 1px solid #9c27b0;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 4000;
+            transform: translateY(100px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-text {
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* نافذة تعديل الملف الشخصي */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .profile-modal.active {
+            display: flex;
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 30px;
+            padding: 25px;
+            width: 100%;
+            max-width: 320px;
+            border: 1px solid #9c27b0;
+            text-align: center;
+        }
+
+        .profile-card h3 {
+            margin-bottom: 20px;
+            color: #9c27b0;
+        }
+
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-card input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(50, 0, 80, 0.6);
+            border: 1px solid #9c27b0;
+            border-radius: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .profile-card button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 24px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* قائمة الأعضاء النشطين */
+        .active-users-modal {
+            display: none;
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border-radius: 20px;
+            padding: 15px;
+            width: 250px;
+            border: 1px solid #9c27b0;
+            z-index: 2000;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .active-users-modal.active {
+            display: block;
+        }
+
+        .active-users-modal h4 {
+            margin-bottom: 10px;
+            color: #9c27b0;
+            text-align: center;
+        }
+
+        .active-user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .active-user-avatar {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .active-user-name {
+            font-size: 13px;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        /* قائمة المستخدمين الجانبية */
+        .users-sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            z-index: 2000;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #9c27b0;
+        }
+
+        .users-sidebar.open {
+            left: 0;
+        }
+
+        .users-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #2a004a, #1a0033);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #9c27b0;
+        }
+
+        .users-header h3 {
+            font-size: 18px;
+        }
+
+        .refresh-users-btn {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .close-users {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9c27b0;
+        }
+
+        .users-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .user-item {
+            background: rgba(50, 0, 80, 0.4);
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid #9c27b0;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .user-name-area {
+            flex: 1;
+        }
+
+        .user-name-area strong {
+            font-size: 14px;
+        }
+
+        .user-name-area small {
+            font-size: 10px;
+            color: #b39ddb;
+            display: block;
+        }
+
+        .friend-badge, .admin-badge, .muted-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-right: 6px;
+        }
+        .friend-badge { background: #4caf50; }
+        .admin-badge { background: #9c27b0; }
+        .muted-badge { background: #ff9800; }
+
+        .user-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .add-friend, .admin-ban, .admin-tempban, .admin-mute, .admin-unmute {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .admin-ban { background: #f44336; }
+        .admin-tempban { background: #ff9800; }
+        .admin-mute { background: #9c27b0; }
+        .admin-unmute { background: #4caf50; }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-screen" id="login-screen">
+    <div class="login-card">
+        <h1>🇮🇶 دردشة بغداد لايف</h1>
+        <div class="welcome-text">✨ هلا بيكم ✨</div>
+        <div class="community-text">مجتمع عراقي - سجل الآن وتواصل ويا الناس</div>
+        <input type="text" id="username" placeholder="اسم المستخدم">
+        <input type="password" id="password" placeholder="كلمة السر">
+        <input type="text" id="displayname" placeholder="الاسم الظاهر (للتسجيل)">
+        <button id="login-btn">دخول / تسجيل</button>
+        <div class="error" id="error-msg"></div>
+    </div>
+</div>
+
+<div class="app" id="app" style="display: none;">
+    <div class="header">
+        <div class="header-left">
+            <div class="user-avatar" id="profile-avatar-btn">👤</div>
+            <div>
+                <div class="user-name" id="user-name">...</div>
+                <div class="user-username" id="user-username">@...</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="active-users-btn" id="active-users-btn">
+                <span>🟢</span> النشطين
+            </button>
+            <button class="menu-btn" id="menu-btn">👥</button>
+        </div>
+    </div>
+
+    <div class="main-tabs">
+        <button class="main-tab active" data-tab="posts">
+            📱 المنشورات
+            <span class="tab-badge" id="posts-badge"></span>
+        </button>
+        <button class="main-tab" data-tab="chats">
+            💬 الدردشات
+            <span class="tab-badge" id="chats-badge"></span>
+        </button>
+        <button class="main-tab" data-tab="requests">
+            📩 الطلبات
+            <span class="tab-badge" id="requests-badge"></span>
+        </button>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <div class="page active" id="posts-page">
+            <div class="new-post">
+                <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
+                <button class="post-btn" id="post-btn">نشر</button>
+            </div>
+            <div id="posts-list"></div>
+        </div>
+        <div class="page" id="chats-page">
+            <div id="chats-list"></div>
+        </div>
+        <div class="page" id="requests-page">
+            <div id="requests-list"></div>
+        </div>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <button class="back" id="chat-back">←</button>
+                <span class="chat-with-name" id="chat-with-name"></span>
+            </div>
+            <button class="exit-chat-btn" id="exit-chat-btn">✕ خروج</button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="اكتب رسالة...">
+            <button id="send-msg">إرسال</button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة التعليقات المنفصلة -->
+<div class="comments-modal" id="comments-modal">
+    <div class="comments-modal-content">
+        <div class="comments-modal-header">
+            <h3>💬 التعليقات</h3>
+            <button class="close-comments" id="close-comments">✕</button>
+        </div>
+        <div class="comments-list" id="comments-list"></div>
+        <div class="add-comment-modal">
+            <input type="text" id="modal-comment-input" placeholder="اكتب تعليق...">
+            <button id="modal-submit-comment">نشر</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-notification" id="toast-notification">
+    <div class="toast-content">
+        <div class="toast-icon" id="toast-icon">⚠️</div>
+        <div class="toast-text" id="toast-text"></div>
+    </div>
+    <button class="toast-close" id="toast-close">✕</button>
+</div>
+
+<div class="profile-modal" id="profile-modal">
+    <div class="profile-card">
+        <h3>✏️ تعديل الملف الشخصي</h3>
+        <div class="profile-avatar-large" id="profile-avatar-large">👤</div>
+        <input type="text" id="edit-displayname" placeholder="الاسم الظاهر">
+        <input type="text" id="edit-avatar" placeholder="رمز الصورة (😀, 😎, 🦁)">
+        <button id="save-profile-btn">💾 حفظ التغييرات</button>
+        <button class="close-modal" id="close-profile-modal">✕ إغلاق</button>
+    </div>
+</div>
+
+<div class="active-users-modal" id="active-users-modal">
+    <h4>🟢 الأعضاء النشطون</h4>
+    <div id="active-users-list"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="users-sidebar" id="users-sidebar">
+    <div class="users-header">
+        <h3>👥 المستخدمون</h3>
+        <div style="display: flex; gap: 8px;">
+            <button class="refresh-users-btn" id="refresh-users-btn">🔄 تحديث</button>
+            <button class="close-users" id="close-users">✕</button>
+        </div>
+    </div>
+    <div class="users-list" id="users-list"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let socket, currentUser, currentChatWith;
+let conversations = JSON.parse(localStorage.getItem('conv') || '{}');
+let notificationCounts = { posts: 0, chats: 0, requests: 0 };
+let mutedUsersList = [];
+let allUsersData = [];
+let currentPostId = null;
+
+function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+function showToast(message, type = 'info') {
+    let toast = document.getElementById('toast-notification');
+    let icon = document.getElementById('toast-icon');
+    let text = document.getElementById('toast-text');
+    
+    if (type === 'ban') icon.innerHTML = '⛔';
+    else if (type === 'tempban') icon.innerHTML = '⏰';
+    else if (type === 'mute') icon.innerHTML = '🔇';
+    else if (type === 'success') icon.innerHTML = '✅';
+    else if (type === 'error') icon.innerHTML = '❌';
+    else icon.innerHTML = '⚠️';
+    
+    text.innerHTML = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
-function broadcastUsers() {
-    const userList = Object.keys(users).map(u => ({
-        username: u,
-        displayName: users[u].displayName,
-        avatar: users[u].avatar || '👤',
-        isAdmin: users[u].isAdmin || false
-    }));
-    io.emit('users-list', userList);
-}
+document.getElementById('toast-close').onclick = () => {
+    document.getElementById('toast-notification').classList.remove('show');
+};
 
-io.on('connection', (socket) => {
-    let currentUser = null;
-
-    socket.on('login', (data) => {
-        const { username, password, displayName, avatar } = data;
-        
-        if (bannedUsers.includes(username)) {
-            socket.emit('login-error', '⛔ حسابك محظور بشكل دائم');
-            return;
-        }
-        if (isTempBanned(username)) {
-            const tempBan = tempBannedUsers.find(b => b.username === username);
-            const remaining = Math.ceil((tempBan.until - Date.now()) / 60000);
-            socket.emit('login-error', `⏰ حسابك محظور مؤقتاً لمدة ${remaining} دقيقة`);
-            return;
-        }
-        
-        if (!users[username]) {
-            users[username] = {
-                password: password,
-                displayName: displayName || username,
-                avatar: avatar || '👤',
-                friends: [],
-                requests: [],
-                socketId: socket.id,
-                isAdmin: username === '3tx'
-            };
-        } else if (users[username].password !== password) {
-            socket.emit('login-error', 'كلمة السر غير صحيحة');
-            return;
+function updateTabBadge(tab, count) {
+    let badge = document.getElementById(`${tab}-badge`);
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.add('show');
         } else {
-            users[username].socketId = socket.id;
+            badge.classList.remove('show');
         }
+    }
+}
+
+function addNotification(tab, fromUser = null) {
+    if (tab === 'chats' && fromUser && currentChatWith === fromUser) return;
+    notificationCounts[tab]++;
+    updateTabBadge(tab, notificationCounts[tab]);
+}
+
+function clearNotifications(tab) {
+    notificationCounts[tab] = 0;
+    updateTabBadge(tab, 0);
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`${tab}-page`).classList.add('active');
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.main-tab[data-tab="${tab}"]`).classList.add('active');
+    if (tab === 'chats') loadChatsList();
+    if (tab === 'requests') loadRequestsList();
+    clearNotifications(tab);
+}
+
+function openUsersMenu() {
+    document.getElementById('users-sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('active');
+}
+
+function closeUsersMenu() {
+    document.getElementById('users-sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+}
+
+function refreshUsersList() {
+    if (socket && currentUser) {
+        socket.emit('refresh-users');
+        showToast('جاري تحديث قائمة المستخدمين...', 'info');
+    }
+}
+
+function openProfileModal() {
+    document.getElementById('edit-displayname').value = currentUser.displayName;
+    document.getElementById('edit-avatar').value = currentUser.avatar || '👤';
+    document.getElementById('profile-avatar-large').textContent = currentUser.avatar || '👤';
+    document.getElementById('profile-modal').classList.add('active');
+}
+
+function closeProfileModal() {
+    document.getElementById('profile-modal').classList.remove('active');
+}
+
+function saveProfile() {
+    let newName = document.getElementById('edit-displayname').value.trim();
+    let newAvatar = document.getElementById('edit-avatar').value.trim() || '👤';
+    if (newName) {
+        currentUser.displayName = newName;
+        currentUser.avatar = newAvatar;
+        document.getElementById('user-name').textContent = newName;
+        document.getElementById('profile-avatar-large').textContent = newAvatar;
+        document.querySelector('.user-avatar').textContent = newAvatar;
+        if (currentUser.username === '3tx') {
+            document.querySelector('.user-avatar').classList.add('admin-avatar');
+        }
+        socket.emit('update-profile', { displayName: newName, avatar: newAvatar });
+        closeProfileModal();
+        showToast('تم تحديث الملف الشخصي بنجاح', 'success');
+    }
+}
+
+function toggleActiveUsers() {
+    let modal = document.getElementById('active-users-modal');
+    modal.classList.toggle('active');
+    setTimeout(() => modal.classList.remove('active'), 5000);
+}
+
+function updateActiveUsersList(users) {
+    let container = document.getElementById('active-users-list');
+    container.innerHTML = '';
+    users.forEach(u => {
+        if (u.username === currentUser.username) return;
+        let div = document.createElement('div');
+        div.className = 'active-user-item';
+        div.innerHTML = `
+            <div class="active-user-avatar ${u.username === '3tx' ? 'admin-avatar' : ''}">${u.avatar || '👤'}</div>
+            <div class="active-user-name">${escapeHtml(u.displayName)} <span class="online-dot"></span></div>
+        `;
+        container.appendChild(div);
+    });
+    if (container.innerHTML === '') {
+        container.innerHTML = '<div style="text-align:center;color:#888;">لا يوجد أعضاء نشطون</div>';
+    }
+}
+
+function updateUsers(users) {
+    allUsersData = users;
+    let container = document.getElementById('users-list');
+    container.innerHTML = '';
+    users.forEach(u => {
+        if (u.username === currentUser.username) return;
+        let isFriend = currentUser.friends.includes(u.username);
+        let hasRequest = currentUser.requests.includes(u.username);
+        let isMuted = mutedUsersList.includes(u.username);
         
-        currentUser = username;
+        let div = document.createElement('div');
+        div.className = 'user-item';
+        div.innerHTML = `
+            <div class="user-info">
+                <div class="user-name-area">
+                    <strong>${escapeHtml(u.displayName)}</strong>
+                    ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
+                    ${u.isAdmin ? '<span class="admin-badge">👑 مشرف</span>' : ''}
+                    ${isMuted ? '<span class="muted-badge">🔇 مكتوم</span>' : ''}
+                    <small>@${escapeHtml(u.username)}</small>
+                </div>
+                <div class="user-actions" id="actions-${u.username}">
+                    ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${u.username}">➕ إضافة</button>` : ''}
+                    ${hasRequest ? `<button class="accept" data-user="${u.username}">✅ قبول</button> <button class="reject" data-user="${u.username}">❌ رفض</button>` : ''}
+                    ${isFriend ? `<button class="chat-btn" data-user="${u.username}" style="background:#2196f3;">💬 دردشة</button>` : ''}
+                </div>
+            </div>
+            ${currentUser.isAdmin && u.username !== currentUser.username ? `
+                <div style="display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap;">
+                    <button class="admin-ban" data-user="${u.username}">🚫 حظر دائم</button>
+                    <button class="admin-tempban" data-user="${u.username}">⏰ حظر مؤقت</button>
+                    ${isMuted ? 
+                        `<button class="admin-unmute" data-user="${u.username}">🔊 فك كتم</button>` : 
+                        `<button class="admin-mute" data-user="${u.username}">🔇 كتم</button>`
+                    }
+                </div>
+            ` : ''}
+        `;
         
-        socket.emit('login-success', {
-            username: username,
-            displayName: users[username].displayName,
-            avatar: users[username].avatar,
-            friends: users[username].friends,
-            requests: users[username].requests,
-            isAdmin: users[username].isAdmin || false,
-            posts: posts,
-            users: Object.keys(users).map(u => ({
-                username: u,
-                displayName: users[u].displayName,
-                avatar: users[u].avatar || '👤',
-                isAdmin: users[u].isAdmin || false
-            }))
-        });
+        let addBtn = div.querySelector('.add-friend');
+        if (addBtn) addBtn.onclick = () => socket.emit('add-friend', u.username);
+        let acceptBtn = div.querySelector('.accept');
+        if (acceptBtn) acceptBtn.onclick = () => socket.emit('accept-friend', u.username);
+        let rejectBtn = div.querySelector('.reject');
+        if (rejectBtn) rejectBtn.onclick = () => socket.emit('reject-friend', u.username);
+        let chatBtn = div.querySelector('.chat-btn');
+        if (chatBtn) chatBtn.onclick = () => openChat(u.username);
         
-        broadcastUsers();
-        socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
-    });
-    
-    socket.on('refresh-users', () => {
-        if (currentUser) {
-            const userList = Object.keys(users).map(u => ({
-                username: u,
-                displayName: users[u].displayName,
-                avatar: users[u].avatar || '👤',
-                isAdmin: users[u].isAdmin || false
-            }));
-            socket.emit('users-refreshed', userList);
-        }
-    });
-    
-    // إضافة تعليق
-    socket.on('add-comment', (data) => {
-        const { postId, comment } = data;
-        const post = posts.find(p => p.id == postId);
-        if (post && currentUser) {
-            post.comments.push({
-                username: currentUser,
-                displayName: users[currentUser].displayName,
-                avatar: users[currentUser].avatar || '👤',
-                text: comment,
-                time: new Date().toLocaleTimeString('ar-EG')
-            });
-            io.emit('post-updated', post);
-        }
-    });
-    
-    socket.on('add-friend', (toUsername) => {
-        if (!currentUser) return;
-        if (mutedUsers.includes(currentUser)) {
-            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك إرسال طلبات');
-            return;
-        }
-        const target = users[toUsername];
-        if (!target) return;
-        if (users[currentUser].friends.includes(toUsername)) return;
-        
-        if (!target.requests.includes(currentUser)) {
-            target.requests.push(currentUser);
-            io.to(target.socketId).emit('new-request', {
-                from: currentUser,
-                fromName: users[currentUser].displayName
-            });
-            socket.emit('request-sent', { to: toUsername });
-        }
-    });
-    
-    socket.on('accept-friend', (fromUsername) => {
-        if (!currentUser) return;
-        const current = users[currentUser];
-        const from = users[fromUsername];
-        
-        current.requests = current.requests.filter(u => u !== fromUsername);
-        if (!current.friends.includes(fromUsername)) current.friends.push(fromUsername);
-        if (!from.friends.includes(currentUser)) from.friends.push(currentUser);
-        
-        io.to(current.socketId).emit('request-accepted', { from: fromUsername, fromName: from.displayName });
-        io.to(from.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
-        broadcastUsers();
-    });
-    
-    socket.on('reject-friend', (fromUsername) => {
-        if (!currentUser) return;
-        users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
-    });
-    
-    socket.on('private-message', (data) => {
-        if (!currentUser) return;
-        if (mutedUsers.includes(currentUser)) {
-            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك إرسال رسائل');
-            return;
-        }
-        const { to, message } = data;
-        const target = users[to];
-        if (target && users[currentUser].friends.includes(to)) {
-            io.to(target.socketId).emit('new-message', {
-                from: currentUser,
-                fromName: users[currentUser].displayName,
-                message: message,
-                time: new Date().toLocaleTimeString('ar-EG')
-            });
-        }
-    });
-    
-    socket.on('new-post', (data) => {
-        if (!currentUser) return;
-        if (mutedUsers.includes(currentUser)) {
-            socket.emit('muted-error', 'أنت مكتوم ولا يمكنك النشر');
-            return;
-        }
-        posts.unshift({
-            id: Date.now(),
-            username: currentUser,
-            displayName: users[currentUser].displayName,
-            avatar: users[currentUser].avatar || '👤',
-            text: data.text,
-            time: new Date().toISOString(),
-            likes: 0,
-            comments: []
-        });
-        io.emit('post-added', posts[0]);
-    });
-    
-    socket.on('like-post', (id) => {
-        let post = posts.find(p => p.id == id);
-        if (post) { post.likes++; io.emit('post-updated', post); }
-    });
-    
-    socket.on('delete-post', (id) => {
-        let index = posts.findIndex(p => p.id == id);
-        if (index !== -1 && posts[index].username === currentUser) {
-            posts.splice(index, 1);
-            io.emit('post-deleted', id);
-        }
-    });
-    
-    socket.on('update-profile', (data) => {
-        if (!currentUser) return;
-        if (data.displayName) users[currentUser].displayName = data.displayName;
-        if (data.avatar) users[currentUser].avatar = data.avatar;
-        io.emit('profile-updated', { username: currentUser, displayName: users[currentUser].displayName, avatar: users[currentUser].avatar });
-        broadcastUsers();
-    });
-    
-    // صلاحيات المشرف
-    socket.on('ban-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        if (!bannedUsers.includes(targetUsername)) {
-            bannedUsers.push(targetUsername);
-            const targetSocket = users[targetUsername]?.socketId;
-            if (targetSocket) {
-                io.to(targetSocket).emit('banned-permanent', { by: currentUser });
-                const clientSocket = io.sockets.sockets.get(targetSocket);
-                if (clientSocket) clientSocket.disconnect();
+        let banBtn = div.querySelector('.admin-ban');
+        if (banBtn) banBtn.onclick = () => {
+            if (confirm(`⚠️ هل تريد حظر ${u.displayName} نهائياً؟`)) {
+                socket.emit('ban-user', u.username);
             }
-            io.emit('user-banned', { username: targetUsername, by: currentUser });
-            broadcastUsers();
+        };
+        let tempBanBtn = div.querySelector('.admin-tempban');
+        if (tempBanBtn) tempBanBtn.onclick = () => {
+            let minutes = prompt('عدد الدقائق للحظر المؤقت:', '5');
+            if (minutes && !isNaN(minutes) && minutes > 0) {
+                socket.emit('temp-ban-user', { username: u.username, minutes: parseInt(minutes) });
+            }
+        };
+        let muteBtn = div.querySelector('.admin-mute');
+        if (muteBtn) muteBtn.onclick = () => {
+            if (confirm(`🔇 هل تريد كتم ${u.displayName}؟`)) {
+                socket.emit('mute-user', u.username);
+            }
+        };
+        let unmuteBtn = div.querySelector('.admin-unmute');
+        if (unmuteBtn) unmuteBtn.onclick = () => {
+            if (confirm(`🔊 هل تريد فك الكتم عن ${u.displayName}؟`)) {
+                socket.emit('unmute-user', u.username);
+            }
+        };
+        
+        container.appendChild(div);
+    });
+    updateActiveUsersList(users.filter(u => u.username !== currentUser.username));
+}
+
+function loadRequestsList() {
+    let container = document.getElementById('requests-list');
+    if (!currentUser.requests.length) { container.innerHTML = '<div class="empty">لا توجد طلبات</div>'; return; }
+    container.innerHTML = '';
+    currentUser.requests.forEach(req => {
+        let div = document.createElement('div');
+        div.className = 'request-item';
+        div.innerHTML = `
+            <div><strong>${escapeHtml(req)}</strong> يريد إضافتك كصديق</div>
+            <div class="request-actions">
+                <button class="accept" data-user="${req}">قبول</button>
+                <button class="reject" data-user="${req}">رفض</button>
+            </div>
+        `;
+        div.querySelector('.accept').onclick = () => socket.emit('accept-friend', req);
+        div.querySelector('.reject').onclick = () => socket.emit('reject-friend', req);
+        container.appendChild(div);
+    });
+}
+
+function loadChatsList() {
+    let container = document.getElementById('chats-list');
+    let friends = currentUser.friends;
+    if (!friends.length) { container.innerHTML = '<div class="empty">لا توجد محادثات</div>'; return; }
+    container.innerHTML = '';
+    friends.forEach(f => {
+        let room = [currentUser.username, f].sort().join('-');
+        let last = conversations[room]?.length ? conversations[room][conversations[room].length-1].message : '';
+        let div = document.createElement('div');
+        div.className = 'chat-item';
+        div.innerHTML = `<div><strong>${escapeHtml(f)}</strong><div style="font-size:12px;color:#b39ddb;">${last ? last.substring(0,30) : 'ابدأ المحادثة'}</div></div>`;
+        div.onclick = () => openChat(f);
+        container.appendChild(div);
+    });
+}
+
+function openChat(username) {
+    if (!currentUser.friends.includes(username)) { 
+        showToast('يجب أن تكون صديقاً أولاً للدردشة', 'error');
+        return; 
+    }
+    currentChatWith = username;
+    document.getElementById('main-content').style.display = 'none';
+    document.querySelector('.main-tabs').style.display = 'none';
+    document.getElementById('chat-window').style.display = 'flex';
+    document.getElementById('chat-with-name').textContent = username;
+    let msgsDiv = document.getElementById('chat-messages');
+    msgsDiv.innerHTML = '';
+    let room = [currentUser.username, username].sort().join('-');
+    let msgs = conversations[room] || [];
+    msgs.forEach(m => addMessage(m.message, m.from === currentUser.username, m.time));
+}
+
+function addMessage(msg, isOwn, time) {
+    let div = document.createElement('div');
+    div.className = 'msg ' + (isOwn ? 'own' : '');
+    div.innerHTML = `<div class="bubble">${escapeHtml(msg)}</div><div class="msg-time">${time||''}</div>`;
+    document.getElementById('chat-messages').appendChild(div);
+    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+}
+
+function sendMessage() {
+    let input = document.getElementById('chat-input');
+    let msg = input.value.trim();
+    if (!msg || !currentChatWith) return;
+    socket.emit('private-message', { to: currentChatWith, message: msg });
+    let room = [currentUser.username, currentChatWith].sort().join('-');
+    if (!conversations[room]) conversations[room] = [];
+    conversations[room].push({ from: currentUser.username, message: msg, time: new Date().toLocaleTimeString() });
+    localStorage.setItem('conv', JSON.stringify(conversations));
+    addMessage(msg, true, new Date().toLocaleTimeString());
+    input.value = '';
+}
+
+function openCommentsModal(postId, comments) {
+    currentPostId = postId;
+    let container = document.getElementById('comments-list');
+    container.innerHTML = '';
+    
+    if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">لا توجد تعليقات</div>';
+    } else {
+        comments.forEach(c => {
+            let div = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = `
+                <div class="comment-avatar-modal ${c.username === '3tx' ? 'admin-avatar' : ''}">${c.avatar || '👤'}</div>
+                <div class="comment-content">
+                    <div class="comment-name">${escapeHtml(c.displayName)} ${c.username === '3tx' ? '<span class="vip-badge">VIP</span>' : ''} <span style="font-size:10px;color:#888;">@${escapeHtml(c.username)}</span></div>
+                    <div class="comment-text">${escapeHtml(c.text)}</div>
+                    <div class="comment-time">${c.time}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    document.getElementById('comments-modal').classList.add('active');
+}
+
+function addPost(post) {
+    let container = document.getElementById('posts-list');
+    let isOwn = post.username === currentUser.username;
+    let isFriend = currentUser.friends.includes(post.username);
+    let hasRequest = currentUser.requests.includes(post.username);
+    let isAdminPost = post.username === '3tx';
+    
+    let div = document.createElement('div');
+    div.className = 'post-card';
+    div.dataset.id = post.id;
+    
+    div.innerHTML = `
+        <div class="post-header">
+            <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}">${post.avatar || '👤'}</div>
+            <div class="post-info">
+                <div class="post-name">
+                    ${escapeHtml(post.displayName)}
+                    ${isAdminPost ? '<span class="vip-badge">⭐ VIP</span>' : ''}
+                </div>
+                <div class="post-username">@${escapeHtml(post.username)}</div>
+            </div>
+            <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
+        </div>
+        <div class="post-text">${escapeHtml(post.text)}</div>
+        <div class="post-actions">
+            <button class="like-btn">❤️ ${post.likes || 0}</button>
+            <button class="comment-btn">💬 ${post.comments?.length || 0}</button>
+            ${!isOwn && !isFriend && !hasRequest ? `<button class="add-friend-post" data-user="${post.username}">➕ إضافة صديق</button>` : ''}
+            ${isOwn ? '<button class="delete-btn">🗑️ حذف</button>' : ''}
+        </div>
+    `;
+    
+    div.querySelector('.like-btn').onclick = () => socket.emit('like-post', post.id);
+    div.querySelector('.comment-btn').onclick = () => {
+        openCommentsModal(post.id, post.comments || []);
+    };
+    
+    let addFriendBtn = div.querySelector('.add-friend-post');
+    if (addFriendBtn) {
+        addFriendBtn.onclick = () => socket.emit('add-friend', addFriendBtn.dataset.user);
+    }
+    if (isOwn) {
+        div.querySelector('.delete-btn').onclick = () => socket.emit('delete-post', post.id);
+    }
+    container.prepend(div);
+}
+
+function loadPosts(posts) {
+    let container = document.getElementById('posts-list');
+    container.innerHTML = '';
+    [...posts].reverse().forEach(p => addPost(p));
+}
+
+function addSystemMessage(text, containerId = 'chat-messages') {
+    let container = document.getElementById(containerId);
+    if (container) {
+        let div = document.createElement('div');
+        div.style.textAlign = 'center';
+        div.style.color = '#b39ddb';
+        div.style.fontSize = '12px';
+        div.style.padding = '8px';
+        div.textContent = text;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function startApp(data) {
+    currentUser = {
+        username: data.username,
+        displayName: data.displayName,
+        avatar: data.avatar || '👤',
+        friends: data.friends || [],
+        requests: data.requests || [],
+        isAdmin: data.isAdmin || false
+    };
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('user-name').textContent = data.displayName;
+    document.getElementById('user-username').textContent = `@${data.username}`;
+    document.querySelector('.user-avatar').textContent = currentUser.avatar;
+    if (currentUser.username === '3tx') {
+        document.querySelector('.user-avatar').classList.add('admin-avatar');
+    }
+    updateUsers(data.users);
+    loadPosts(data.posts);
+    switchTab('posts');
+    
+    addSystemMessage(`✨ هلا بيكم في دردشة بغداد لايف - نرجو من المستخدمين الالتزام بالاحترام ✨`, 'posts-list');
+    
+    socket.on('new-request', (d) => {
+        currentUser.requests.push(d.from);
+        updateUsers(allUsersData);
+        if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList();
+        addNotification('requests');
+        showToast(`📩 طلب صداقة جديد من ${d.fromName}`, 'info');
+    });
+    socket.on('request-accepted', (d) => {
+        if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from);
+        currentUser.requests = currentUser.requests.filter(u => u !== d.from);
+        updateUsers(allUsersData);
+        loadChatsList();
+        loadRequestsList();
+        addNotification('chats');
+        showToast(`🎉 ${d.fromName} قبل طلب الصداقة!`, 'success');
+    });
+    socket.on('new-message', (d) => {
+        let room = [currentUser.username, d.from].sort().join('-');
+        if (!conversations[room]) conversations[room] = [];
+        conversations[room].push({ from: d.from, message: d.message, time: d.time });
+        localStorage.setItem('conv', JSON.stringify(conversations));
+        if (currentChatWith === d.from) {
+            addMessage(d.message, false, d.time);
+        } else {
+            loadChatsList();
+            addNotification('chats', d.from);
+        }
+        if (currentChatWith !== d.from) {
+            showToast(`💬 رسالة جديدة من ${d.fromName}`, 'info');
         }
     });
-    
-    socket.on('temp-ban-user', (data) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        const { username, minutes } = data;
-        const until = Date.now() + (minutes * 60 * 1000);
-        tempBannedUsers.push({ username, until });
-        const targetSocket = users[username]?.socketId;
-        if (targetSocket) {
-            io.to(targetSocket).emit('temp-banned', { by: currentUser, minutes });
-            const clientSocket = io.sockets.sockets.get(targetSocket);
-            if (clientSocket) clientSocket.disconnect();
+    socket.on('post-added', (p) => addPost(p));
+    socket.on('post-updated', (p) => {
+        let existingPost = document.querySelector(`.post-card[data-id="${p.id}"]`);
+        if (existingPost) {
+            existingPost.remove();
+            addPost(p);
         }
-        io.emit('user-temp-banned', { username, by: currentUser, minutes });
-        broadcastUsers();
-    });
-    
-    socket.on('mute-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        if (!mutedUsers.includes(targetUsername)) {
-            mutedUsers.push(targetUsername);
-            io.to(users[targetUsername]?.socketId).emit('muted', { by: currentUser });
-            io.emit('user-muted', { username: targetUsername, by: currentUser });
+        if (currentPostId === p.id && document.getElementById('comments-modal').classList.contains('active')) {
+            openCommentsModal(p.id, p.comments || []);
         }
     });
-    
-    socket.on('unmute-user', (targetUsername) => {
-        if (!currentUser || !users[currentUser]?.isAdmin) return;
-        const index = mutedUsers.indexOf(targetUsername);
-        if (index !== -1) {
-            mutedUsers.splice(index, 1);
-            io.to(users[targetUsername]?.socketId).emit('unmuted', { by: currentUser });
-            io.emit('user-unmuted', { username: targetUsername, by: currentUser });
+    socket.on('post-deleted', (id) => document.querySelector(`.post-card[data-id="${id}"]`)?.remove());
+    socket.on('profile-updated', (d) => {
+        if (d.username === currentUser.username) {
+            currentUser.displayName = d.displayName;
+            currentUser.avatar = d.avatar;
+            document.getElementById('user-name').textContent = d.displayName;
+            document.querySelector('.user-avatar').textContent = d.avatar;
+            if (currentUser.username === '3tx') {
+                document.querySelector('.user-avatar').classList.add('admin-avatar');
+            }
+        }
+        updateUsers(allUsersData);
+    });
+    socket.on('muted', () => {
+        if (!mutedUsersList.includes(currentUser.username)) mutedUsersList.push(currentUser.username);
+        showToast('🔇 لقد تم كتمك بواسطة المشرف', 'mute');
+    });
+    socket.on('unmuted', () => {
+        mutedUsersList = mutedUsersList.filter(u => u !== currentUser.username);
+        showToast('🔊 تم فك الكتم عنك', 'success');
+    });
+    socket.on('banned-permanent', () => {
+        showToast('⛔ تم حظر حسابك بشكل دائم من الدردشة', 'ban');
+        setTimeout(() => location.reload(), 3000);
+    });
+    socket.on('temp-banned', (d) => {
+        showToast(`⏰ تم حظر حسابك مؤقتاً لمدة ${d.minutes} دقيقة`, 'tempban');
+        setTimeout(() => location.reload(), 3000);
+    });
+    socket.on('muted-error', (msg) => {
+        showToast(msg, 'error');
+    });
+    socket.on('user-banned', (d) => {
+        if (currentUser.isAdmin) {
+            showToast(`✅ تم حظر ${d.username} نهائياً`, 'success');
+            updateUsers(allUsersData);
         }
     });
+    socket.on('user-temp-banned', (d) => {
+        if (currentUser.isAdmin) {
+            showToast(`⏰ تم حظر ${d.username} لمدة ${d.minutes} دقيقة`, 'success');
+            updateUsers(allUsersData);
+        }
+    });
+    socket.on('user-muted', (d) => {
+        if (currentUser.isAdmin) {
+            if (!mutedUsersList.includes(d.username)) mutedUsersList.push(d.username);
+            showToast(`🔇 تم كتم ${d.username}`, 'success');
+            updateUsers(allUsersData);
+        }
+    });
+    socket.on('user-unmuted', (d) => {
+        if (currentUser.isAdmin) {
+            mutedUsersList = mutedUsersList.filter(u => u !== d.username);
+            showToast(`🔊 تم فك الكتم عن ${d.username}`, 'success');
+            updateUsers(allUsersData);
+        }
+    });
+    socket.on('user-online', (d) => {
+        updateUsers(allUsersData);
+    });
+    socket.on('user-offline', (d) => {
+        updateUsers(allUsersData);
+    });
+    socket.on('users-refreshed', (users) => {
+        updateUsers(users);
+        showToast('تم تحديث قائمة المستخدمين', 'success');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('login-btn').onclick = () => {
+        let user = document.getElementById('username').value.trim().toLowerCase();
+        let pass = document.getElementById('password').value.trim();
+        let name = document.getElementById('displayname').value.trim();
+        let err = document.getElementById('error-msg');
+        if (!user || !pass) { err.textContent = 'املأ الحقول'; return; }
+        socket = io();
+        socket.on('connect', () => socket.emit('login', { username: user, password: pass, displayName: name || user }));
+        socket.on('login-success', startApp);
+        socket.on('login-error', (m) => {
+            err.textContent = m;
+            showToast(m, 'error');
+        });
+    };
     
-    socket.on('disconnect', () => {
-        if (currentUser && users[currentUser]) {
-            broadcastUsers();
-            io.emit('user-offline', { username: currentUser });
+    document.getElementById('menu-btn').onclick = openUsersMenu;
+    document.getElementById('close-users').onclick = closeUsersMenu;
+    document.getElementById('refresh-users-btn').onclick = refreshUsersList;
+    document.getElementById('overlay').onclick = closeUsersMenu;
+    document.getElementById('profile-avatar-btn').onclick = openProfileModal;
+    document.getElementById('close-profile-modal').onclick = closeProfileModal;
+    document.getElementById('save-profile-btn').onclick = saveProfile;
+    document.getElementById('active-users-btn').onclick = toggleActiveUsers;
+    
+    // نافذة التعليقات
+    document.getElementById('close-comments').onclick = () => {
+        document.getElementById('comments-modal').classList.remove('active');
+        currentPostId = null;
+    };
+    document.getElementById('modal-submit-comment').onclick = () => {
+        let input = document.getElementById('modal-comment-input');
+        let comment = input.value.trim();
+        if (comment && currentPostId && socket) {
+            socket.emit('add-comment', { postId: currentPostId, comment: comment });
+            input.value = '';
+        }
+    };
+    
+    document.querySelectorAll('.main-tab').forEach(tab => {
+        tab.onclick = () => switchTab(tab.dataset.tab);
+    });
+    
+    document.getElementById('post-btn').onclick = () => {
+        let t = document.getElementById('post-text').value.trim();
+        if (t && socket) socket.emit('new-post', { text: t });
+        document.getElementById('post-text').value = '';
+    };
+    
+    document.getElementById('chat-back').onclick = () => {
+        document.getElementById('chat-window').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.querySelector('.main-tabs').style.display = 'flex';
+        currentChatWith = null;
+        loadChatsList();
+        switchTab('chats');
+    };
+    
+    document.getElementById('exit-chat-btn').onclick = () => {
+        document.getElementById('chat-window').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.querySelector('.main-tabs').style.display = 'flex';
+        currentChatWith = null;
+        loadChatsList();
+        switchTab('chats');
+    };
+    
+    document.getElementById('send-msg').onclick = sendMessage;
+    document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#active-users-btn') && !e.target.closest('#active-users-modal')) {
+            document.getElementById('active-users-modal').classList.remove('active');
         }
     });
 });
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`✅ دردشة بغداد شغالة - المشرف: 3tx`));
+</script>
+</body>
+</html>
