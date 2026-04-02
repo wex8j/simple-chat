@@ -153,3 +153,20 @@ server.listen(PORT, () => {
     console.log(`🚀 دردشة بغداد لايف شغالة`);
     console.log(`👑 المشرف: 3tx`);
 });
+
+socket.on('add-comment', (data) => {
+    if (!currentUser) return;
+    let post = posts.find(p => p.id == data.postId);
+    if (post) {
+        if (!post.comments) post.comments = [];
+        post.comments.push({
+            username: currentUser,
+            displayName: users[currentUser].displayName,
+            avatar: users[currentUser].avatar || '👤',
+            text: data.comment,
+            time: new Date().toLocaleTimeString('ar-EG')
+        });
+        io.emit('post-updated', post);
+        socket.emit('comment-added', { post: post });
+    }
+});
