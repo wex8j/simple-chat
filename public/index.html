@@ -13,113 +13,46 @@
             height: 100vh;
             overflow: hidden;
         }
-
-        /* شاشة الدخول */
         .login-screen {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(135deg, #1a0033, #0a001a, #000);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
+            display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
         }
         .login-card {
-            background: rgba(30, 0, 60, 0.8);
-            backdrop-filter: blur(15px);
-            padding: 35px 25px;
-            border-radius: 35px;
-            width: 100%;
-            max-width: 340px;
-            text-align: center;
-            border: 1px solid rgba(156, 39, 176, 0.5);
-            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
+            background: rgba(30, 0, 60, 0.8); backdrop-filter: blur(15px); padding: 35px 25px;
+            border-radius: 35px; width: 100%; max-width: 340px; text-align: center;
+            border: 1px solid rgba(156,39,176,0.5); box-shadow: 0 0 20px rgba(156,39,176,0.3);
         }
-        .login-card h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .login-card h1 { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg,#CE1126,#9c27b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .login-card .welcome-text { color: #b39ddb; margin-bottom: 15px; font-size: 14px; }
         .login-card .community-text { color: #9c27b0; margin-bottom: 25px; font-size: 13px; font-weight: bold; }
-        .login-card input {
-            width: 100%; padding: 14px; margin: 8px 0; background: rgba(50, 0, 80, 0.6);
-            border: 1px solid #9c27b0; border-radius: 40px; color: white; text-align: center; font-size: 16px;
-        }
+        .login-card input { width: 100%; padding: 14px; margin: 8px 0; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 40px; color: white; text-align: center; font-size: 16px; }
         .login-card input::placeholder { color: #9c27b0; }
-        .login-card button {
-            width: 100%; padding: 14px; margin-top: 15px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; border-radius: 40px; color: white; font-weight: bold; font-size: 16px;
-            cursor: pointer; box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-        }
+        .login-card button { width: 100%; padding: 14px; margin-top: 15px; background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; border-radius: 40px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 0 10px rgba(156,39,176,0.5); }
         .error { color: #ff6b6b; margin-top: 12px; font-size: 13px; }
 
-        /* التطبيق الرئيسي */
         .app { display: flex; flex-direction: column; height: 100vh; background: #000; }
-        .header {
-            padding: 12px 15px; background: linear-gradient(135deg, #1a0033, #0a001a);
-            border-bottom: 1px solid #9c27b0; display: flex; align-items: center; justify-content: space-between;
-        }
+        .header { padding: 12px 15px; background: linear-gradient(135deg,#1a0033,#0a001a); border-bottom: 1px solid #9c27b0; display: flex; align-items: center; justify-content: space-between; }
         .header-left { display: flex; align-items: center; gap: 10px; }
 
-        /* صورة المشرف المتحركة - تم إضافة رابط صورتك */
-        .user-avatar {
-            width: 40px; height: 40px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; cursor: pointer; transition: all 0.3s;
-            background-size: cover; background-position: center;
-        }
-        /* صورة المشرف VIP المتحركة */
-        .user-avatar.admin-avatar,
-        .post-avatar.admin-avatar,
-        .comment-avatar-modal.admin-avatar,
-        .active-user-avatar.admin-avatar {
+        .user-avatar { width: 40px; height: 40px; background: linear-gradient(135deg,#CE1126,#9c27b0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.3s; background-size: cover; background-position: center; }
+        .user-avatar.admin-avatar, .post-avatar.admin-avatar, .comment-avatar-modal.admin-avatar, .active-user-avatar.admin-avatar {
             background: url('https://g.top4top.io/p_37443983d0.gif') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            animation: adminGlow 1s ease-in-out infinite;
-            box-shadow: 0 0 15px #ffd700;
+            background-size: cover !important; background-position: center !important;
+            animation: adminGlow 1s ease-in-out infinite; box-shadow: 0 0 15px #ffd700;
         }
-        @keyframes adminGlow {
-            0% { box-shadow: 0 0 0px #ffd700; transform: scale(1); }
-            50% { box-shadow: 0 0 20px #ff8c00; transform: scale(1.05); }
-            100% { box-shadow: 0 0 0px #ffd700; transform: scale(1); }
-        }
-        .vip-badge {
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            color: #000; font-size: 9px; padding: 2px 6px; border-radius: 20px;
-            margin-right: 6px; font-weight: bold;
-        }
+        @keyframes adminGlow { 0% { box-shadow: 0 0 0px #ffd700; transform: scale(1); } 50% { box-shadow: 0 0 20px #ff8c00; transform: scale(1.05); } 100% { box-shadow: 0 0 0px #ffd700; transform: scale(1); } }
+        .vip-badge { background: linear-gradient(135deg,#ffd700,#ff8c00); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 20px; margin-right: 6px; font-weight: bold; }
         .user-name { font-size: 14px; font-weight: bold; }
         .user-username { font-size: 10px; color: #b39ddb; }
         .header-right { display: flex; align-items: center; gap: 12px; }
-        .active-users-btn {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 6px 10px; border-radius: 30px; color: white;
-            font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;
-        }
+        .active-users-btn { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 6px 10px; border-radius: 30px; color: white; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
         .menu-btn { background: none; border: none; font-size: 24px; cursor: pointer; }
 
-        /* التبويبات */
-        .main-tabs {
-            display: flex; justify-content: space-around; background: linear-gradient(135deg, #1a0033, #0a001a);
-            padding: 8px 12px; border-bottom: 2px solid #9c27b0; position: sticky; top: 0; z-index: 10;
-        }
-        .main-tab {
-            flex: 1; text-align: center; padding: 10px 12px; background: none; border: none;
-            color: #b39ddb; font-size: 14px; font-weight: bold; cursor: pointer;
-            border-radius: 30px; transition: all 0.2s; position: relative;
-        }
-        .main-tab.active { background: linear-gradient(135deg, #CE1126, #9c27b0); color: white; box-shadow: 0 0 10px rgba(156, 39, 176, 0.5); }
-        .tab-badge {
-            position: absolute; top: -5px; right: 5px; background: #ff4444; color: white;
-            font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; padding: 0 4px; display: none;
-        }
+        .main-tabs { display: flex; justify-content: space-around; background: linear-gradient(135deg,#1a0033,#0a001a); padding: 8px 12px; border-bottom: 2px solid #9c27b0; position: sticky; top: 0; z-index: 10; }
+        .main-tab { flex: 1; text-align: center; padding: 10px 12px; background: none; border: none; color: #b39ddb; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 30px; transition: all 0.2s; position: relative; }
+        .main-tab.active { background: linear-gradient(135deg,#CE1126,#9c27b0); color: white; box-shadow: 0 0 10px rgba(156,39,176,0.5); }
+        .tab-badge { position: absolute; top: -5px; right: 5px; background: #ff4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0 4px; display: none; }
         .tab-badge.show { display: flex; }
 
         .main-content { flex: 1; overflow-y: auto; padding: 15px; }
@@ -127,239 +60,111 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .page.active { display: block; }
 
-        /* المنشورات */
-        .new-post {
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #9c27b0;
-        }
-        .new-post textarea {
-            width: 100%; background: rgba(50, 0, 80, 0.6); border: 1px solid #9c27b0;
-            border-radius: 20px; padding: 12px; color: white; resize: none; font-size: 15px; font-family: inherit;
-        }
-        .post-btn {
-            margin-top: 10px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 8px 20px; border-radius: 30px; color: white; cursor: pointer; font-weight: bold;
-        }
-        .post-card {
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #9c27b0;
-        }
+        .new-post { background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #9c27b0; }
+        .new-post textarea { width: 100%; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 20px; padding: 12px; color: white; resize: none; font-size: 15px; font-family: inherit; }
+        .post-btn { margin-top: 10px; background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 8px 20px; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; }
+        .post-card { background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #9c27b0; }
         .post-header { display: flex; gap: 12px; margin-bottom: 12px; }
-        .post-avatar {
-            width: 45px; height: 45px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; transition: all 0.3s; background-size: cover; background-position: center;
-        }
+        .post-avatar { width: 45px; height: 45px; background: linear-gradient(135deg,#CE1126,#9c27b0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.3s; background-size: cover; background-position: center; }
         .post-info { flex: 1; }
         .post-name { font-weight: bold; font-size: 15px; }
         .post-username { font-size: 11px; color: #b39ddb; }
         .post-time { font-size: 10px; color: #9c27b0; }
         .post-text { margin: 12px 0; line-height: 1.5; font-size: 14px; white-space: pre-wrap; }
-        .post-actions {
-            display: flex; gap: 20px; margin-top: 12px; padding-top: 12px;
-            border-top: 1px solid #9c27b0; flex-wrap: wrap;
-        }
-        .like-btn, .comment-btn, .delete-btn, .add-friend-post {
-            background: none; border: none; color: #b39ddb; cursor: pointer;
-            font-size: 14px; display: flex; align-items: center; gap: 5px;
-        }
-        .add-friend-post {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            padding: 4px 10px; border-radius: 20px; font-size: 12px;
-        }
+        .post-actions { display: flex; gap: 20px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #9c27b0; flex-wrap: wrap; }
+        .like-btn, .comment-btn, .delete-btn, .add-friend-post { background: none; border: none; color: #b39ddb; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .add-friend-post { background: linear-gradient(135deg,#CE1126,#9c27b0); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
 
-        /* نافذة التعليقات */
-        .comments-modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.95); z-index: 5000; align-items: center; justify-content: center; padding: 20px;
-        }
+        .comments-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
         .comments-modal.active { display: flex; }
-        .comments-modal-content {
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            border-radius: 30px; width: 100%; max-width: 400px; max-height: 80vh;
-            display: flex; flex-direction: column; border: 1px solid #9c27b0;
-        }
+        .comments-modal-content { background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 30px; width: 100%; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column; border: 1px solid #9c27b0; }
         .comments-modal-header { padding: 15px; border-bottom: 1px solid #9c27b0; display: flex; justify-content: space-between; align-items: center; }
         .comments-modal-header h3 { color: #9c27b0; }
         .close-comments { background: none; border: none; color: #9c27b0; font-size: 24px; cursor: pointer; }
         .comments-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .comment-item { display: flex; gap: 10px; margin-bottom: 12px; padding: 8px; background: rgba(156, 39, 176, 0.1); border-radius: 15px; }
-        .comment-avatar-modal {
-            width: 35px; height: 35px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 16px; background-size: cover; background-position: center;
-        }
+        .comment-item { display: flex; gap: 10px; margin-bottom: 12px; padding: 8px; background: rgba(156,39,176,0.1); border-radius: 15px; }
+        .comment-avatar-modal { width: 35px; height: 35px; background: linear-gradient(135deg,#CE1126,#9c27b0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; background-size: cover; background-position: center; }
         .comment-content { flex: 1; }
         .comment-name { font-weight: bold; font-size: 13px; }
         .comment-text { font-size: 13px; margin-top: 4px; }
         .comment-time { font-size: 9px; color: #888; margin-top: 4px; }
         .add-comment-modal { padding: 15px; border-top: 1px solid #9c27b0; display: flex; gap: 10px; }
-        .add-comment-modal input {
-            flex: 1; padding: 10px; background: rgba(50, 0, 80, 0.6);
-            border: 1px solid #9c27b0; border-radius: 25px; color: white;
-        }
-        .add-comment-modal button {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 10px 20px; border-radius: 25px; color: white; cursor: pointer;
-        }
+        .add-comment-modal input { flex: 1; padding: 10px; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 25px; color: white; }
+        .add-comment-modal button { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 10px 20px; border-radius: 25px; color: white; cursor: pointer; }
 
-        /* الدردشات والطلبات */
-        .chat-item, .request-item {
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            border-radius: 18px; padding: 15px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; border: 1px solid #9c27b0;
-        }
+        .chat-item, .request-item { background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 18px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid #9c27b0; }
         .request-actions { display: flex; gap: 8px; }
         .accept, .reject { padding: 6px 14px; border-radius: 30px; border: none; color: white; cursor: pointer; font-size: 12px; }
         .accept { background: #4caf50; }
         .reject { background: #f44336; }
         .empty { text-align: center; color: #b39ddb; padding: 40px; font-size: 14px; }
 
-        /* نافذة الدردشة */
-        .chat-window {
-            display: none; flex-direction: column; height: 100%;
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100;
-        }
-        .chat-header {
-            padding: 12px 15px; background: linear-gradient(135deg, #2a004a, #1a0033);
-            display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #9c27b0;
-        }
+        .chat-window { display: none; flex-direction: column; height: 100%; background: linear-gradient(135deg,#1a0033,#0a001a); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; }
+        .chat-header { padding: 12px 15px; background: linear-gradient(135deg,#2a004a,#1a0033); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #9c27b0; }
         .chat-header-left { display: flex; align-items: center; gap: 12px; }
         .back { background: none; border: none; color: #9c27b0; font-size: 24px; cursor: pointer; }
         .chat-with-name { font-size: 16px; font-weight: bold; }
-        .exit-chat-btn {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            border: none; padding: 6px 15px; border-radius: 25px; color: white; cursor: pointer; font-size: 12px;
-        }
+        .exit-chat-btn { background: linear-gradient(135deg,#f44336,#d32f2f); border: none; padding: 6px 15px; border-radius: 25px; color: white; cursor: pointer; font-size: 12px; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 85%; }
         .msg.own { align-self: flex-end; align-items: flex-end; }
-        .bubble {
-            background: rgba(156, 39, 176, 0.3); padding: 8px 14px; border-radius: 18px;
-            font-size: 14px; border: 1px solid #9c27b0;
-        }
-        .msg.own .bubble { background: linear-gradient(135deg, #CE1126, #9c27b0); border: none; }
+        .bubble { background: rgba(156,39,176,0.3); padding: 8px 14px; border-radius: 18px; font-size: 14px; border: 1px solid #9c27b0; }
+        .msg.own .bubble { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; }
         .msg-time { font-size: 9px; color: #9c27b0; margin-top: 3px; }
-        .chat-input {
-            padding: 12px; background: linear-gradient(135deg, #2a004a, #1a0033);
-            display: flex; gap: 10px; border-top: 1px solid #9c27b0;
-        }
-        .chat-input input {
-            flex: 1; padding: 10px; background: rgba(50, 0, 80, 0.6);
-            border: 1px solid #9c27b0; border-radius: 30px; color: white; font-size: 14px;
-        }
-        .chat-input button {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 10px 18px; border-radius: 30px; color: white; cursor: pointer;
-        }
+        .chat-input { padding: 12px; background: linear-gradient(135deg,#2a004a,#1a0033); display: flex; gap: 10px; border-top: 1px solid #9c27b0; }
+        .chat-input input { flex: 1; padding: 10px; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 30px; color: white; font-size: 14px; }
+        .chat-input button { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 10px 18px; border-radius: 30px; color: white; cursor: pointer; }
 
-        /* التنبيهات */
-        .toast-notification {
-            position: fixed; bottom: 20px; left: 20px; right: 20px;
-            background: linear-gradient(135deg, #1a0033, #0a001a); border: 1px solid #9c27b0;
-            border-radius: 20px; padding: 15px; display: flex; align-items: center;
-            justify-content: space-between; z-index: 4000; transform: translateY(100px);
-            transition: transform 0.3s ease; box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
-        }
+        .toast-notification { position: fixed; bottom: 20px; left: 20px; right: 20px; background: linear-gradient(135deg,#1a0033,#0a001a); border: 1px solid #9c27b0; border-radius: 20px; padding: 15px; display: flex; align-items: center; justify-content: space-between; z-index: 4000; transform: translateY(100px); transition: transform 0.3s ease; box-shadow: 0 0 20px rgba(156,39,176,0.3); }
         .toast-notification.show { transform: translateY(0); }
         .toast-content { display: flex; align-items: center; gap: 12px; }
         .toast-icon { font-size: 24px; }
         .toast-text { font-size: 14px; flex: 1; }
         .toast-close { background: none; border: none; color: #9c27b0; font-size: 20px; cursor: pointer; }
 
-        /* الملف الشخصي */
-        .profile-modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px;
-        }
+        .profile-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
         .profile-modal.active { display: flex; }
-        .profile-card {
-            background: linear-gradient(135deg, #1a0033, #0a001a); border-radius: 30px;
-            padding: 25px; width: 100%; max-width: 320px; border: 1px solid #9c27b0; text-align: center;
-        }
+        .profile-card { background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 30px; padding: 25px; width: 100%; max-width: 320px; border: 1px solid #9c27b0; text-align: center; }
         .profile-card h3 { margin-bottom: 20px; color: #9c27b0; }
-        .profile-avatar-large {
-            width: 80px; height: 80px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 40px; margin: 0 auto 20px; background-size: cover; background-position: center;
-        }
-        .profile-card input {
-            width: 100%; padding: 12px; margin: 10px 0; background: rgba(50, 0, 80, 0.6);
-            border: 1px solid #9c27b0; border-radius: 30px; color: white; text-align: center;
-        }
-        .profile-card button {
-            width: 100%; padding: 12px; margin-top: 10px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; border-radius: 30px; color: white; cursor: pointer;
-        }
+        .profile-avatar-large { width: 80px; height: 80px; background: linear-gradient(135deg,#CE1126,#9c27b0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 20px; background-size: cover; background-position: center; }
+        .profile-card input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(50,0,80,0.6); border: 1px solid #9c27b0; border-radius: 30px; color: white; text-align: center; }
+        .profile-card button { width: 100%; padding: 12px; margin-top: 10px; background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; border-radius: 30px; color: white; cursor: pointer; }
         .close-modal { background: none; border: none; color: #9c27b0; font-size: 24px; cursor: pointer; margin-top: 15px; }
+        .upload-avatar-btn { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 8px 15px; border-radius: 30px; color: white; cursor: pointer; font-size: 12px; margin-top: 10px; width: 100%; }
+        .avatar-preview { width: 80px; height: 80px; border-radius: 50%; margin: 10px auto; background-size: cover; background-position: center; border: 2px solid #9c27b0; }
+        .hidden-file-input { display: none; }
 
-        /* الأعضاء النشطين */
-        .active-users-modal {
-            display: none; position: fixed; top: 60px; right: 10px;
-            background: linear-gradient(135deg, #1a0033, #0a001a); border-radius: 20px;
-            padding: 15px; width: 250px; border: 1px solid #9c27b0; z-index: 2000;
-            max-height: 300px; overflow-y: auto;
-        }
+        .active-users-modal { display: none; position: fixed; top: 60px; right: 10px; background: linear-gradient(135deg,#1a0033,#0a001a); border-radius: 20px; padding: 15px; width: 250px; border: 1px solid #9c27b0; z-index: 2000; max-height: 300px; overflow-y: auto; }
         .active-users-modal.active { display: block; }
         .active-users-modal h4 { margin-bottom: 10px; color: #9c27b0; text-align: center; }
         .active-user-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #333; }
-        .active-user-avatar {
-            width: 30px; height: 30px; background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 14px; background-size: cover; background-position: center;
-        }
+        .active-user-avatar { width: 30px; height: 30px; background: linear-gradient(135deg,#CE1126,#9c27b0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; background-size: cover; background-position: center; }
         .active-user-name { font-size: 13px; }
         .online-dot { width: 8px; height: 8px; background: #4caf50; border-radius: 50%; display: inline-block; margin-left: 6px; }
 
-        /* قائمة المستخدمين */
-        .users-sidebar {
-            position: fixed; top: 0; left: -100%; width: 280px; height: 100vh;
-            background: linear-gradient(135deg, #1a0033, #0a001a); z-index: 2000;
-            transition: left 0.3s ease; display: flex; flex-direction: column; border-left: 1px solid #9c27b0;
-        }
+        .users-sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100vh; background: linear-gradient(135deg,#1a0033,#0a001a); z-index: 2000; transition: left 0.3s ease; display: flex; flex-direction: column; border-left: 1px solid #9c27b0; }
         .users-sidebar.open { left: 0; }
-        .users-header {
-            padding: 20px; background: linear-gradient(135deg, #2a004a, #1a0033);
-            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #9c27b0;
-        }
+        .users-header { padding: 20px; background: linear-gradient(135deg,#2a004a,#1a0033); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #9c27b0; }
         .users-header h3 { font-size: 18px; }
-        .refresh-users-btn {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 6px 12px; border-radius: 30px; color: white;
-            cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;
-        }
+        .refresh-users-btn { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 6px 12px; border-radius: 30px; color: white; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .close-users { background: none; border: none; font-size: 24px; cursor: pointer; color: #9c27b0; }
         .users-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .user-item {
-            background: rgba(50, 0, 80, 0.4); padding: 12px; border-radius: 16px;
-            margin-bottom: 10px; border: 1px solid #9c27b0;
-        }
+        .user-item { background: rgba(50,0,80,0.4); padding: 12px; border-radius: 16px; margin-bottom: 10px; border: 1px solid #9c27b0; }
         .user-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .user-name-area { flex: 1; }
         .user-name-area strong { font-size: 14px; }
         .user-name-area small { font-size: 10px; color: #b39ddb; display: block; }
-        .friend-badge, .admin-badge, .muted-badge {
-            font-size: 9px; padding: 2px 6px; border-radius: 20px; margin-right: 6px;
-        }
+        .friend-badge, .admin-badge, .muted-badge { font-size: 9px; padding: 2px 6px; border-radius: 20px; margin-right: 6px; }
         .friend-badge { background: #4caf50; }
         .admin-badge { background: #9c27b0; }
         .muted-badge { background: #ff9800; }
         .user-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-        .add-friend, .admin-ban, .admin-tempban, .admin-mute, .admin-unmute {
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none; padding: 4px 10px; border-radius: 20px; color: white; cursor: pointer; font-size: 10px;
-        }
+        .add-friend, .admin-ban, .admin-tempban, .admin-mute, .admin-unmute { background: linear-gradient(135deg,#CE1126,#9c27b0); border: none; padding: 4px 10px; border-radius: 20px; color: white; cursor: pointer; font-size: 10px; }
         .admin-ban { background: #f44336; }
         .admin-tempban { background: #ff9800; }
         .admin-mute { background: #9c27b0; }
         .admin-unmute { background: #4caf50; }
-        .overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7); z-index: 1999; display: none;
-        }
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1999; display: none; }
         .overlay.active { display: block; }
     </style>
 </head>
@@ -448,7 +253,9 @@
         <h3>✏️ تعديل الملف الشخصي</h3>
         <div class="profile-avatar-large" id="profile-avatar-large">👤</div>
         <input type="text" id="edit-displayname" placeholder="الاسم الظاهر">
-        <input type="text" id="edit-avatar" placeholder="رمز الصورة (😀, 😎, 🦁)">
+        <input type="file" id="avatar-file-input" accept="image/*" class="hidden-file-input">
+        <button class="upload-avatar-btn" id="upload-avatar-btn">📷 رفع صورة شخصية</button>
+        <div class="avatar-preview" id="avatar-preview"></div>
         <button id="save-profile-btn">💾 حفظ التغييرات</button>
         <button class="close-modal" id="close-profile-modal">✕ إغلاق</button>
     </div>
@@ -480,7 +287,6 @@ let mutedUsersList = [];
 let allUsersData = [];
 let currentPostId = null;
 
-// رابط صورة المشرف
 const ADMIN_AVATAR_URL = "https://g.top4top.io/p_37443983d0.gif";
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
@@ -529,26 +335,54 @@ function refreshUsersList() { if (socket && currentUser) { socket.emit('refresh-
 
 function openProfileModal() {
     document.getElementById('edit-displayname').value = currentUser.displayName;
-    document.getElementById('edit-avatar').value = currentUser.avatar || '👤';
-    document.getElementById('profile-avatar-large').textContent = currentUser.avatar || '👤';
+    document.getElementById('profile-avatar-large').style.backgroundImage = currentUser.avatar && currentUser.avatarType !== 'emoji' ? `url('${currentUser.avatar}')` : '';
+    document.getElementById('profile-avatar-large').textContent = (!currentUser.avatar || currentUser.avatarType === 'emoji') ? (currentUser.avatar || '👤') : '';
+    document.getElementById('avatar-preview').style.backgroundImage = currentUser.avatar && currentUser.avatarType !== 'emoji' ? `url('${currentUser.avatar}')` : '';
     document.getElementById('profile-modal').classList.add('active');
 }
 function closeProfileModal() { document.getElementById('profile-modal').classList.remove('active'); }
+
 function saveProfile() {
     let newName = document.getElementById('edit-displayname').value.trim();
-    let newAvatar = document.getElementById('edit-avatar').value.trim() || '👤';
     if (newName) {
         currentUser.displayName = newName;
-        currentUser.avatar = newAvatar;
         document.getElementById('user-name').textContent = newName;
-        document.getElementById('profile-avatar-large').textContent = newAvatar;
-        document.querySelector('.user-avatar').textContent = newAvatar;
-        if (currentUser.username === '3tx') document.querySelector('.user-avatar').classList.add('admin-avatar');
-        socket.emit('update-profile', { displayName: newName, avatar: newAvatar });
+        socket.emit('update-profile', { displayName: newName });
+        showToast('تم تحديث الاسم بنجاح', 'success');
         closeProfileModal();
-        showToast('تم تحديث الملف الشخصي بنجاح', 'success');
     }
 }
+
+document.getElementById('upload-avatar-btn').onclick = () => { if (currentUser.username !== '3tx') document.getElementById('avatar-file-input').click(); else showToast('المشرف لا يمكنه تغيير صورته', 'error'); };
+document.getElementById('avatar-file-input').onchange = (e) => {
+    const file = e.target.files[0];
+    if (file && currentUser && currentUser.username !== '3tx') {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const imageData = event.target.result;
+            document.getElementById('avatar-preview').style.backgroundImage = `url('${imageData}')`;
+            document.getElementById('avatar-preview').style.backgroundSize = 'cover';
+            document.getElementById('profile-avatar-large').style.backgroundImage = `url('${imageData}')`;
+            document.getElementById('profile-avatar-large').textContent = '';
+            socket.emit('update-avatar', { avatar: imageData });
+            showToast('جاري رفع الصورة...', 'info');
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+socket.on('avatar-updated-success', () => showToast('تم تحديث الصورة الشخصية بنجاح', 'success'));
+socket.on('avatar-updated', (data) => {
+    if (data.username === currentUser?.username) {
+        currentUser.avatar = data.avatar;
+        currentUser.avatarType = 'image';
+        document.querySelector('.user-avatar').style.backgroundImage = `url('${data.avatar}')`;
+        document.querySelector('.user-avatar').style.backgroundSize = 'cover';
+        document.querySelector('.user-avatar').textContent = '';
+    }
+    updateUsers(allUsersData);
+});
+
 function toggleActiveUsers() {
     let modal = document.getElementById('active-users-modal');
     modal.classList.toggle('active');
@@ -562,7 +396,8 @@ function updateActiveUsersList(users) {
         if (u.username === currentUser.username) return;
         let div = document.createElement('div');
         div.className = 'active-user-item';
-        div.innerHTML = `<div class="active-user-avatar ${u.username === '3tx' ? 'admin-avatar' : ''}" style="${u.username === '3tx' ? `background-image: url('${ADMIN_AVATAR_URL}'); background-size: cover;` : ''}">${u.username !== '3tx' ? (u.avatar || '👤') : ''}</div>
+        let isAdmin = u.username === '3tx';
+        div.innerHTML = `<div class="active-user-avatar ${isAdmin ? 'admin-avatar' : ''}" style="${!isAdmin && u.avatarType === 'image' ? `background-image: url('${u.avatar}'); background-size: cover;` : ''}">${!isAdmin && (!u.avatar || u.avatarType !== 'image') ? (u.avatar || '👤') : ''}</div>
                         <div class="active-user-name">${escapeHtml(u.displayName)} <span class="online-dot"></span></div>`;
         container.appendChild(div);
     });
@@ -691,9 +526,10 @@ function openCommentsModal(postId, comments) {
         comments.forEach(c => {
             let div = document.createElement('div');
             div.className = 'comment-item';
-            div.innerHTML = `<div class="comment-avatar-modal ${c.username === '3tx' ? 'admin-avatar' : ''}" style="${c.username === '3tx' ? `background-image: url('${ADMIN_AVATAR_URL}'); background-size: cover;` : ''}">${c.username !== '3tx' ? (c.avatar || '👤') : ''}</div>
+            let isAdmin = c.username === '3tx';
+            div.innerHTML = `<div class="comment-avatar-modal ${isAdmin ? 'admin-avatar' : ''}" style="${!isAdmin && c.avatarType === 'image' ? `background-image: url('${c.avatar}'); background-size: cover;` : ''}">${!isAdmin && (!c.avatar || c.avatarType !== 'image') ? (c.avatar || '👤') : ''}</div>
                             <div class="comment-content">
-                                <div class="comment-name">${escapeHtml(c.displayName)} ${c.username === '3tx' ? '<span class="vip-badge">VIP</span>' : ''} <span style="font-size:10px;color:#888;">@${escapeHtml(c.username)}</span></div>
+                                <div class="comment-name">${escapeHtml(c.displayName)} ${isAdmin ? '<span class="vip-badge">VIP</span>' : ''} <span style="font-size:10px;color:#888;">@${escapeHtml(c.username)}</span></div>
                                 <div class="comment-text">${escapeHtml(c.text)}</div>
                                 <div class="comment-time">${c.time}</div>
                             </div>`;
@@ -714,7 +550,7 @@ function addPost(post) {
     div.dataset.id = post.id;
     div.innerHTML = `
         <div class="post-header">
-            <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}" style="${isAdminPost ? `background-image: url('${ADMIN_AVATAR_URL}'); background-size: cover;` : ''}">${!isAdminPost ? (post.avatar || '👤') : ''}</div>
+            <div class="post-avatar ${isAdminPost ? 'admin-avatar' : ''}" style="${!isAdminPost && post.avatarType === 'image' ? `background-image: url('${post.avatar}'); background-size: cover;` : ''}">${!isAdminPost && (!post.avatar || post.avatarType !== 'image') ? (post.avatar || '👤') : ''}</div>
             <div class="post-info">
                 <div class="post-name">${escapeHtml(post.displayName)} ${isAdminPost ? '<span class="vip-badge">⭐ VIP</span>' : ''}</div>
                 <div class="post-username">@${escapeHtml(post.username)}</div>
@@ -744,25 +580,30 @@ function addSystemMessage(text, containerId = 'chat-messages') {
 
 function startApp(data) {
     currentUser = {
-        username: data.username, displayName: data.displayName, avatar: data.avatar || '👤',
+        username: data.username, displayName: data.displayName, avatar: data.avatar || '👤', avatarType: data.avatarType || 'emoji',
         friends: data.friends || [], requests: data.requests || [], isAdmin: data.isAdmin || false
     };
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('user-name').textContent = data.displayName;
     document.getElementById('user-username').textContent = `@${data.username}`;
-    document.querySelector('.user-avatar').textContent = currentUser.avatar;
     if (currentUser.username === '3tx') {
         document.querySelector('.user-avatar').classList.add('admin-avatar');
         document.querySelector('.user-avatar').style.backgroundImage = `url('${ADMIN_AVATAR_URL}')`;
         document.querySelector('.user-avatar').style.backgroundSize = 'cover';
         document.querySelector('.user-avatar').textContent = '';
+    } else if (currentUser.avatarType === 'image') {
+        document.querySelector('.user-avatar').style.backgroundImage = `url('${currentUser.avatar}')`;
+        document.querySelector('.user-avatar').style.backgroundSize = 'cover';
+        document.querySelector('.user-avatar').textContent = '';
+    } else {
+        document.querySelector('.user-avatar').textContent = currentUser.avatar || '👤';
     }
     updateUsers(data.users);
     loadPosts(data.posts);
     switchTab('posts');
     addSystemMessage(`✨ هلا بيكم في دردشة بغداد لايف - نرجو من المستخدمين الالتزام بالاحترام ✨`, 'posts-list');
-    
+
     socket.on('new-request', (d) => { currentUser.requests.push(d.from); updateUsers(allUsersData); if (document.getElementById('requests-page').classList.contains('active')) loadRequestsList(); addNotification('requests'); showToast(`📩 طلب صداقة جديد من ${d.fromName}`, 'info'); });
     socket.on('request-accepted', (d) => { if (!currentUser.friends.includes(d.from)) currentUser.friends.push(d.from); currentUser.requests = currentUser.requests.filter(u => u !== d.from); updateUsers(allUsersData); loadChatsList(); loadRequestsList(); addNotification('chats'); showToast(`🎉 ${d.fromName} قبل طلب الصداقة!`, 'success'); });
     socket.on('new-message', (d) => {
@@ -777,7 +618,7 @@ function startApp(data) {
     socket.on('post-added', (p) => addPost(p));
     socket.on('post-updated', (p) => { let existingPost = document.querySelector(`.post-card[data-id="${p.id}"]`); if (existingPost) { existingPost.remove(); addPost(p); } if (currentPostId === p.id && document.getElementById('comments-modal').classList.contains('active')) openCommentsModal(p.id, p.comments || []); });
     socket.on('post-deleted', (id) => document.querySelector(`.post-card[data-id="${id}"]`)?.remove());
-    socket.on('profile-updated', (d) => { if (d.username === currentUser.username) { currentUser.displayName = d.displayName; currentUser.avatar = d.avatar; document.getElementById('user-name').textContent = d.displayName; document.querySelector('.user-avatar').textContent = d.avatar; if (currentUser.username === '3tx') { document.querySelector('.user-avatar').classList.add('admin-avatar'); document.querySelector('.user-avatar').style.backgroundImage = `url('${ADMIN_AVATAR_URL}')`; document.querySelector('.user-avatar').style.backgroundSize = 'cover'; document.querySelector('.user-avatar').textContent = ''; } } updateUsers(allUsersData); });
+    socket.on('profile-updated', (d) => { if (d.username === currentUser.username) { currentUser.displayName = d.displayName; document.getElementById('user-name').textContent = d.displayName; } updateUsers(allUsersData); });
     socket.on('muted', () => { if (!mutedUsersList.includes(currentUser.username)) mutedUsersList.push(currentUser.username); showToast('🔇 لقد تم كتمك بواسطة المشرف', 'mute'); });
     socket.on('unmuted', () => { mutedUsersList = mutedUsersList.filter(u => u !== currentUser.username); showToast('🔊 تم فك الكتم عنك', 'success'); });
     socket.on('banned-permanent', () => { showToast('⛔ تم حظر حسابك بشكل دائم من الدردشة', 'ban'); setTimeout(() => location.reload(), 3000); });
