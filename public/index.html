@@ -511,6 +511,52 @@
             cursor: pointer;
         }
 
+        /* نافذة التنبيهات الاحترافية */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            border: 1px solid #9c27b0;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 4000;
+            transform: translateY(100px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-text {
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
         /* نافذة تعديل الملف الشخصي */
         .profile-modal {
             display: none;
@@ -586,52 +632,6 @@
             font-size: 24px;
             cursor: pointer;
             margin-top: 15px;
-        }
-
-        /* نافذة التنبيهات الاحترافية */
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            border: 1px solid #9c27b0;
-            border-radius: 20px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 4000;
-            transform: translateY(100px);
-            transition: transform 0.3s ease;
-            box-shadow: 0 0 20px rgba(156, 39, 176, 0.3);
-        }
-
-        .toast-notification.show {
-            transform: translateY(0);
-        }
-
-        .toast-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .toast-icon {
-            font-size: 24px;
-        }
-
-        .toast-text {
-            font-size: 14px;
-            flex: 1;
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            color: #9c27b0;
-            font-size: 20px;
-            cursor: pointer;
         }
 
         /* قائمة الأعضاء النشطين */
@@ -779,7 +779,7 @@
             margin-top: 8px;
         }
 
-        .add-friend, .admin-ban, .admin-tempban, .admin-mute, .admin-unban, .admin-unmute {
+        .add-friend, .admin-ban, .admin-tempban, .admin-mute {
             background: linear-gradient(135deg, #CE1126, #9c27b0);
             border: none;
             padding: 4px 10px;
@@ -792,8 +792,6 @@
         .admin-ban { background: #f44336; }
         .admin-tempban { background: #ff9800; }
         .admin-mute { background: #9c27b0; }
-        .admin-unban { background: #4caf50; }
-        .admin-unmute { background: #2196f3; }
 
         .overlay {
             position: fixed;
@@ -843,7 +841,6 @@
         </div>
     </div>
 
-    <!-- التبويبات البارزة -->
     <div class="main-tabs">
         <button class="main-tab active" data-tab="posts">
             📱 المنشورات
@@ -860,7 +857,6 @@
     </div>
 
     <div class="main-content" id="main-content">
-        <!-- صفحة المنشورات -->
         <div class="page active" id="posts-page">
             <div class="new-post">
                 <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
@@ -868,13 +864,9 @@
             </div>
             <div id="posts-list"></div>
         </div>
-
-        <!-- صفحة الدردشات -->
         <div class="page" id="chats-page">
             <div id="chats-list"></div>
         </div>
-
-        <!-- صفحة الطلبات -->
         <div class="page" id="requests-page">
             <div id="requests-list"></div>
         </div>
@@ -896,7 +888,6 @@
     </div>
 </div>
 
-<!-- نافذة التنبيهات الاحترافية -->
 <div class="toast-notification" id="toast-notification">
     <div class="toast-content">
         <div class="toast-icon" id="toast-icon">⚠️</div>
@@ -905,7 +896,6 @@
     <button class="toast-close" id="toast-close">✕</button>
 </div>
 
-<!-- نافذة تعديل الملف الشخصي -->
 <div class="profile-modal" id="profile-modal">
     <div class="profile-card">
         <h3>✏️ تعديل الملف الشخصي</h3>
@@ -917,13 +907,11 @@
     </div>
 </div>
 
-<!-- قائمة الأعضاء النشطين -->
 <div class="active-users-modal" id="active-users-modal">
     <h4>🟢 الأعضاء النشطون</h4>
     <div id="active-users-list"></div>
 </div>
 
-<!-- قائمة المستخدمين الجانبية -->
 <div class="overlay" id="overlay"></div>
 <div class="users-sidebar" id="users-sidebar">
     <div class="users-header">
@@ -941,7 +929,6 @@ let notificationCounts = { posts: 0, chats: 0, requests: 0 };
 
 function escapeHtml(t) { let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
-// نافذة التنبيهات الاحترافية
 function showToast(message, type = 'info') {
     let toast = document.getElementById('toast-notification');
     let icon = document.getElementById('toast-icon');
@@ -956,10 +943,7 @@ function showToast(message, type = 'info') {
     
     text.innerHTML = message;
     toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 4000);
+    setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
 document.getElementById('toast-close').onclick = () => {
@@ -1077,7 +1061,7 @@ function updateUsers(users) {
                     <small>@${escapeHtml(u.username)}</small>
                 </div>
                 <div class="user-actions" id="actions-${u.username}">
-                    ${!isFriend && !hasRequest && !u.isAdmin ? `<button class="add-friend" data-user="${u.username}">➕ إضافة</button>` : ''}
+                    ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${u.username}">➕ إضافة</button>` : ''}
                     ${hasRequest ? `<button class="accept" data-user="${u.username}">✅ قبول</button> <button class="reject" data-user="${u.username}">❌ رفض</button>` : ''}
                     ${isFriend ? `<button class="chat-btn" data-user="${u.username}" style="background:#2196f3;">💬 دردشة</button>` : ''}
                 </div>
@@ -1091,7 +1075,6 @@ function updateUsers(users) {
             ` : ''}
         `;
         
-        // أزرار الصداقة
         let addBtn = div.querySelector('.add-friend');
         if (addBtn) addBtn.onclick = () => socket.emit('add-friend', u.username);
         let acceptBtn = div.querySelector('.accept');
@@ -1101,7 +1084,6 @@ function updateUsers(users) {
         let chatBtn = div.querySelector('.chat-btn');
         if (chatBtn) chatBtn.onclick = () => openChat(u.username);
         
-        // أزرار المشرف
         let banBtn = div.querySelector('.admin-ban');
         if (banBtn) banBtn.onclick = () => {
             if (confirm(`⚠️ هل تريد حظر ${u.displayName} نهائياً؟`)) {
@@ -1307,8 +1289,6 @@ function startApp(data) {
             document.querySelector('.user-avatar').textContent = d.avatar;
         }
     });
-    
-    // رسائل الحظر والكتم الاحترافية
     socket.on('muted', () => {
         showToast('🔇 لقد تم كتمك بواسطة المشرف', 'mute');
     });
@@ -1414,4 +1394,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-    </html>
+</html>
