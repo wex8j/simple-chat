@@ -2,11 +2,15 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// إعداد تخزين الصور (Base64 لتجنب مشاكل Railway)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const users = {};
@@ -29,9 +33,8 @@ posts.push({
 
 function isTempBanned(username) {
     const tempBan = tempBannedUsers.find(b => b.username === username);
-    if (tempBan && tempBan.until > Date.now()) {
-        return true;
-    } else if (tempBan) {
+    if (tempBan && tempBan.until > Date.now()) return true;
+    if (tempBan) {
         const index = tempBannedUsers.findIndex(b => b.username === username);
         tempBannedUsers.splice(index, 1);
         return false;
@@ -44,6 +47,7 @@ function broadcastUsers() {
         username: u,
         displayName: users[u].displayName,
         avatar: users[u].avatar || '👤',
+        avatarType: users[u].avatarType || 'emoji',
         isAdmin: users[u].isAdmin || false
     }));
     io.emit('users-list', userList);
@@ -53,7 +57,7 @@ io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
-        const { username, password, displayName, avatar } = data;
+        const { username, password, displayName, avatar, avatarType } = data;
         
         if (bannedUsers.includes(username)) {
             socket.emit('login-error', '⛔ حسابك محظور بشكل دائم');
@@ -71,6 +75,7 @@ io.on('connection', (socket) => {
                 password: password,
                 displayName: displayName || username,
                 avatar: avatar || '👤',
+                avatarType: avatarType || 'emoji',
                 friends: [],
                 requests: [],
                 socketId: socket.id,
@@ -89,6 +94,7 @@ io.on('connection', (socket) => {
             username: username,
             displayName: users[username].displayName,
             avatar: users[username].avatar,
+            avatarType: users[username].avatarType,
             friends: users[username].friends,
             requests: users[username].requests,
             isAdmin: users[username].isAdmin || false,
@@ -97,6 +103,7 @@ io.on('connection', (socket) => {
                 username: u,
                 displayName: users[u].displayName,
                 avatar: users[u].avatar || '👤',
+                avatarType: users[u].avatarType || 'emoji',
                 isAdmin: users[u].isAdmin || false
             }))
         });
@@ -105,19 +112,31 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
+    // تحديث الصورة الشخصية
+    socket.on('update-avatar', (data) => {
+        if (!currentUser) return;
+        if (currentUser === '3tx') return; // المشرف لا يمكن تغيير صورته
+        
+        users[currentUser].avatar = data.avatar;
+        users[currentUser].avatarType = 'image';
+        io.emit('avatar-updated', { username: currentUser, avatar: data.avatar });
+        broadcastUsers();
+        socket.emit('avatar-updated-success');
+    });
+    
     socket.on('refresh-users', () => {
         if (currentUser) {
             const userList = Object.keys(users).map(u => ({
                 username: u,
                 displayName: users[u].displayName,
                 avatar: users[u].avatar || '👤',
+                avatarType: users[u].avatarType || 'emoji',
                 isAdmin: users[u].isAdmin || false
             }));
             socket.emit('users-refreshed', userList);
         }
     });
     
-    // إضافة تعليق
     socket.on('add-comment', (data) => {
         const { postId, comment } = data;
         const post = posts.find(p => p.id == postId);
@@ -126,6 +145,7 @@ io.on('connection', (socket) => {
                 username: currentUser,
                 displayName: users[currentUser].displayName,
                 avatar: users[currentUser].avatar || '👤',
+                avatarType: users[currentUser].avatarType || 'emoji',
                 text: comment,
                 time: new Date().toLocaleTimeString('ar-EG')
             });
@@ -201,6 +221,7 @@ io.on('connection', (socket) => {
             username: currentUser,
             displayName: users[currentUser].displayName,
             avatar: users[currentUser].avatar || '👤',
+            avatarType: users[currentUser].avatarType || 'emoji',
             text: data.text,
             time: new Date().toISOString(),
             likes: 0,
@@ -225,7 +246,6 @@ io.on('connection', (socket) => {
     socket.on('update-profile', (data) => {
         if (!currentUser) return;
         if (data.displayName) users[currentUser].displayName = data.displayName;
-        if (data.avatar) users[currentUser].avatar = data.avatar;
         io.emit('profile-updated', { username: currentUser, displayName: users[currentUser].displayName, avatar: users[currentUser].avatar });
         broadcastUsers();
     });
