@@ -155,9 +155,15 @@
             padding: 15px;
         }
 
-        /* الصفحات */
+        /* الصفحات - تصميم أنيق */
         .page {
             display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .page.active {
@@ -206,6 +212,11 @@
             padding: 15px;
             margin-bottom: 15px;
             border: 1px solid #9c27b0;
+            transition: transform 0.2s;
+        }
+
+        .post-card:active {
+            transform: scale(0.99);
         }
 
         .post-header {
@@ -246,7 +257,7 @@
 
         .post-text {
             margin: 12px 0;
-            line-height: 1.4;
+            line-height: 1.5;
             font-size: 14px;
         }
 
@@ -280,6 +291,12 @@
             align-items: center;
             cursor: pointer;
             border: 1px solid #9c27b0;
+            transition: all 0.2s;
+        }
+
+        .chat-item:active, .request-item:active {
+            transform: scale(0.98);
+            background: linear-gradient(135deg, #2a004a, #1a0033);
         }
 
         .request-actions {
@@ -294,6 +311,11 @@
             color: white;
             cursor: pointer;
             font-size: 12px;
+            transition: transform 0.1s;
+        }
+
+        .accept:active, .reject:active {
+            transform: scale(0.95);
         }
 
         .accept { background: #4caf50; }
@@ -312,29 +334,68 @@
             flex-direction: column;
             height: 100%;
             background: linear-gradient(135deg, #1a0033, #0a001a);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
         }
 
         .chat-header {
-            padding: 15px;
+            padding: 15px 20px;
             background: linear-gradient(135deg, #2a004a, #1a0033);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #9c27b0;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
             gap: 15px;
-            border-bottom: 1px solid #9c27b0;
         }
 
         .back {
             background: none;
             border: none;
             color: #9c27b0;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .back:active {
+            background: rgba(156, 39, 176, 0.3);
         }
 
         .chat-with-name {
             font-size: 18px;
             font-weight: bold;
             color: #fff;
+        }
+
+        .exit-chat-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.1s;
+        }
+
+        .exit-chat-btn:active {
+            transform: scale(0.95);
         }
 
         .chat-messages {
@@ -351,6 +412,12 @@
             flex-direction: column;
             align-items: flex-start;
             max-width: 85%;
+            animation: fadeInMsg 0.2s ease;
+        }
+
+        @keyframes fadeInMsg {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .msg.own {
@@ -465,6 +532,11 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid #9c27b0;
+            transition: all 0.2s;
+        }
+
+        .user-item:active {
+            transform: scale(0.98);
         }
 
         .user-info h4 {
@@ -517,8 +589,8 @@
             color: #b39ddb;
             font-size: 12px;
             cursor: pointer;
-            padding: 5px 15px;
-            border-radius: 30px;
+            padding: 8px 20px;
+            border-radius: 40px;
             transition: all 0.2s;
         }
 
@@ -528,7 +600,11 @@
 
         .nav-item.active {
             color: #9c27b0;
-            text-shadow: 0 0 5px #9c27b0;
+            background: rgba(156, 39, 176, 0.2);
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
         }
 
         /* خلفية القائمة */
@@ -595,11 +671,14 @@
         </div>
     </div>
 
-    <!-- نافذة الدردشة (خارج main-content) -->
+    <!-- نافذة الدردشة -->
     <div class="chat-window" id="chat-window">
         <div class="chat-header">
-            <button class="back" id="chat-back">←</button>
-            <span class="chat-with-name" id="chat-with-name"></span>
+            <div class="chat-header-left">
+                <button class="back" id="chat-back">←</button>
+                <span class="chat-with-name" id="chat-with-name"></span>
+            </div>
+            <button class="exit-chat-btn" id="exit-chat-btn">✕ خروج</button>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input">
@@ -724,7 +803,6 @@ function openChat(username) {
         return;
     }
     currentChatWith = username;
-    // إخفاء المحتوى الرئيسي وإظهار نافذة الدردشة
     document.getElementById('main-content').style.display = 'none';
     document.querySelector('.bottom-nav').style.display = 'none';
     document.getElementById('chat-window').style.display = 'flex';
@@ -856,12 +934,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('post-text').value = '';
     };
     
+    // زر الرجوع من الدردشة
     document.getElementById('chat-back').onclick = () => {
         document.getElementById('chat-window').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
         document.querySelector('.bottom-nav').style.display = 'flex';
         currentChatWith = null;
-        // تحديث قائمة الدردشات
+        loadChatsList();
+        switchPage('chats');
+    };
+    
+    // زر الخروج الواضح
+    document.getElementById('exit-chat-btn').onclick = () => {
+        document.getElementById('chat-window').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        document.querySelector('.bottom-nav').style.display = 'flex';
+        currentChatWith = null;
         loadChatsList();
         switchPage('chats');
     };
@@ -872,4 +960,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-            </html>
+    </html>
