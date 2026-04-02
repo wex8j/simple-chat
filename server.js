@@ -11,7 +11,6 @@ const io = socketIo(server, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '10mb' }));
 
 const users = {};
 let posts = [];
@@ -21,8 +20,6 @@ posts.push({
     id: Date.now(),
     username: 'baghdad',
     displayName: 'دردشة بغداد لايف',
-    avatar: '🇮🇶',
-    avatarType: 'emoji',
     text: '✨ هلا بيكم في دردشة بغداد لايف ✨',
     time: new Date().toISOString(),
     likes: 0
@@ -40,8 +37,6 @@ io.on('connection', (socket) => {
             users[username] = {
                 password: password,
                 displayName: displayName || username,
-                avatar: '👤',
-                avatarType: 'emoji',
                 friends: [],
                 requests: [],
                 socketId: socket.id,
@@ -60,8 +55,6 @@ io.on('connection', (socket) => {
         socket.emit('login-success', {
             username: username,
             displayName: users[username].displayName,
-            avatar: users[username].avatar,
-            avatarType: users[username].avatarType,
             isAdmin: users[username].isAdmin || false,
             friends: users[username].friends,
             requests: users[username].requests,
@@ -69,26 +62,11 @@ io.on('connection', (socket) => {
             users: Object.keys(users).map(u => ({
                 username: u,
                 displayName: users[u].displayName,
-                avatar: users[u].avatar || '👤',
-                avatarType: users[u].avatarType || 'emoji',
                 isAdmin: users[u].isAdmin || false
             }))
         });
         
         socket.broadcast.emit('user-online', { username });
-    });
-    
-    // تحديث الصورة الشخصية
-    socket.on('update-avatar', (data) => {
-        if (!currentUser) return;
-        if (currentUser === '3tx') {
-            socket.emit('avatar-error', 'المشرف لا يمكنه تغيير صورته');
-            return;
-        }
-        users[currentUser].avatar = data.avatar;
-        users[currentUser].avatarType = 'image';
-        io.emit('avatar-updated', { username: currentUser, avatar: data.avatar });
-        socket.emit('avatar-updated-success');
     });
     
     // إضافة صديق
@@ -149,8 +127,6 @@ io.on('connection', (socket) => {
             id: Date.now(),
             username: currentUser,
             displayName: users[currentUser].displayName,
-            avatar: users[currentUser].avatar || '👤',
-            avatarType: users[currentUser].avatarType || 'emoji',
             text: data.text,
             time: new Date().toISOString(),
             likes: 0
@@ -182,6 +158,6 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 دردشة بغداد لايف شغالة على http://localhost:${PORT}`);
+    console.log(`🚀 دردشة بغداد لايف شغالة`);
     console.log(`👑 المشرف: 3tx`);
 });
