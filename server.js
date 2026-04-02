@@ -24,7 +24,7 @@ posts.push({
     text: '✨ هلا بيكم في دردشة بغداد لايف ✨\nنرجو من المستخدمين الالتزام بالاحترام والتواصل الإيجابي 🤍',
     time: new Date().toISOString(),
     likes: 0,
-    comments: [] // مصفوفة التعليقات
+    comments: []
 });
 
 function isTempBanned(username) {
@@ -105,7 +105,6 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
-    // تحديث يدوي لقائمة المستخدمين
     socket.on('refresh-users', () => {
         if (currentUser) {
             const userList = Object.keys(users).map(u => ({
@@ -118,7 +117,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // إضافة تعليق على منشور
+    // إضافة تعليق
     socket.on('add-comment', (data) => {
         const { postId, comment } = data;
         const post = posts.find(p => p.id == postId);
@@ -134,7 +133,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // إضافة صديق
     socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
         if (mutedUsers.includes(currentUser)) {
@@ -166,6 +164,7 @@ io.on('connection', (socket) => {
         
         io.to(current.socketId).emit('request-accepted', { from: fromUsername, fromName: from.displayName });
         io.to(from.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
+        broadcastUsers();
     });
     
     socket.on('reject-friend', (fromUsername) => {
