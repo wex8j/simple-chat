@@ -5,124 +5,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>دردشة بغداد لايف</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1a0033, #0a001a);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
         }
-        .container {
+        /* شاشة الدخول */
+        .login-screen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+        }
+        .login-card {
             background: rgba(30, 0, 60, 0.8);
             backdrop-filter: blur(15px);
-            padding: 35px;
+            padding: 35px 25px;
             border-radius: 35px;
-            width: 100%;
-            max-width: 400px;
+            width: 100%; max-width: 340px;
             text-align: center;
             border: 1px solid rgba(156,39,176,0.5);
-            box-shadow: 0 0 20px rgba(156,39,176,0.3);
         }
-        h1 {
+        .login-card h1 {
             font-size: 28px;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            background: linear-gradient(135deg,#CE1126,#9c27b0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            background: rgba(50,0,80,0.6);
-            border: 1px solid #9c27b0;
-            border-radius: 40px;
-            color: white;
-            font-size: 16px;
-            box-sizing: border-box;
+        .login-card input {
+            width: 100%; padding: 12px; margin: 8px 0;
+            background: rgba(50,0,80,0.6); border: 1px solid #9c27b0;
+            border-radius: 40px; color: white; text-align: center;
         }
-        button {
-            width: 100%;
-            padding: 14px;
+        .login-card button {
+            width: 100%; padding: 12px; margin-top: 10px;
+            background: linear-gradient(135deg,#CE1126,#9c27b0);
+            border: none; border-radius: 40px; color: white;
+            cursor: pointer; font-weight: bold;
+        }
+        .error { color: #ff6b6b; margin-top: 10px; font-size: 13px; }
+        .success { color: #4caf50; margin-top: 10px; font-size: 13px; }
+
+        /* التطبيق */
+        .app { display: none; }
+        .header {
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            padding: 15px; text-align: center;
+            border-bottom: 1px solid #9c27b0;
+        }
+        .header h2 { font-size: 20px; }
+        .user-badge {
+            background: rgba(0,0,0,0.5); display: inline-block;
+            padding: 5px 15px; border-radius: 50px; font-size: 12px;
+            margin-top: 8px;
+        }
+        .logout-btn {
+            background: #f44336; border: none; padding: 5px 15px;
+            border-radius: 20px; color: white; cursor: pointer;
             margin-top: 10px;
-            background: linear-gradient(135deg, #CE1126, #9c27b0);
-            border: none;
-            border-radius: 40px;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
         }
-        .message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 10px;
+        .main-content { padding: 15px; max-width: 600px; margin: 0 auto; }
+        
+        /* المنشورات */
+        .new-post {
+            background: #1e1e2e; border-radius: 20px; padding: 15px;
+            margin-bottom: 20px; border: 1px solid #9c27b0;
         }
-        .error { background: rgba(255,0,0,0.2); color: #ff6b6b; }
-        .success { background: rgba(0,255,0,0.1); color: #4caf50; }
+        textarea {
+            width: 100%; background: #2a2a3a; border: none;
+            border-radius: 15px; padding: 12px; color: white;
+            resize: none; font-family: inherit;
+        }
+        .post-btn {
+            margin-top: 10px; background: linear-gradient(135deg,#CE1126,#9c27b0);
+            border: none; padding: 8px 20px; border-radius: 30px;
+            color: white; cursor: pointer;
+        }
+        .post-card {
+            background: #1e1e2e; border-radius: 20px; padding: 15px;
+            margin-bottom: 15px; border: 1px solid #9c27b0;
+        }
+        .post-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .post-name { font-weight: bold; color: #ffaaaa; }
+        .post-time { font-size: 10px; color: #888; }
+        .post-text { margin: 10px 0; line-height: 1.4; }
+        .like-btn {
+            background: none; border: none; color: #888;
+            cursor: pointer; font-size: 13px;
+        }
+        .delete-btn {
+            background: none; border: none; color: #ff6b6b;
+            cursor: pointer; font-size: 13px; margin-left: 10px;
+        }
+        .empty { text-align: center; color: #888; padding: 40px; }
     </style>
 </head>
 <body>
-    <div class="container">
+
+<div class="login-screen" id="login-screen">
+    <div class="login-card">
         <h1>🇮🇶 دردشة بغداد لايف</h1>
         <p>سجل دخولك</p>
         <input type="text" id="username" placeholder="اسم المستخدم">
         <input type="password" id="password" placeholder="كلمة السر">
         <input type="text" id="displayname" placeholder="الاسم الظاهر (للتسجيل)">
-        <button id="loginBtn">دخول / تسجيل</button>
-        <div id="message"></div>
+        <button id="login-btn">دخول / تسجيل</button>
+        <div class="error" id="error-msg"></div>
+        <div class="success" id="success-msg"></div>
     </div>
+</div>
 
-    <script>
-        // تخزين المستخدمين في LocalStorage
-        let users = JSON.parse(localStorage.getItem('baghdad_users') || '{}');
+<div class="app" id="app">
+    <div class="header">
+        <h2>🇮🇶 دردشة بغداد لايف</h2>
+        <div class="user-badge" id="user-badge"></div>
+        <button class="logout-btn" id="logout-btn">تسجيل خروج</button>
+    </div>
+    <div class="main-content">
+        <div class="new-post">
+            <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
+            <button class="post-btn" id="post-btn">نشر</button>
+        </div>
+        <div id="posts-feed"></div>
+    </div>
+</div>
+
+<script>
+    let users = JSON.parse(localStorage.getItem('baghdad_users') || '{}');
+    let posts = JSON.parse(localStorage.getItem('baghdad_posts') || '[]');
+    let currentUser = null;
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function loadPosts() {
+        const container = document.getElementById('posts-feed');
+        if (!container) return;
+        container.innerHTML = '';
+        if (posts.length === 0) {
+            container.innerHTML = '<div class="empty">لا توجد منشورات</div>';
+            return;
+        }
+        [...posts].reverse().forEach(post => {
+            const div = document.createElement('div');
+            div.className = 'post-card';
+            div.innerHTML = `
+                <div class="post-header">
+                    <div class="post-name">${escapeHtml(post.displayName)}</div>
+                    <div class="post-time">${new Date(post.time).toLocaleTimeString()}</div>
+                </div>
+                <div class="post-text">${escapeHtml(post.text)}</div>
+                <button class="like-btn" data-id="${post.id}">❤️ ${post.likes || 0}</button>
+                ${post.username === currentUser?.username ? '<button class="delete-btn" data-id="${post.id}">🗑️ حذف</button>' : ''}
+            `;
+            div.querySelector('.like-btn').onclick = () => {
+                post.likes = (post.likes || 0) + 1;
+                localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+                loadPosts();
+            };
+            if (post.username === currentUser?.username) {
+                div.querySelector('.delete-btn').onclick = () => {
+                    posts = posts.filter(p => p.id !== post.id);
+                    localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+                    loadPosts();
+                };
+            }
+            container.appendChild(div);
+        });
+    }
+
+    document.getElementById('login-btn').onclick = () => {
+        const username = document.getElementById('username').value.trim().toLowerCase();
+        const password = document.getElementById('password').value.trim();
+        const displayName = document.getElementById('displayname').value.trim();
+        const errorDiv = document.getElementById('error-msg');
+        const successDiv = document.getElementById('success-msg');
         
-        function showMessage(text, isError = true) {
-            const msgDiv = document.getElementById('message');
-            msgDiv.textContent = text;
-            msgDiv.className = 'message ' + (isError ? 'error' : 'success');
-            setTimeout(() => {
-                msgDiv.textContent = '';
-                msgDiv.className = '';
-            }, 3000);
+        errorDiv.textContent = '';
+        successDiv.textContent = '';
+        
+        if (!username || !password) {
+            errorDiv.textContent = '❌ املأ جميع الحقول';
+            return;
         }
         
-        document.getElementById('loginBtn').onclick = () => {
-            const username = document.getElementById('username').value.trim().toLowerCase();
-            const password = document.getElementById('password').value.trim();
-            const displayName = document.getElementById('displayname').value.trim();
-            
-            if (!username || !password) {
-                showMessage('❌ املأ جميع الحقول');
-                return;
-            }
-            
-            if (!users[username]) {
-                // تسجيل جديد
-                users[username] = {
-                    password: password,
-                    displayName: displayName || username,
-                    isAdmin: username === '3tx'
-                };
-                localStorage.setItem('baghdad_users', JSON.stringify(users));
-                showMessage(`✅ تم تسجيل حساب جديد! مرحباً ${users[username].displayName}`, false);
-                // تفريغ الحقول
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                document.getElementById('displayname').value = '';
-            } else if (users[username].password === password) {
-                // دخول
-                showMessage(`✅ مرحباً ${users[username].displayName}${users[username].isAdmin ? ' (المشرف)' : ''}`, false);
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            } else {
-                showMessage('❌ كلمة السر غير صحيحة');
-            }
-        };
-    </script>
+        if (!users[username]) {
+            users[username] = { 
+                password: password, 
+                displayName: displayName || username,
+                isAdmin: username === '3tx'
+            };
+            localStorage.setItem('baghdad_users', JSON.stringify(users));
+            successDiv.textContent = `✅ تم تسجيل حساب جديد! مرحباً ${users[username].displayName}`;
+        } else if (users[username].password !== password) {
+            errorDiv.textContent = '❌ كلمة السر غير صحيحة';
+            return;
+        } else {
+            successDiv.textContent = `✅ مرحباً ${users[username].displayName}`;
+        }
+        
+        currentUser = { username, displayName: users[username].displayName, isAdmin: users[username].isAdmin };
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('user-badge').innerHTML = `👤 ${currentUser.displayName} @${currentUser.username}${currentUser.isAdmin ? ' 👑' : ''}`;
+        loadPosts();
+    };
+
+    document.getElementById('logout-btn').onclick = () => {
+        currentUser = null;
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('displayname').value = '';
+    };
+
+    document.getElementById('post-btn').onclick = () => {
+        const text = document.getElementById('post-text').value.trim();
+        if (text && currentUser) {
+            posts.push({
+                id: Date.now(),
+                username: currentUser.username,
+                displayName: currentUser.displayName,
+                text: text,
+                time: new Date().toISOString(),
+                likes: 0
+            });
+            localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+            document.getElementById('post-text').value = '';
+            loadPosts();
+        }
+    };
+</script>
 </body>
-    </html>
+</html>
