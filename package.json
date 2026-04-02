@@ -1,13 +1,11 @@
 {
-  "name": "baghdad-live-chat",
-  "version": "1.0.0",
-  "description": "دردشة بغداد لايف",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
-  }
+    "name": "baghdad-live",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "socket.io": "^4.5.4"
+    }
 }
