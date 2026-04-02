@@ -2,7 +2,7 @@
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>دردشة بغداد لايف</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,6 +10,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #1a1a2e;
             color: #fff;
+            height: 100vh;
+            overflow: hidden;
         }
         /* شاشة الدخول */
         .login-screen {
@@ -19,20 +21,14 @@
             z-index: 1000; padding: 20px;
         }
         .login-card {
-            background: rgba(30, 0, 60, 0.8);
-            backdrop-filter: blur(15px);
-            padding: 35px 25px;
-            border-radius: 35px;
-            width: 100%; max-width: 340px;
-            text-align: center;
-            border: 1px solid rgba(156,39,176,0.5);
+            background: rgba(30, 0, 60, 0.8); backdrop-filter: blur(15px);
+            padding: 35px 25px; border-radius: 35px; width: 100%; max-width: 340px;
+            text-align: center; border: 1px solid rgba(156,39,176,0.5);
         }
         .login-card h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 28px; margin-bottom: 10px;
             background: linear-gradient(135deg,#CE1126,#9c27b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .login-card input {
             width: 100%; padding: 12px; margin: 8px 0;
@@ -49,25 +45,50 @@
         .success { color: #4caf50; margin-top: 10px; font-size: 13px; }
 
         /* التطبيق */
-        .app { display: none; }
+        .app { display: none; flex-direction: column; height: 100vh; }
         .header {
             background: linear-gradient(135deg, #1a0033, #0a001a);
-            padding: 15px; text-align: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #9c27b0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .user-name { font-size: 14px; font-weight: bold; }
+        .user-username { font-size: 10px; color: #b39ddb; }
+        .logout-btn {
+            background: #f44336; border: none; padding: 6px 15px;
+            border-radius: 20px; color: white; cursor: pointer;
+        }
+
+        /* التبويبات */
+        .tabs {
+            display: flex;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
             border-bottom: 1px solid #9c27b0;
         }
-        .header h2 { font-size: 20px; }
-        .user-badge {
-            background: rgba(0,0,0,0.5); display: inline-block;
-            padding: 5px 15px; border-radius: 50px; font-size: 12px;
-            margin-top: 8px;
+        .tab {
+            flex: 1; text-align: center; padding: 12px;
+            background: none; border: none; color: #b39ddb;
+            font-size: 14px; font-weight: bold; cursor: pointer;
         }
-        .logout-btn {
-            background: #f44336; border: none; padding: 5px 15px;
-            border-radius: 20px; color: white; cursor: pointer;
-            margin-top: 10px;
-        }
-        .main-content { padding: 15px; max-width: 600px; margin: 0 auto; }
-        
+        .tab.active { background: linear-gradient(135deg, #CE1126, #9c27b0); color: white; }
+
+        /* المحتوى */
+        .main-content { flex: 1; overflow-y: auto; padding: 15px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
         /* المنشورات */
         .new-post {
             background: #1e1e2e; border-radius: 20px; padding: 15px;
@@ -91,13 +112,61 @@
         .post-name { font-weight: bold; color: #ffaaaa; }
         .post-time { font-size: 10px; color: #888; }
         .post-text { margin: 10px 0; line-height: 1.4; }
-        .like-btn {
-            background: none; border: none; color: #888;
-            cursor: pointer; font-size: 13px;
+        .like-btn, .delete-btn {
+            background: none; border: none; cursor: pointer; font-size: 13px;
         }
-        .delete-btn {
-            background: none; border: none; color: #ff6b6b;
-            cursor: pointer; font-size: 13px; margin-left: 10px;
+        .like-btn { color: #888; }
+        .delete-btn { color: #ff6b6b; margin-left: 10px; }
+
+        /* المستخدمون */
+        .user-card {
+            background: #1e1e2e; border-radius: 18px; padding: 12px;
+            margin-bottom: 12px; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid #9c27b0;
+        }
+        .friend-badge { background: #4caf50; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .request-badge { background: #ff9800; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .add-friend, .accept, .reject, .chat-btn {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none; padding: 5px 12px; border-radius: 20px;
+            color: white; cursor: pointer; font-size: 11px;
+        }
+        .accept { background: #4caf50; }
+        .reject { background: #f44336; }
+        .chat-btn { background: #2196f3; }
+
+        /* الدردشة */
+        .chat-window {
+            display: none; flex-direction: column; height: 100%;
+            background: linear-gradient(135deg, #1a0033, #0a001a);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100;
+        }
+        .chat-header {
+            padding: 12px 15px; background: #2a004a;
+            display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid #9c27b0;
+        }
+        .back { background: none; border: none; color: #9c27b0; font-size: 24px; cursor: pointer; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 85%; }
+        .msg.own { align-self: flex-end; align-items: flex-end; }
+        .bubble {
+            background: rgba(156,39,176,0.3); padding: 8px 14px;
+            border-radius: 18px; border: 1px solid #9c27b0;
+        }
+        .msg.own .bubble { background: linear-gradient(135deg, #CE1126, #9c27b0); border: none; }
+        .chat-input {
+            padding: 12px; background: #2a004a; display: flex; gap: 10px;
+            border-top: 1px solid #9c27b0;
+        }
+        .chat-input input {
+            flex: 1; padding: 10px; background: rgba(50,0,80,0.6);
+            border: 1px solid #9c27b0; border-radius: 30px; color: white;
+        }
+        .chat-input button {
+            background: linear-gradient(135deg, #CE1126, #9c27b0);
+            border: none; padding: 10px 18px; border-radius: 30px;
+            color: white; cursor: pointer;
         }
         .empty { text-align: center; color: #888; padding: 40px; }
     </style>
@@ -119,16 +188,60 @@
 
 <div class="app" id="app">
     <div class="header">
-        <h2>🇮🇶 دردشة بغداد لايف</h2>
-        <div class="user-badge" id="user-badge"></div>
-        <button class="logout-btn" id="logout-btn">تسجيل خروج</button>
-    </div>
-    <div class="main-content">
-        <div class="new-post">
-            <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
-            <button class="post-btn" id="post-btn">نشر</button>
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar">👤</div>
+            <div>
+                <div class="user-name" id="user-name">...</div>
+                <div class="user-username" id="user-username">@...</div>
+            </div>
         </div>
-        <div id="posts-feed"></div>
+        <button class="logout-btn" id="logout-btn">خروج</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="posts">📱 المنشورات</button>
+        <button class="tab" data-tab="users">👥 المستخدمون</button>
+        <button class="tab" data-tab="requests">📩 الطلبات</button>
+        <button class="tab" data-tab="chats">💬 الدردشات</button>
+    </div>
+
+    <div class="main-content">
+        <!-- صفحة المنشورات -->
+        <div class="page active" id="posts-page">
+            <div class="new-post">
+                <textarea id="post-text" placeholder="شارك ما في خاطرك..." rows="3"></textarea>
+                <button class="post-btn" id="post-btn">نشر</button>
+            </div>
+            <div id="posts-feed"></div>
+        </div>
+
+        <!-- صفحة المستخدمين -->
+        <div class="page" id="users-page">
+            <div id="users-list"></div>
+        </div>
+
+        <!-- صفحة الطلبات -->
+        <div class="page" id="requests-page">
+            <div id="requests-list"></div>
+        </div>
+
+        <!-- صفحة الدردشات -->
+        <div class="page" id="chats-page">
+            <div id="chats-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة الدردشة -->
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <button class="back" id="chat-back">←</button>
+            <span id="chat-with-name"></span>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="اكتب رسالة...">
+            <button id="send-msg">إرسال</button>
+        </div>
     </div>
 </div>
 
@@ -136,6 +249,8 @@
     let users = JSON.parse(localStorage.getItem('baghdad_users') || '{}');
     let posts = JSON.parse(localStorage.getItem('baghdad_posts') || '[]');
     let currentUser = null;
+    let currentChatWith = null;
+    let conversations = JSON.parse(localStorage.getItem('baghdad_conversations') || '{}');
 
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -143,6 +258,13 @@
         return div.innerHTML;
     }
 
+    function saveAll() {
+        localStorage.setItem('baghdad_users', JSON.stringify(users));
+        localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+        localStorage.setItem('baghdad_conversations', JSON.stringify(conversations));
+    }
+
+    // ========== المنشورات ==========
     function loadPosts() {
         const container = document.getElementById('posts-feed');
         if (!container) return;
@@ -165,13 +287,13 @@
             `;
             div.querySelector('.like-btn').onclick = () => {
                 post.likes = (post.likes || 0) + 1;
-                localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+                saveAll();
                 loadPosts();
             };
             if (post.username === currentUser?.username) {
                 div.querySelector('.delete-btn').onclick = () => {
                     posts = posts.filter(p => p.id !== post.id);
-                    localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+                    saveAll();
                     loadPosts();
                 };
             }
@@ -179,6 +301,183 @@
         });
     }
 
+    // ========== المستخدمون ==========
+    function loadUsers() {
+        const container = document.getElementById('users-list');
+        if (!container) return;
+        container.innerHTML = '';
+        const otherUsers = Object.keys(users).filter(u => u !== currentUser.username);
+        if (otherUsers.length === 0) {
+            container.innerHTML = '<div class="empty">لا يوجد مستخدمون آخرون</div>';
+            return;
+        }
+        otherUsers.forEach(username => {
+            const user = users[username];
+            const isFriend = currentUser.friends?.includes(username);
+            const hasRequest = currentUser.requests?.includes(username);
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.innerHTML = `
+                <div>
+                    <strong>${escapeHtml(user.displayName)}</strong>
+                    ${isFriend ? '<span class="friend-badge">صديق</span>' : ''}
+                    ${hasRequest ? '<span class="request-badge">طلب وارد</span>' : ''}
+                    <br><small>@${escapeHtml(username)}</small>
+                </div>
+                <div>
+                    ${!isFriend && !hasRequest ? `<button class="add-friend" data-user="${username}">➕ إضافة</button>` : ''}
+                    ${hasRequest ? `<button class="accept" data-user="${username}">✅ قبول</button> <button class="reject" data-user="${username}">❌ رفض</button>` : ''}
+                    ${isFriend ? `<button class="chat-btn" data-user="${username}">💬 دردشة</button>` : ''}
+                </div>
+            `;
+            div.querySelector('.add-friend')?.addEventListener('click', () => addFriend(username));
+            div.querySelector('.accept')?.addEventListener('click', () => acceptFriend(username));
+            div.querySelector('.reject')?.addEventListener('click', () => rejectFriend(username));
+            div.querySelector('.chat-btn')?.addEventListener('click', () => openChat(username));
+            container.appendChild(div);
+        });
+    }
+
+    function addFriend(toUser) {
+        if (!users[toUser]) return;
+        if (!users[toUser].requests) users[toUser].requests = [];
+        if (!users[toUser].requests.includes(currentUser.username)) {
+            users[toUser].requests.push(currentUser.username);
+            saveAll();
+            loadUsers();
+            if (document.getElementById('requests-page').classList.contains('active')) loadRequests();
+        }
+    }
+
+    function acceptFriend(fromUser) {
+        if (!currentUser.requests) currentUser.requests = [];
+        currentUser.requests = currentUser.requests.filter(u => u !== fromUser);
+        if (!currentUser.friends) currentUser.friends = [];
+        if (!currentUser.friends.includes(fromUser)) currentUser.friends.push(fromUser);
+        if (!users[fromUser].friends) users[fromUser].friends = [];
+        if (!users[fromUser].friends.includes(currentUser.username)) users[fromUser].friends.push(currentUser.username);
+        saveAll();
+        loadUsers();
+        loadRequests();
+        loadChats();
+    }
+
+    function rejectFriend(fromUser) {
+        if (currentUser.requests) {
+            currentUser.requests = currentUser.requests.filter(u => u !== fromUser);
+            saveAll();
+            loadUsers();
+            loadRequests();
+        }
+    }
+
+    // ========== الطلبات ==========
+    function loadRequests() {
+        const container = document.getElementById('requests-list');
+        if (!container) return;
+        container.innerHTML = '';
+        const requests = currentUser.requests || [];
+        if (requests.length === 0) {
+            container.innerHTML = '<div class="empty">لا توجد طلبات</div>';
+            return;
+        }
+        requests.forEach(req => {
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.innerHTML = `
+                <div><strong>${escapeHtml(users[req]?.displayName || req)}</strong><br><small>@${escapeHtml(req)}</small></div>
+                <div>
+                    <button class="accept" data-user="${req}">✅ قبول</button>
+                    <button class="reject" data-user="${req}">❌ رفض</button>
+                </div>
+            `;
+            div.querySelector('.accept').onclick = () => acceptFriend(req);
+            div.querySelector('.reject').onclick = () => rejectFriend(req);
+            container.appendChild(div);
+        });
+    }
+
+    // ========== الدردشات ==========
+    function loadChats() {
+        const container = document.getElementById('chats-list');
+        if (!container) return;
+        container.innerHTML = '';
+        const friends = currentUser.friends || [];
+        if (friends.length === 0) {
+            container.innerHTML = '<div class="empty">لا توجد محادثات</div>';
+            return;
+        }
+        friends.forEach(friend => {
+            const roomId = [currentUser.username, friend].sort().join('-');
+            const lastMsg = conversations[roomId]?.length ? conversations[roomId][conversations[roomId].length-1] : null;
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.innerHTML = `
+                <div><strong>${escapeHtml(users[friend]?.displayName || friend)}</strong><br><small>@${escapeHtml(friend)}</small></div>
+                <div><button class="chat-btn" data-user="${friend}">💬 دردشة</button></div>
+            `;
+            div.querySelector('.chat-btn').onclick = () => openChat(friend);
+            container.appendChild(div);
+        });
+    }
+
+    // ========== الدردشة ==========
+    function openChat(username) {
+        if (!currentUser.friends?.includes(username)) return;
+        currentChatWith = username;
+        document.querySelector('.main-content').style.display = 'none';
+        document.querySelector('.tabs').style.display = 'none';
+        document.getElementById('chat-window').style.display = 'flex';
+        document.getElementById('chat-with-name').textContent = users[username]?.displayName || username;
+        const roomId = [currentUser.username, username].sort().join('-');
+        const msgs = conversations[roomId] || [];
+        const msgsDiv = document.getElementById('chat-messages');
+        msgsDiv.innerHTML = '';
+        msgs.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'msg ' + (m.from === currentUser.username ? 'own' : '');
+            div.innerHTML = `<div class="bubble">${escapeHtml(m.message)}</div><div class="msg-time">${m.time || ''}</div>`;
+            msgsDiv.appendChild(div);
+        });
+        msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg || !currentChatWith) return;
+        const roomId = [currentUser.username, currentChatWith].sort().join('-');
+        if (!conversations[roomId]) conversations[roomId] = [];
+        conversations[roomId].push({
+            from: currentUser.username,
+            message: msg,
+            time: new Date().toLocaleTimeString()
+        });
+        saveAll();
+        addMessageToChat(msg, true);
+        input.value = '';
+    }
+
+    function addMessageToChat(msg, isOwn) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + (isOwn ? 'own' : '');
+        div.innerHTML = `<div class="bubble">${escapeHtml(msg)}</div><div class="msg-time">${new Date().toLocaleTimeString()}</div>`;
+        document.getElementById('chat-messages').appendChild(div);
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+    }
+
+    // ========== تبديل التبويبات ==========
+    function switchTab(tabId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(`${tabId}-page`).classList.add('active');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+        if (tabId === 'users') loadUsers();
+        if (tabId === 'requests') loadRequests();
+        if (tabId === 'chats') loadChats();
+    }
+
+    // ========== تسجيل الدخول ==========
     document.getElementById('login-btn').onclick = () => {
         const username = document.getElementById('username').value.trim().toLowerCase();
         const password = document.getElementById('password').value.trim();
@@ -198,9 +497,11 @@
             users[username] = { 
                 password: password, 
                 displayName: displayName || username,
-                isAdmin: username === '3tx'
+                isAdmin: username === '3tx',
+                friends: [],
+                requests: []
             };
-            localStorage.setItem('baghdad_users', JSON.stringify(users));
+            saveAll();
             successDiv.textContent = `✅ تم تسجيل حساب جديد! مرحباً ${users[username].displayName}`;
         } else if (users[username].password !== password) {
             errorDiv.textContent = '❌ كلمة السر غير صحيحة';
@@ -209,11 +510,22 @@
             successDiv.textContent = `✅ مرحباً ${users[username].displayName}`;
         }
         
-        currentUser = { username, displayName: users[username].displayName, isAdmin: users[username].isAdmin };
+        currentUser = { 
+            username, 
+            displayName: users[username].displayName, 
+            isAdmin: users[username].isAdmin,
+            friends: users[username].friends || [],
+            requests: users[username].requests || []
+        };
         document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('user-badge').innerHTML = `👤 ${currentUser.displayName} @${currentUser.username}${currentUser.isAdmin ? ' 👑' : ''}`;
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('user-name').textContent = currentUser.displayName;
+        document.getElementById('user-username').textContent = `@${currentUser.username}`;
         loadPosts();
+        loadUsers();
+        loadRequests();
+        loadChats();
+        switchTab('posts');
     };
 
     document.getElementById('logout-btn').onclick = () => {
@@ -236,11 +548,26 @@
                 time: new Date().toISOString(),
                 likes: 0
             });
-            localStorage.setItem('baghdad_posts', JSON.stringify(posts));
+            saveAll();
             document.getElementById('post-text').value = '';
             loadPosts();
         }
     };
+
+    document.getElementById('chat-back').onclick = () => {
+        document.getElementById('chat-window').style.display = 'none';
+        document.querySelector('.main-content').style.display = 'block';
+        document.querySelector('.tabs').style.display = 'flex';
+        currentChatWith = null;
+        loadChats();
+        switchTab('chats');
+    };
+
+    document.getElementById('send-msg').onclick = sendMessage;
+    document.getElementById('chat-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => switchTab(tab.dataset.tab);
+    });
 </script>
 </body>
-</html>
+    </html>
