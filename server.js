@@ -12,26 +12,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 const users = {};
 let posts = [];
 
-// منشور تجريبي
-posts.push({
-    id: 1,
-    username: '3tx',
-    displayName: 'أبو علي',
-    text: 'مرحباً بالجميع في بغداد لايف! 🎉',
-    time: new Date().toISOString(),
-    likes: 5
-});
+// لا يوجد منشورات تجريبية - تبدأ فارغة
 
 io.on('connection', (socket) => {
     let currentUser = null;
 
     socket.on('login', (data) => {
-        const { username, password, displayName } = data;
+        const { username, password, displayName, avatar } = data;
         
         if (!users[username]) {
             users[username] = {
                 password: password,
                 displayName: displayName || username,
+                avatar: avatar || '👤',
                 friends: [],
                 requests: [],
                 socketId: socket.id
@@ -48,17 +41,20 @@ io.on('connection', (socket) => {
         socket.emit('login-success', {
             username: username,
             displayName: users[username].displayName,
+            avatar: users[username].avatar,
             friends: users[username].friends,
             requests: users[username].requests,
             posts: posts,
             users: Object.keys(users).map(u => ({
                 username: u,
-                displayName: users[u].displayName
+                displayName: users[u].displayName,
+                avatar: users[u].avatar || '👤'
             }))
         });
+        
+        socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
-    // إرسال طلب صداقة
     socket.on('add-friend', (toUsername) => {
         if (!currentUser) return;
         const target = users[toUsername];
@@ -69,12 +65,12 @@ io.on('connection', (socket) => {
             target.requests.push(currentUser);
             io.to(target.socketId).emit('new-request', {
                 from: currentUser,
-                fromName: users[currentUser].displayName
+                fromName: users[currentUser].displayName,
+                count: target.requests.length
             });
         }
     });
     
-    // قبول طلب صداقة
     socket.on('accept-friend', (fromUsername) => {
         if (!currentUser) return;
         const current = users[currentUser];
@@ -88,13 +84,11 @@ io.on('connection', (socket) => {
         io.to(from.socketId).emit('request-accepted', { from: currentUser, fromName: current.displayName });
     });
     
-    // رفض طلب صداقة
     socket.on('reject-friend', (fromUsername) => {
         if (!currentUser) return;
         users[currentUser].requests = users[currentUser].requests.filter(u => u !== fromUsername);
     });
     
-    // رسالة خاصة
     socket.on('private-message', (data) => {
         if (!currentUser) return;
         const { to, message } = data;
@@ -109,13 +103,13 @@ io.on('connection', (socket) => {
         }
     });
     
-    // منشور جديد
     socket.on('new-post', (data) => {
         if (!currentUser) return;
         posts.unshift({
             id: Date.now(),
             username: currentUser,
             displayName: users[currentUser].displayName,
+            avatar: users[currentUser].avatar || '👤',
             text: data.text,
             time: new Date().toISOString(),
             likes: 0
@@ -136,8 +130,19 @@ io.on('connection', (socket) => {
         }
     });
     
-    socket.on('disconnect', () => {});
+    socket.on('update-profile', (data) => {
+        if (!currentUser) return;
+        if (data.displayName) users[currentUser].displayName = data.displayName;
+        if (data.avatar) users[currentUser].avatar = data.avatar;
+        io.emit('profile-updated', { username: currentUser, displayName: users[currentUser].displayName, avatar: users[currentUser].avatar });
+    });
+    
+    socket.on('disconnect', () => {
+        if (currentUser && users[currentUser]) {
+            io.emit('user-offline', { username: currentUser });
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`✅ بغداد لايف شغال`));
+server.listen(PORT, () => console.log(`✅ دردشة بغداد شغالة`));
