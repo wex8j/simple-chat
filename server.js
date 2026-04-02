@@ -253,7 +253,6 @@ io.on('connection', (socket) => {
         broadcastUsers();
     });
     
-    // صلاحيات المشرف
     socket.on('ban-user', (targetUsername) => {
         if (!currentUser || !users[currentUser]?.isAdmin) return;
         if (!bannedUsers.includes(targetUsername)) {
