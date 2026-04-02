@@ -52,6 +52,11 @@ io.on('connection', (socket) => {
             }))
         });
         
+        // رسالة الترحيب
+        socket.emit('welcome-message', {
+            text: '✨ هلا بيكم في دردشة بغداد لايف - نرجو من المستخدمين الالتزام بالاحترام ✨'
+        });
+        
         socket.broadcast.emit('user-online', { username, displayName: users[username].displayName });
     });
     
